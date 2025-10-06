@@ -33,8 +33,8 @@ import java.time.format.DateTimeFormatter
 fun LevelUpFechaNacimientoField(
     fechaNacimiento: String,                    // Valor de la fecha actual (lo muestra el campo)
     onFechaNacimientoChange: (String) -> Unit,  // Callback para actualizar la fecha al seleccionar
-    colors: TextFieldColors = levelUpTextFieldColors(), // Colores personalizados (helper de LevelUp)
     isError: Boolean = false,                   // Indica si el campo está en estado de error
+    isSuccess: Boolean = false,                 // Indica si el campo está en estado de éxito
     supportingText: (@Composable (() -> Unit))? = null, // Mensaje de ayuda o error debajo del campo
     modifier: Modifier = Modifier                        // Modificador para personalizar el campo (por ej. ancho)
 ) {
@@ -45,7 +45,7 @@ fun LevelUpFechaNacimientoField(
     OutlinedTextField(
         value = fechaNacimiento,                // Muestra la fecha actual
         onValueChange = {},                     // Deshabilitado, solo se cambia por el DatePicker
-        colors = colors,                        // Aplica los colores personalizados
+        colors = levelUpTextFieldColors(isSuccess = isSuccess),                        // Aplica los colores personalizados
         label = { Text("Fecha de Nacimiento") },// Etiqueta del campo
         isError = isError,                      // Marca el campo como error si corresponde
         readOnly = true,

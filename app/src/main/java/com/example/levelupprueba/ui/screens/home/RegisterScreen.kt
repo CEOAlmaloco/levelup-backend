@@ -16,6 +16,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
 import com.example.levelupprueba.model.registro.RegistroUiState
+import com.example.levelupprueba.model.usuario.isSuccess
 import com.example.levelupprueba.ui.components.dialogs.LevelUpAlertDialog
 import com.example.levelupprueba.ui.components.buttons.LevelUpButton
 import com.example.levelupprueba.ui.components.inputs.LevelUpFechaNacimientoField
@@ -92,6 +93,7 @@ fun RegisterScreen(
                     onValueChange = viewModel::onNombreChange,
                     label = "Nombre",
                     isError = estado.nombre.error != null,
+                    isSuccess = estado.nombre.isSuccess,
                     supportingText = errorSupportingText(estado.nombre.error)
                 )
             }
@@ -103,6 +105,7 @@ fun RegisterScreen(
                     onValueChange = viewModel::onApellidosChange,
                     label = "Apellidos",
                     isError = estado.apellidos.error != null,
+                    isSuccess = estado.apellidos.isSuccess,
                     supportingText = errorSupportingText(estado.apellidos.error)
                 )
             }
@@ -114,6 +117,7 @@ fun RegisterScreen(
                     onValueChange = viewModel::onEmailChange,
                     label = "Correo Electrónico",
                     isError = estado.email.error != null,
+                    isSuccess = estado.email.isSuccess,
                     supportingText = errorSupportingText(estado.email.error),
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Email
@@ -128,6 +132,7 @@ fun RegisterScreen(
                     onValueChange = viewModel::onPasswordChange,
                     label = "Contraseña",
                     isError = estado.password.error != null,
+                    isSuccess = estado.password.isSuccess,
                     supportingText = errorSupportingText(estado.password.error)
                 )
             }
@@ -139,6 +144,7 @@ fun RegisterScreen(
                     onValueChange = viewModel::onConfirmPasswordChange,
                     label = "Confirmar Contraseña",
                     isError = estado.confirmPassword.error != null,
+                    isSuccess = estado.confirmPassword.isSuccess,
                     supportingText = errorSupportingText(estado.confirmPassword.error)
                 )
             }
@@ -154,6 +160,7 @@ fun RegisterScreen(
                     },
                     label = "Teléfono",
                     isError = estado.telefono.error != null,
+                    isSuccess = estado.telefono.isSuccess,
                     supportingText = errorSupportingText(estado.telefono.error),
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Phone
@@ -165,6 +172,7 @@ fun RegisterScreen(
                     fechaNacimiento = estado.fechaNacimiento.valor,
                     onFechaNacimientoChange = { viewModel.onFechaNacimientoChange(it) },
                     isError = estado.fechaNacimiento.error != null,
+                    isSuccess = estado.fechaNacimiento.isSuccess,
                     supportingText = errorSupportingText(estado.fechaNacimiento.error)
                 )
             }
@@ -176,6 +184,7 @@ fun RegisterScreen(
                     onValueChange = viewModel::onRegionChange,
                     label = "Región",
                     isError = estado.region.error != null,
+                    isSuccess = estado.region.isSuccess,
                     supportingText = errorSupportingText(estado.region.error)
                 )
             }
@@ -187,6 +196,7 @@ fun RegisterScreen(
                     onValueChange = viewModel::onComunaChange,
                     label = "Comuna",
                     isError = estado.comuna.error != null,
+                    isSuccess = estado.comuna.isSuccess,
                     supportingText = errorSupportingText(estado.comuna.error)
                 )
             }
@@ -198,6 +208,7 @@ fun RegisterScreen(
                     onValueChange = viewModel::onDireccionChange,
                     label = "Dirección",
                     isError = estado.direccion.error != null,
+                    isSuccess = estado.direccion.isSuccess,
                     supportingText = errorSupportingText(estado.direccion.error)
                 )
             }
