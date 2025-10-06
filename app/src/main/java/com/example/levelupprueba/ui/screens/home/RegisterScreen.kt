@@ -19,6 +19,7 @@ import com.example.levelupprueba.model.registro.RegistroUiState
 import com.example.levelupprueba.model.usuario.isSuccess
 import com.example.levelupprueba.ui.components.dialogs.LevelUpAlertDialog
 import com.example.levelupprueba.ui.components.buttons.LevelUpButton
+import com.example.levelupprueba.ui.components.dropdown.LevelUpDropdownMenu
 import com.example.levelupprueba.ui.components.inputs.LevelUpFechaNacimientoField
 import com.example.levelupprueba.ui.components.overlays.LevelUpLoadingOverlay
 import com.example.levelupprueba.ui.components.inputs.LevelUpPasswordField
@@ -27,6 +28,7 @@ import com.example.levelupprueba.ui.components.inputs.LevelUpTextField
 import com.example.levelupprueba.ui.components.inputs.errorSupportingText
 import com.example.levelupprueba.viewmodel.UsuarioViewModel
 import com.example.levelupprueba.ui.theme.LocalDimens
+import com.example.levelupprueba.viewmodel.UbicacionViewModel
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -34,7 +36,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun RegisterScreen(
     navController: NavController,
-    viewModel: UsuarioViewModel
+    viewModel: UsuarioViewModel,
+    ubicacionViewModel: UbicacionViewModel
 ){
     // Observa el estado del formulario y errores en tiempo real desde el ViewModel
     val estado by viewModel.estado.collectAsState()
@@ -51,17 +54,21 @@ fun RegisterScreen(
         derivedStateOf { viewModel.puedeRegistrar() }
     }
 
+    LaunchedEffect(Unit) {
+        ubicacionViewModel.cargarRegiones()
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .imePadding(),                  // Padding para teclado
     ) {
         //Usamos lazy column que es scrolleable por defecto
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()                   // Ocupa toda la pantalla disponible
-                .navigationBarsPadding()         // Padding para la barra de navegación
-                .imePadding(),                  // Padding para teclado
+                .navigationBarsPadding(),         // Padding para la barra de navegación
             contentPadding = PaddingValues(dimens.screenPadding),
             verticalArrangement = Arrangement.spacedBy(dimens.fieldSpacing) // Centra los elementos verticalmente
         ) {
@@ -158,7 +165,7 @@ fun RegisterScreen(
                             viewModel.onTelefonoChange(nuevoNumero)
                         }
                     },
-                    label = "Teléfono",
+                    label = "Teléfono (Opcional)",
                     isError = estado.telefono.error != null,
                     isSuccess = estado.telefono.isSuccess,
                     supportingText = errorSupportingText(estado.telefono.error),
@@ -179,34 +186,28 @@ fun RegisterScreen(
 
             item {
                 // Campo región
-                LevelUpTextField(
-                    value = estado.region.valor,
-                    onValueChange = viewModel::onRegionChange,
+                LevelUpDropdownMenu(
                     label = "Región",
+                    options = ubicacionViewModel.regiones.map { it.nombre },
+                    selectedOption = estado.region.valor,
+                    onOptionSelected = { nombre ->
+                        val region = ubicacionViewModel.regiones.find { it.nombre == nombre }
+                        viewModel.onRegionChange(nombre)
+                        viewModel.onComunaChange("")
+                        if (region != null) ubicacionViewModel.cargarComunas(region.codigo)
+                    },
                     isError = estado.region.error != null,
-                    isSuccess = estado.region.isSuccess,
                     supportingText = errorSupportingText(estado.region.error)
                 )
             }
 
-            item {
-                // Campo comuna
-                LevelUpTextField(
-                    value = estado.comuna.valor,
-                    onValueChange = viewModel::onComunaChange,
-                    label = "Comuna",
-                    isError = estado.comuna.error != null,
-                    isSuccess = estado.comuna.isSuccess,
-                    supportingText = errorSupportingText(estado.comuna.error)
-                )
-            }
 
             item {
                 // Campo dirección
                 LevelUpTextField(
                     value = estado.direccion.valor,
                     onValueChange = viewModel::onDireccionChange,
-                    label = "Dirección",
+                    label = "Dirección (Opcional)",
                     isError = estado.direccion.error != null,
                     isSuccess = estado.direccion.isSuccess,
                     supportingText = errorSupportingText(estado.direccion.error)
