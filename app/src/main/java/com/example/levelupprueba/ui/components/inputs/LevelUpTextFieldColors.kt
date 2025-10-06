@@ -9,19 +9,19 @@ import com.example.levelupprueba.ui.theme.SemanticColors
 import com.example.levelupprueba.ui.theme.TextDisabled
 
 @Composable
-fun levelUpTextFieldColors(): TextFieldColors = OutlinedTextFieldDefaults.colors(
+fun levelUpTextFieldColors(isSuccess: Boolean = false): TextFieldColors = OutlinedTextFieldDefaults.colors(
     focusedTextColor = MaterialTheme.colorScheme.onPrimary,
     unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
     disabledTextColor = TextDisabled,
     errorTextColor = SemanticColors.Error,
 
     focusedBorderColor = SemanticColors.AccentBlue,
-    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+    unfocusedBorderColor = if (isSuccess) SemanticColors.Success else MaterialTheme.colorScheme.outline,
     errorBorderColor = SemanticColors.Error,
 
 
     focusedLabelColor = SemanticColors.AccentBlue,
-    unfocusedLabelColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedLabelColor = if (isSuccess) SemanticColors.Success else MaterialTheme.colorScheme.onSurface,
     errorLabelColor = SemanticColors.Error,
 
     cursorColor = SemanticColors.AccentBlue,

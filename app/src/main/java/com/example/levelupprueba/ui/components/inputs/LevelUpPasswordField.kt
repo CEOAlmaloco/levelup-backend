@@ -24,6 +24,7 @@ fun LevelUpPasswordField(
     onValueChange: (String) -> Unit,
     label: String,
     isError: Boolean = false,
+    isSuccess: Boolean = false,
     supportingText: (@Composable (() -> Unit))? = null,
     singleLine: Boolean = true,
     modifier: Modifier = Modifier
@@ -33,7 +34,7 @@ fun LevelUpPasswordField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        colors = levelUpTextFieldColors(),
+        colors = levelUpTextFieldColors(isSuccess = isSuccess),
         label = { Text(label) },
         isError = isError,
         //Esto define como se muestra visualmente el texto escrito.
