@@ -1,8 +1,8 @@
 package com.example.levelupprueba.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.example.levelupprueba.model.LoginErrores
-import com.example.levelupprueba.model.LoginUiState
+import com.example.levelupprueba.model.auth.LoginErrores
+import com.example.levelupprueba.model.auth.LoginUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update

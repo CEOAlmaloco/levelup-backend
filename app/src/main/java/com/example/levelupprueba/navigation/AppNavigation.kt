@@ -1,5 +1,7 @@
 package com.example.levelupprueba.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
@@ -8,6 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.levelupprueba.ui.screens.home.RegisterScreen
 import com.example.levelupprueba.viewmodel.UsuarioViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavigation(){
     val navController = rememberNavController()

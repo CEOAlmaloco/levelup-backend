@@ -1,4 +1,4 @@
-package com.example.levelupprueba.model
+package com.example.levelupprueba.model.auth
 
 // Modelo que representa el estado actual del formulario de login en la UI
 data class LoginUiState(
