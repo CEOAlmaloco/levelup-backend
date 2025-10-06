@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.levelupprueba.ui.screens.home.RegisterScreen
+import com.example.levelupprueba.viewmodel.UbicacionViewModel
 import com.example.levelupprueba.viewmodel.UsuarioViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -17,12 +18,14 @@ fun AppNavigation(){
 
     val usuarioViewModel: UsuarioViewModel = viewModel()
 
+    val ubicacionViewModel: UbicacionViewModel = viewModel()
+
     NavHost(
         navController = navController,
         startDestination = "registro"
     ) {
         composable("registro"){
-            RegisterScreen(navController, usuarioViewModel)
+            RegisterScreen(navController, usuarioViewModel, ubicacionViewModel)
         }
     }
 }
