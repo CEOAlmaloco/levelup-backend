@@ -1,141 +1,241 @@
 package com.example.levelupprueba.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.example.levelupprueba.model.RegistroUiEstado
-import com.example.levelupprueba.model.UsuarioErrores
-import com.example.levelupprueba.model.UsuarioUiState
+import androidx.lifecycle.viewModelScope
+import com.example.levelupprueba.model.registro.RegistroUiState
+import com.example.levelupprueba.model.usuario.UsuarioCampo
+import com.example.levelupprueba.model.usuario.UsuarioUiState
+import com.example.levelupprueba.model.usuario.UsuarioValidator
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class UsuarioViewModel: ViewModel() {
 
-    //Estado interno mutable
+    // Estado interno mutable
     private val _estado = MutableStateFlow(UsuarioUiState())
     // Estado expuesto para la UI
     val estado: StateFlow<UsuarioUiState> = _estado
 
     // Estado del proceso de registro (Loading, success, error)
-    private val _registroEstado = MutableStateFlow<RegistroUiEstado>(RegistroUiEstado.Idle)
-    val registroEstado: StateFlow<RegistroUiEstado> = _registroEstado
+    private val _registroEstado = MutableStateFlow<RegistroUiState>(RegistroUiState.Idle)
+    val registroEstado: StateFlow<RegistroUiState> = _registroEstado
 
-    //Actualiza el campo nombre y limpia su error
-    fun onNombreChange(valor: String){
-        _estado.update { it.copy(nombre = valor, errores = it.errores.copy(nombre = null)) }
+    /**
+     * Helper para actualizar el estado de un campo evitando repetición de código.
+     */
+    private fun actualizarCampo(
+        update: (UsuarioUiState) -> UsuarioUiState
+    ) {
+        _estado.update { update(it) }
     }
 
-    //Actualiza el campo apellidos y limpia su error
-    fun onApellidosChange(valor: String){
-        _estado.update { it.copy(apellidos = valor, errores = it.errores.copy(apellidos = null)) }
+    // Cambios de valor
+
+    // Actualiza el campo nombre y valida en tiempo real
+    fun onNombreChange(valor: String) = actualizarCampo {
+        it.copy(
+            nombre = it.nombre.copy(
+                valor = valor,
+                error = UsuarioValidator.validarNombre(valor)
+            )
+        )
     }
 
-    //Actualiza el campo email y limpia su error
-    fun onEmailChange(valor: String){
-        _estado.update { it.copy(email = valor, errores = it.errores.copy(email = null)) }
+    // Actualiza el campo apellidos y valida en tiempo real
+    fun onApellidosChange(valor: String) = actualizarCampo {
+        it.copy(
+            apellidos = it.apellidos.copy(
+                valor = valor,
+                error = UsuarioValidator.validarApellidos(valor)
+            )
+        )
     }
 
-    //Actualiza el campo password y limpia su error
-    fun onPasswordChange(valor: String){
-        _estado.update { it.copy(password = valor, errores = it.errores.copy(password = null)) }
+
+    // Actualiza el campo email y valida en tiempo real
+    fun onEmailChange(valor: String) = actualizarCampo {
+        it.copy(
+            email = it.email.copy(
+                valor = valor,
+                error = UsuarioValidator.validarEmail(valor)
+            )
+        )
     }
 
-    fun onConfirmPasswordChange(valor: String){
-        _estado.update { it.copy(confirmPassword = valor, errores = it.errores.copy(confirmPassword = null)) }
+    // Actualiza el campo password y valida en tiempo real
+    fun onPasswordChange(valor: String) = actualizarCampo {
+        it.copy(
+            password = it.password.copy(
+                valor = valor,
+                error = UsuarioValidator.validarPassword(valor)
+            ),
+            confirmPassword = it.confirmPassword.copy(
+                error = UsuarioValidator.validarConfirmPassword(valor, it.confirmPassword.valor)
+            )
+        )
     }
 
-    //Actualiza el campo telefono y limpia su error
-    fun onTelefonoChange(valor: String){
-        _estado.update { it.copy(telefono = valor, errores = it.errores.copy(telefono = null)) }
+    // Actualiza el campo confirmPassword y valida contra la contraseña actual
+    fun onConfirmPasswordChange(valor: String) = actualizarCampo {
+        it.copy(
+            confirmPassword = it.confirmPassword.copy(
+                valor = valor,
+                error = UsuarioValidator.validarConfirmPassword(it.password.valor, valor)
+            )
+        )
     }
 
-    //Actualiza el campo fechaNacimiento y limpia su error
-    fun onFechaNacimientoChange(valor: String){
-        _estado.update { it.copy(fechaNacimiento = valor, errores = it.errores.copy(fechaNacimiento = null)) }
+    // Actualiza el campo telefono y valida en tiempo real
+    fun onTelefonoChange(valor: String) = actualizarCampo {
+        it.copy(
+            telefono = it.telefono.copy(
+                valor = valor,
+                error = UsuarioValidator.validarTelefono(valor)
+            )
+        )
     }
 
-    //Actualiza el campo region y limpia su error
-    fun onRegionChange(valor: String){
-        _estado.update { it.copy(region = valor, errores = it.errores.copy(region = null)) }
+    // Actualiza el campo fechaNacimiento y valida en tiempo real
+    fun onFechaNacimientoChange(valor: String) = actualizarCampo {
+        it.copy(
+            fechaNacimiento = it.fechaNacimiento.copy(
+                valor = valor,
+                error = UsuarioValidator.validarFechaNacimiento(valor)
+            )
+        )
     }
 
-    //Actualiza el campo comuna y limpia su error
-    fun onComunaChange(valor: String){
-        _estado.update { it.copy(comuna = valor, errores = it.errores.copy(comuna = null)) }
+    // Actualiza el campo región y valida en tiempo real
+    fun onRegionChange(valor: String) = actualizarCampo {
+        it.copy(
+            region = it.region.copy(
+                valor = valor,
+                error = UsuarioValidator.validarRegion(valor)
+            )
+        )
     }
 
-    //Actualiza el campo direccion y limpia su error
-    fun onDireccionChange(valor: String){
-        _estado.update { it.copy(direccion = valor, errores = it.errores.copy(direccion = null)) }
+    // Actualiza el campo comuna y valida en tiempo real
+    fun onComunaChange(valor: String) = actualizarCampo {
+        it.copy(
+            comuna = it.comuna.copy(
+                valor = valor,
+                error = UsuarioValidator.validarComuna(valor)
+            )
+        )
     }
 
-    //Actualiza el campo terminos y limpia su error
-    fun onTerminosChange(valor: Boolean){
-        _estado.update { it.copy(terminos = valor, errores = it.errores.copy(terminos = null)) }
+    // Actualiza el campo dirección y valida en tiempo real
+    fun onDireccionChange(valor: String) = actualizarCampo {
+        it.copy(
+            direccion = it.direccion.copy(
+                valor = valor,
+                error = UsuarioValidator.validarDireccion(valor)
+            )
+        )
     }
 
+
+    // Actualiza el campo términos y valida en tiempo real
+    fun onTerminosChange(valor: Boolean) = actualizarCampo {
+        it.copy(
+            terminos = it.terminos.copy(
+                valor = valor.toString(), // Si quieres guardar como String, si no, cambia UsuarioCampo a Boolean para valor
+                error = UsuarioValidator.validarTerminos(valor)
+            )
+        )
+    }
+
+    /**
+     * Validaciones del formulario completo.
+     * Devuelve true si el formulario es válido.
+     */
     fun validarRegistro(): Boolean {
         val estadoActual = _estado.value
-        val errores = UsuarioErrores(
-            nombre = if (estadoActual.nombre.isBlank()) "El nombre es obligatorio" else null,
-            apellidos = if (estadoActual.apellidos.isBlank()) "Los apellidos son obligatorios" else null,
-            email = when {
-                estadoActual.email.isBlank() -> "El email es obligatorio"
-                !estadoActual.email.contains("@") -> "Correo invalido"
-                else -> null
-            },
-            password = if (estadoActual.password.length < 4 || estadoActual.password.length > 10) "La contraseña debe tener entre 4 y 10 caracteres" else null,
-            confirmPassword = if (estadoActual.confirmPassword != estadoActual.password) "Las contraseñas no coinciden" else null,
-            telefono = when {
-                estadoActual.telefono.isBlank() -> null //Opcional
-                !estadoActual.telefono.all { it.isDigit() } -> "El teléfono solo debe contener números"
-                estadoActual.telefono.length < 9 -> "El teléfono debe tener al menos 9 dígitos"
-                else -> null
-            },
-            fechaNacimiento = if (estadoActual.fechaNacimiento.isBlank()) "La fecha de nacimiento es obligatoria" else null,
-            region = if (estadoActual.region.isBlank()) "La region es obligatoria" else null,
-            comuna = if (estadoActual.comuna.isBlank()) "La comuna es obligatoria" else null,
-            direccion = when {
-                estadoActual.direccion.isBlank() -> null // Es opcional
-                estadoActual.direccion.length > 300 -> "La dirección no puede tener más de 300 caracteres"
-                else -> null
-            },
-            terminos = if (!estadoActual.terminos) "Debes aceptar los terminos" else null
+
+        // Valida todos los campos y actualiza errores
+        val nuevoEstado = estadoActual.copy(
+            nombre = estadoActual.nombre.copy(error = UsuarioValidator.validarNombre(estadoActual.nombre.valor)),
+            apellidos = estadoActual.apellidos.copy(error = UsuarioValidator.validarApellidos(estadoActual.apellidos.valor)),
+            email = estadoActual.email.copy(error = UsuarioValidator.validarEmail(estadoActual.email.valor)),
+            password = estadoActual.password.copy(error = UsuarioValidator.validarPassword(estadoActual.password.valor)),
+            confirmPassword = estadoActual.confirmPassword.copy(
+                error = UsuarioValidator.validarConfirmPassword(
+                    estadoActual.password.valor,
+                    estadoActual.confirmPassword.valor
+                )
+            ),
+            telefono = estadoActual.telefono.copy(error = UsuarioValidator.validarTelefono(estadoActual.telefono.valor)),
+            fechaNacimiento = estadoActual.fechaNacimiento.copy(error = UsuarioValidator.validarFechaNacimiento(estadoActual.fechaNacimiento.valor)),
+            region = estadoActual.region.copy(error = UsuarioValidator.validarRegion(estadoActual.region.valor)),
+            comuna = estadoActual.comuna.copy(error = UsuarioValidator.validarComuna(estadoActual.comuna.valor)),
+            direccion = estadoActual.direccion.copy(error = UsuarioValidator.validarDireccion(estadoActual.direccion.valor)),
+            terminos = estadoActual.terminos.copy(error = UsuarioValidator.validarTerminos(estadoActual.terminos.valor == "true"))
         )
 
-        val hayErrores = listOfNotNull(
-            errores.nombre,
-            errores.apellidos,
-            errores.email,
-            errores.password,
-            errores.confirmPassword,
-            errores.telefono,
-            errores.fechaNacimiento,
-            errores.region,
-            errores.comuna,
-            errores.direccion,
-            errores.terminos
-        ).isNotEmpty()
+        _estado.value = nuevoEstado
 
-        _estado.update { it.copy(errores = errores) }
+        // Si algún campo tiene error, el registro no es válido
+        val hayErrores = listOf(
+            nuevoEstado.nombre.error,
+            nuevoEstado.apellidos.error,
+            nuevoEstado.email.error,
+            nuevoEstado.password.error,
+            nuevoEstado.confirmPassword.error,
+            nuevoEstado.telefono.error,
+            nuevoEstado.fechaNacimiento.error,
+            nuevoEstado.region.error,
+            nuevoEstado.comuna.error,
+            nuevoEstado.direccion.error,
+            nuevoEstado.terminos.error
+        ).any { it != null }
 
         return !hayErrores
     }
 
-    //Simula el proceso de registro con delay utilizando suspend fun y estados
-    suspend fun registrarUsuario(){
-        _registroEstado.value = RegistroUiEstado.Loading
-        try {
-            delay(2000) //Simula 2 segundos de espera
-            //Futura llamada a backend
-            _registroEstado.value = RegistroUiEstado.Success
-        } catch (e: Exception) {
-            _registroEstado.value = RegistroUiEstado.Error("Ocurrio un error: ${e.message}")
+    fun puedeRegistrar(): Boolean {
+        val estadoActual = _estado.value
+
+        val camposObligatorios = listOf(
+            estadoActual.nombre,
+            estadoActual.apellidos,
+            estadoActual.email,
+            estadoActual.password,
+            estadoActual.confirmPassword,
+            estadoActual.fechaNacimiento,
+            estadoActual.region,
+            estadoActual.comuna,
+            estadoActual.terminos
+        )
+
+        val todosLlenos = camposObligatorios.all {
+            it.valor.isNotBlank() && (it != estadoActual.terminos || it.valor == "true")
+        }
+        val sinErrores = camposObligatorios.all { it.error == null }
+
+        return todosLlenos && sinErrores
+    }
+
+    // Simula el proceso de registro con delay utilizando launch y estados
+    // En el futuro aquí se hará la petición HTTP al backend para validar
+    fun registrarUsuario() {
+        viewModelScope.launch {
+            _registroEstado.value = RegistroUiState.Loading
+            try {
+                delay(2000) // simula backend
+                _registroEstado.value = RegistroUiState.Success
+            } catch (e: Exception) {
+                _registroEstado.value = RegistroUiState.Error("Ocurrió un error: ${e.message}")
+            }
         }
     }
 
-    //Permite volver al estado inicial (Despues de mostrar mensaje de exito)
-    fun resetRegistroEstado(){
-        _registroEstado.value = RegistroUiEstado.Idle
+    // Permite volver al estado inicial (después de mostrar mensaje de éxito)
+    fun resetRegistroEstado() {
+        _registroEstado.value = RegistroUiState.Idle
     }
 }

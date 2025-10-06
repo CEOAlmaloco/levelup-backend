@@ -14,42 +14,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalContext
 
-private val LightColorScheme = lightColorScheme(
-    primary = Primary,
-    onPrimary = TextPrimary,
-    primaryContainer = PrimaryVariant,
-    secondary = Secondary,
-    onSecondary = TextSecondary,
-    secondaryContainer = SecondaryVariant,
-    background = Background,
-    onBackground = TextPrimary,
-    surface = Surface,
-    onSurface = TextPrimary,
-    error = Error,
-    onError = TextPrimary,
-    outline = Divider,
-    surfaceVariant = Surface,
-    scrim = Divider
-)
-
-private val DarkColorScheme = darkColorScheme(
-    primary = Primary,
-    onPrimary = TextPrimary,
-    primaryContainer = PrimaryVariant,
-    secondary = Secondary,
-    onSecondary = TextSecondary,
-    secondaryContainer = SecondaryVariant,
-    background = Background,
-    onBackground = TextPrimary,
-    surface = Surface,
-    onSurface = TextPrimary,
-    error = Error,
-    onError = TextPrimary,
-    outline = Divider,
-    surfaceVariant = Surface,
-    scrim = Divider
-)
-
 // CompositionLocal para proveer Dimens a toda la app
 val LocalDimens = staticCompositionLocalOf<Dimens> {
     error("No Dimens Provided")
@@ -79,18 +43,22 @@ fun LevelUpPruebaTheme(
     }
 
     CompositionLocalProvider(LocalDimens provides dimens) {
-        // Selección de paleta de colores según tema y versión de Android
-        val colorScheme = when {
-            dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-                val context = LocalContext.current
-                if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        /**
+         *  Selección de paleta de colores según tema y versión de Android
+         *  En un futuro(? Se implementara tema claro
+         *
+            val colorScheme = when {
+                dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+                    val context = LocalContext.current
+                    if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+                }
+                darkTheme -> DarkColorScheme
+                else -> LightColorScheme
             }
-            darkTheme -> DarkColorScheme
-            else -> LightColorScheme
-        }
+        */
 
         MaterialTheme(
-            colorScheme = colorScheme,
+            colorScheme = DarkColorScheme,
             typography = Typography,
             content = content
         )

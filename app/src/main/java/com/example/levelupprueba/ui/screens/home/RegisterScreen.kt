@@ -1,31 +1,40 @@
 package com.example.levelupprueba.ui.screens.home
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
-import com.example.levelupprueba.model.RegistroUiEstado
+import com.example.levelupprueba.model.registro.RegistroUiState
+import com.example.levelupprueba.ui.components.dialogs.LevelUpAlertDialog
+import com.example.levelupprueba.ui.components.buttons.LevelUpButton
+import com.example.levelupprueba.ui.components.inputs.LevelUpFechaNacimientoField
+import com.example.levelupprueba.ui.components.overlays.LevelUpLoadingOverlay
+import com.example.levelupprueba.ui.components.inputs.LevelUpPasswordField
+import com.example.levelupprueba.ui.components.inputs.LevelUpSwitchField
+import com.example.levelupprueba.ui.components.inputs.LevelUpTextField
+import com.example.levelupprueba.ui.components.inputs.errorSupportingText
 import com.example.levelupprueba.viewmodel.UsuarioViewModel
 import com.example.levelupprueba.ui.theme.LocalDimens
-import com.example.levelupprueba.ui.theme.MenuButton
-import com.example.levelupprueba.ui.theme.levelUpTextFieldColors
 import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun RegisterScreen(
     navController: NavController,
     viewModel: UsuarioViewModel
 ){
-
     // Observa el estado del formulario y errores en tiempo real desde el ViewModel
     val estado by viewModel.estado.collectAsState()
 
@@ -33,285 +42,240 @@ fun RegisterScreen(
     val registroEstado by viewModel.registroEstado.collectAsState()
     val coroutineScope = rememberCoroutineScope()
 
-    // ScrollState para hacer la columna desplazable
-    val scrollState = rememberScrollState()
-
     //Utilizamos las dimensiones de Theme
     val dimens = LocalDimens.current
+
+
+    val puedeRegistrar by remember(estado) {
+        derivedStateOf { viewModel.puedeRegistrar() }
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .imePadding()
     ) {
-        Column(
+        //Usamos lazy column que es scrolleable por defecto
+        LazyColumn(
             modifier = Modifier
-                .padding(dimens.screenPadding)   // Usa padding adaptativo
                 .fillMaxSize()                   // Ocupa toda la pantalla disponible
-                .verticalScroll(scrollState),
-            verticalArrangement = Arrangement.Center // Centra los elementos verticalmente
+                .navigationBarsPadding()         // Padding para la barra de navegación
+                .imePadding(),                  // Padding para teclado
+            contentPadding = PaddingValues(dimens.screenPadding),
+            verticalArrangement = Arrangement.spacedBy(dimens.fieldSpacing) // Centra los elementos verticalmente
         ) {
-            Text(
-                text = "¡Bienvenido a LevelUp-Gamer!",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier
-                    .align(Alignment.Start)
-                    .padding(bottom = dimens.titleSpacing) // Espaciado adaptativo para títulos
-            )
-            Text(
-                text = "Completa tus datos para registrarte",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSecondary,
-                modifier = Modifier
-                    .align(Alignment.Start)
-                    .padding(bottom = dimens.fieldSpacing) // Espaciado adaptativo entre título y campos
-            )
-
-            // Campo nombre
-            OutlinedTextField(
-                value = estado.nombre,
-                onValueChange = viewModel::onNombreChange,
-                colors = levelUpTextFieldColors(),
-                label = { Text("Nombre") },
-                isError = estado.errores.nombre != null,
-                supportingText = {
-                    estado.errores.nombre?.let {
-                        Text(it, color = MaterialTheme.colorScheme.error)
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(dimens.fieldSpacing)) // Espaciado adaptativo entre campos
-
-            // Campo apellidos
-            OutlinedTextField(
-                value = estado.apellidos,
-                onValueChange = viewModel::onApellidosChange,
-                colors = levelUpTextFieldColors(),
-                label = { Text("Apellidos") },
-                isError = estado.errores.apellidos != null,
-                supportingText = {
-                    estado.errores.apellidos?.let {
-                        Text(it, color = MaterialTheme.colorScheme.error)
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(dimens.fieldSpacing))
-
-            // Campo email
-            OutlinedTextField(
-                value = estado.email,
-                onValueChange = viewModel::onEmailChange,
-                colors = levelUpTextFieldColors(),
-                label = { Text("Correo Electrónico") },
-                isError = estado.errores.email != null,
-                supportingText = {
-                    estado.errores.email?.let {
-                        Text(it, color = MaterialTheme.colorScheme.error)
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(dimens.fieldSpacing))
-
-            // Campo password
-            OutlinedTextField(
-                value = estado.password,
-                onValueChange = viewModel::onPasswordChange,
-                colors = levelUpTextFieldColors(),
-                label = { Text("Contraseña") },
-                isError = estado.errores.password != null,
-                supportingText = {
-                    estado.errores.password?.let {
-                        Text(it, color = MaterialTheme.colorScheme.error)
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(dimens.fieldSpacing))
-
-            // Campo confirmPassword
-            OutlinedTextField(
-                value = estado.confirmPassword,
-                onValueChange = viewModel::onConfirmPasswordChange,
-                colors = levelUpTextFieldColors(),
-                label = { Text("Confirmar Contraseña") },
-                isError = estado.errores.confirmPassword != null,
-                supportingText = {
-                    estado.errores.confirmPassword?.let {
-                        Text(it, color = MaterialTheme.colorScheme.error)
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(dimens.fieldSpacing))
-
-            // Campo teléfono
-            OutlinedTextField(
-                value = estado.telefono,
-                onValueChange = viewModel::onTelefonoChange,
-                colors = levelUpTextFieldColors(),
-                label = { Text("Teléfono") },
-                isError = estado.errores.telefono != null,
-                supportingText = {
-                    estado.errores.telefono?.let {
-                        Text(it, color = MaterialTheme.colorScheme.error)
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(dimens.fieldSpacing))
-
-            // Campo fecha de nacimiento
-            OutlinedTextField(
-                value = estado.fechaNacimiento,
-                onValueChange = viewModel::onFechaNacimientoChange,
-                colors = levelUpTextFieldColors(),
-                label = { Text("Fecha de Nacimiento") },
-                isError = estado.errores.fechaNacimiento != null,
-                supportingText = {
-                    estado.errores.fechaNacimiento?.let {
-                        Text(it, color = MaterialTheme.colorScheme.error)
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(dimens.fieldSpacing))
-
-            // Campo región
-            OutlinedTextField(
-                value = estado.region,
-                onValueChange = viewModel::onRegionChange,
-                colors = levelUpTextFieldColors(),
-                label = { Text("Región") },
-                isError = estado.errores.region != null,
-                supportingText = {
-                    estado.errores.region?.let {
-                        Text(it, color = MaterialTheme.colorScheme.error)
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(dimens.fieldSpacing))
-
-            // Campo comuna
-            OutlinedTextField(
-                value = estado.comuna,
-                onValueChange = viewModel::onComunaChange,
-                colors = levelUpTextFieldColors(),
-                label = { Text("Comuna") },
-                isError = estado.errores.comuna != null,
-                supportingText = {
-                    estado.errores.comuna?.let {
-                        Text(it, color = MaterialTheme.colorScheme.error)
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(dimens.fieldSpacing))
-
-            // Campo dirección
-            OutlinedTextField(
-                value = estado.direccion,
-                onValueChange = viewModel::onDireccionChange,
-                colors = levelUpTextFieldColors(),
-                label = { Text("Dirección") },
-                isError = estado.errores.direccion != null,
-                supportingText = {
-                    estado.errores.direccion?.let {
-                        Text(it, color = MaterialTheme.colorScheme.error)
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(dimens.fieldSpacing))
-
-            // Campo aceptar términos con Switch
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Switch(
-                    checked = estado.terminos,
-                    onCheckedChange = viewModel::onTerminosChange
+            item {
+                Text(
+                    text = "¡Bienvenido a LevelUp-Gamer!",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier
+                        .padding(bottom = dimens.titleSpacing), // Espaciado adaptativo para títulos
+                    textAlign = TextAlign.Start // Se alinea al principio del margn
                 )
-                Spacer(Modifier.width(dimens.fieldSpacing)) // Espaciado adaptativo
-                Text("Acepto los términos y condiciones")
             }
-            // Mensaje de error si no acepta los términos
-            estado.errores.terminos?.let {
-                Text(it, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+            item {
+                Text(
+                    text = "Completa tus datos para registrarte",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier
+                        .padding(bottom = dimens.fieldSpacing), // Espaciado adaptativo entre título y campos
+                    textAlign = TextAlign.Start // Se alinea al principio del margen
+                )
             }
-            Spacer(Modifier.height(dimens.fieldSpacing * 2)) // Extra espacio antes del botón
 
-            // Botón de registro
-            MenuButton(
-                text = "Registrar",
-                onClick = {
-                    // Valida el formulario usando el ViewModel
-                    if (viewModel.validarRegistro()) {
-                        coroutineScope.launch {
-                            viewModel.registrarUsuario()
+            item {
+                // Campo nombre
+                LevelUpTextField(
+                    value = estado.nombre.valor,
+                    onValueChange = viewModel::onNombreChange,
+                    label = "Nombre",
+                    isError = estado.nombre.error != null,
+                    supportingText = errorSupportingText(estado.nombre.error)
+                )
+            }
+
+            item {
+                // Campo apellidos
+                LevelUpTextField(
+                    value = estado.apellidos.valor,
+                    onValueChange = viewModel::onApellidosChange,
+                    label = "Apellidos",
+                    isError = estado.apellidos.error != null,
+                    supportingText = errorSupportingText(estado.apellidos.error)
+                )
+            }
+
+            item {
+                // Campo email
+                LevelUpTextField(
+                    value = estado.email.valor,
+                    onValueChange = viewModel::onEmailChange,
+                    label = "Correo Electrónico",
+                    isError = estado.email.error != null,
+                    supportingText = errorSupportingText(estado.email.error),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email
+                    )
+                )
+            }
+
+            item {
+                // Campo password
+                LevelUpPasswordField(
+                    value = estado.password.valor,
+                    onValueChange = viewModel::onPasswordChange,
+                    label = "Contraseña",
+                    isError = estado.password.error != null,
+                    supportingText = errorSupportingText(estado.password.error)
+                )
+            }
+
+            item {
+                // Campo confirmPassword
+                LevelUpPasswordField(
+                    value = estado.confirmPassword.valor,
+                    onValueChange = viewModel::onConfirmPasswordChange,
+                    label = "Confirmar Contraseña",
+                    isError = estado.confirmPassword.error != null,
+                    supportingText = errorSupportingText(estado.confirmPassword.error)
+                )
+            }
+
+            item {
+                // Campo teléfono
+                LevelUpTextField(
+                    value = estado.telefono.valor,
+                    onValueChange = { nuevoNumero ->
+                        if (nuevoNumero.all { it.isDigit() }) {
+                            viewModel.onTelefonoChange(nuevoNumero)
                         }
-                        // Aquí podrías navegar con navController, por ejemplo:
-                        // navController.navigate("login")
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(dimens.buttonHeight) // Altura adaptativa del botón
-            )
+                    },
+                    label = "Teléfono",
+                    isError = estado.telefono.error != null,
+                    supportingText = errorSupportingText(estado.telefono.error),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Phone
+                    )
+                )
+            }
+            item {
+                LevelUpFechaNacimientoField(
+                    fechaNacimiento = estado.fechaNacimiento.valor,
+                    onFechaNacimientoChange = { viewModel.onFechaNacimientoChange(it) },
+                    isError = estado.fechaNacimiento.error != null,
+                    supportingText = errorSupportingText(estado.fechaNacimiento.error)
+                )
+            }
+
+            item {
+                // Campo región
+                LevelUpTextField(
+                    value = estado.region.valor,
+                    onValueChange = viewModel::onRegionChange,
+                    label = "Región",
+                    isError = estado.region.error != null,
+                    supportingText = errorSupportingText(estado.region.error)
+                )
+            }
+
+            item {
+                // Campo comuna
+                LevelUpTextField(
+                    value = estado.comuna.valor,
+                    onValueChange = viewModel::onComunaChange,
+                    label = "Comuna",
+                    isError = estado.comuna.error != null,
+                    supportingText = errorSupportingText(estado.comuna.error)
+                )
+            }
+
+            item {
+                // Campo dirección
+                LevelUpTextField(
+                    value = estado.direccion.valor,
+                    onValueChange = viewModel::onDireccionChange,
+                    label = "Dirección",
+                    isError = estado.direccion.error != null,
+                    supportingText = errorSupportingText(estado.direccion.error)
+                )
+            }
+
+            item {
+                LevelUpSwitchField(
+                    checked = estado.terminos.valor == "true",
+                    onCheckedChange = {
+                        viewModel.onTerminosChange(it)
+                    },
+                    label = "Acepto los términos y condiciones",
+                    error = estado.terminos.error,
+                    labelSpacing = dimens.fieldSpacing // tu valor personalizado de espaciado
+                )
+            }
+
+            item {
+                // Botón de registro
+                LevelUpButton(
+                    text = "Registrar",
+                    icon = Icons.Filled.Check,
+                    iconSize = dimens.iconSize,
+                    enabled = puedeRegistrar && registroEstado != RegistroUiState.Loading,
+                    onClick = {
+                        // Valida el formulario usando el ViewModel
+                        if (viewModel.validarRegistro()) {
+                            coroutineScope.launch {
+                                viewModel.registrarUsuario()
+                            }
+                            // Aquí podrías navegar con navController, por ejemplo:
+                            // navController.navigate("login")
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(dimens.buttonHeight) // Altura adaptativa del botón
+                )
+            }
         }
 
         // Scrim con Loading
         when (registroEstado){
-            is RegistroUiEstado.Loading -> {
+            is RegistroUiState.Loading -> {
                 // Overlay oscuro y spinner
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.4f)),
-                    contentAlignment = Alignment.Center
-                ){
-                    CircularProgressIndicator()
-                }
+                LevelUpLoadingOverlay()
             }
-            is RegistroUiEstado.Success -> {
+            is RegistroUiState.Success -> {
                 // Popup de éxito (AlertDialog)
-                AlertDialog(
+                LevelUpAlertDialog(
                     onDismissRequest = {
                         viewModel.resetRegistroEstado()
                     },
-                    title = {Text("¡Registro exitoso!")},
-                    text = {Text("Tu usuario se ha creado correctamente.")},
-                    confirmButton = {
-                        Button(
-                            onClick = {
-                                viewModel.resetRegistroEstado()
-                                //navController.navigate("login")
-                            }
-                        ) {
-                            Text("Aceptar")
-                        }
+                    title = "¡Registro exitoso!",
+                    text = "Tu usuario se ha creado correctamente.",
+                    confirmText = "Aceptar",
+                    onConfirm = {
+                        viewModel.resetRegistroEstado()
+                        //navController.navigate("login")
                     }
                 )
             }
-            is RegistroUiEstado.Error -> {
+            is RegistroUiState.Error -> {
                 // Popup de error (AlertDialog)
-                val mensajeError = (registroEstado as RegistroUiEstado.Error).mensajeError
-                AlertDialog(
-                    onDismissRequest = {viewModel.resetRegistroEstado()},
-                    title = {Text("Error")},
-                    text = {Text(mensajeError)},
-                    confirmButton = {
-                        Button(onClick = {viewModel.resetRegistroEstado()}) {
-                            Text("Cerrar")
-                        }
+                val mensajeError = (registroEstado as RegistroUiState.Error).mensajeError
+                LevelUpAlertDialog(
+                    onDismissRequest = {
+                        viewModel.resetRegistroEstado()
+                    },
+                    title = "Error",
+                    text = mensajeError,
+                    confirmText = "Cerrar",
+                    onConfirm = {
+                        viewModel.resetRegistroEstado()
                     }
                 )
             }
 
-            RegistroUiEstado.Idle -> {}
+            RegistroUiState.Idle -> {}
         }
     }
 }
