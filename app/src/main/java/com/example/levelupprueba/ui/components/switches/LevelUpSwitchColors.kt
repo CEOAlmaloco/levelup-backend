@@ -4,11 +4,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.Composable
 import com.example.levelupprueba.ui.theme.BrandPrimary
-import com.example.levelupprueba.ui.theme.NeutralDivider
 import com.example.levelupprueba.ui.theme.SemanticColors
 import com.example.levelupprueba.ui.theme.TextDisabled
-import com.example.levelupprueba.ui.theme.TextHigh
 
+/**
+ * Colores personalizados para el switch de LevelUp
+ */
 @Composable
 fun levelUpSwitchColors() = SwitchDefaults.colors(
     checkedThumbColor = MaterialTheme.colorScheme.onPrimary,               // Circulito cuando el switch está activado

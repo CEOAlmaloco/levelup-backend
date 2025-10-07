@@ -4,35 +4,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.example.levelupprueba.data.remote.ChileApiService
 import com.example.levelupprueba.model.ubicacion.Comuna
 import com.example.levelupprueba.model.ubicacion.Region
-import kotlinx.coroutines.launch
+import com.example.levelupprueba.model.ubicacion.RegionesYComunasProvider
 
-class UbicacionViewModel(private val chileApi: ChileApiService): ViewModel() {
-    var regiones by mutableStateOf<List<Region>>(emptyList())
-        private set
-    var comunas by mutableStateOf<List<Comuna>>(emptyList())
-        private set
+class UbicacionViewModel: ViewModel() {
+    val regiones: List<Region> = RegionesYComunasProvider.regiones
 
-    fun cargarRegiones(){
-        viewModelScope.launch {
-            try {
-                regiones = chileApi.getRegiones()
-            } catch (e: Exception){
+    var selectedRegion by mutableStateOf<Region?>(null)
+    var selectedComuna by mutableStateOf<Comuna?>(null)
 
-            }
-        }
+    fun selectRegion(nombre: String){
+        selectedRegion = regiones.find { it.nombre == nombre }
+        selectedComuna = null
     }
 
-    fun cargarComunas(regionCodigo: String) {
-        viewModelScope.launch {
-            try {
-                comunas = chileApi.getComunas(regionCodigo)
-            } catch (e: Exception) {
-                // manejar error
-            }
-        }
+    fun selectComuna(nombre: String){
+        selectedComuna = selectedRegion?.comunas?.find { it.nombre == nombre }
+
     }
 }

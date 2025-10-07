@@ -12,6 +12,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldColors
@@ -27,6 +28,16 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+/**
+ * Funcion que permite reutilizar el campo de texto para la fecha de nacimiento
+ *
+ * @param fechaNacimiento Valor de la fecha actual
+ * @param onFechaNacimientoChange Callback para actualizar la fecha al seleccionar
+ * @param isError Muestra un indicador de error en el campo
+ * @param isSuccess Muestra un indicador de exito en el campo
+ * @param supportingText Mensaje de ayuda o error debajo del campo
+ * @param modifier Modificador para personalizar el campo
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,11 +84,19 @@ fun LevelUpFechaNacimientoField(
             LocalDate.parse(fechaNacimiento, DateTimeFormatter.ISO_LOCAL_DATE)
         }.getOrNull()
 
+        val todayMillis = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+
         // Estado del DatePicker, define la fecha inicial seleccionada si existe
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = initialDate?.atStartOfDay(ZoneId.systemDefault())
                 ?.toInstant()
-                ?.toEpochMilli()
+                ?.toEpochMilli(),
+            // Permite seleccionar solo fechas anteriores a la actual
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    return utcTimeMillis <= todayMillis
+                }
+            }
         )
 
         // Diálogo del DatePicker (Material3)
@@ -89,7 +108,7 @@ fun LevelUpFechaNacimientoField(
                         val millis = datePickerState.selectedDateMillis
                         if (millis != null) {
                             // Formatea la fecha seleccionada a dd/MM/yyyy
-                            val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                            val formatter = DateTimeFormatter.ISO_LOCAL_DATE
                             val selectedDate = Instant.ofEpochMilli(millis)
                                 .atZone(ZoneId.systemDefault())
                                 .toLocalDate()

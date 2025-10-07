@@ -1,7 +1,12 @@
 package com.example.levelupprueba.model.usuario
 
+import android.os.Build
 import android.util.Patterns
+import androidx.annotation.RequiresApi
 import com.example.levelupprueba.model.FieldErrors
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 object UsuarioValidator {
 
@@ -37,9 +42,25 @@ object UsuarioValidator {
             else -> null
         }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun validarFechaNacimiento(fecha: String): FieldErrors? =
-        if (fecha.isBlank()) FieldErrors.Obligatorio("fecha de nacimiento") else null
-
+        when {
+            fecha.isBlank() -> FieldErrors.Obligatorio("fecha de nacimiento")
+            else -> {
+                try {
+                    val fechaNacimiento = LocalDate.parse(fecha, DateTimeFormatter.ISO_LOCAL_DATE)
+                    val hoy = LocalDate.now()
+                    val edad = fechaNacimiento.until(hoy).years
+                    if (edad < 18) {
+                        FieldErrors.MenorEdad
+                    } else {
+                        null
+                    }
+                } catch (e: DateTimeParseException) {
+                    FieldErrors.FormatoInvalido
+                }
+            }
+        }
     fun validarRegion(region: String): FieldErrors? =
         if (region.isBlank()) FieldErrors.Obligatorio("región") else null
 
