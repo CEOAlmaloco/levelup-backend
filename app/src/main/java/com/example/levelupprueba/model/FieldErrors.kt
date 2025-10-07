@@ -14,9 +14,12 @@ sealed class FieldErrors{
     object PasswordNoCoincide : FieldErrors()
     object TelefonoInvalido : FieldErrors()
     object TelefonoLimite : FieldErrors()
+    object MenorEdad : FieldErrors()
+    object FormatoInvalido : FieldErrors()
     object DireccionLimite : FieldErrors()
     object DireccionInvalida : FieldErrors()
     object TerminosNoAceptados : FieldErrors()
+
 
     // Error personalizado (Data Class al ser informacion variable)
     data class Personalizado (val mensaje: String) : FieldErrors()
@@ -31,6 +34,8 @@ sealed class FieldErrors{
         PasswordNoCoincide -> "Las contraseñas no coinciden"
         TelefonoInvalido -> "El teléfono solo debe contener"
         TelefonoLimite -> "El teléfono debe tener al menos 9 dígitos"
+        MenorEdad -> "Debes ser mayor de 18 años"
+        FormatoInvalido -> "Formato de fecha inválido"
         DireccionLimite -> "La dirección no puede tener más de 300 caracteres"
         DireccionInvalida -> "La dirección contiene caracteres no válidos"
         TerminosNoAceptados -> "Debes aceptar los términos"

@@ -8,6 +8,11 @@ import com.example.levelupprueba.ui.theme.NeutralDivider
 import com.example.levelupprueba.ui.theme.SemanticColors
 import com.example.levelupprueba.ui.theme.TextDisabled
 
+/**
+ * Colores personalizados para el campo de texto de LevelUp
+ *
+ * @param isSuccess Indica si el campo de texto está en estado de éxito
+ */
 @Composable
 fun levelUpTextFieldColors(isSuccess: Boolean = false): TextFieldColors = OutlinedTextFieldDefaults.colors(
     focusedTextColor = MaterialTheme.colorScheme.onPrimary,

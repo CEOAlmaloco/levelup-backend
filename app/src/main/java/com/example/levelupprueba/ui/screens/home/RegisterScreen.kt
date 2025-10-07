@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.levelupprueba.model.registro.RegistroUiState
 import com.example.levelupprueba.model.usuario.isSuccess
@@ -28,6 +29,7 @@ import com.example.levelupprueba.ui.components.inputs.LevelUpTextField
 import com.example.levelupprueba.ui.components.inputs.errorSupportingText
 import com.example.levelupprueba.viewmodel.UsuarioViewModel
 import com.example.levelupprueba.ui.theme.LocalDimens
+import com.example.levelupprueba.utils.formatFecha
 import com.example.levelupprueba.viewmodel.UbicacionViewModel
 import kotlinx.coroutines.launch
 
@@ -36,8 +38,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun RegisterScreen(
     navController: NavController,
-    viewModel: UsuarioViewModel,
-    ubicacionViewModel: UbicacionViewModel
+    viewModel: UsuarioViewModel
 ){
     // Observa el estado del formulario y errores en tiempo real desde el ViewModel
     val estado by viewModel.estado.collectAsState()
@@ -49,13 +50,10 @@ fun RegisterScreen(
     //Utilizamos las dimensiones de Theme
     val dimens = LocalDimens.current
 
+    val ubicacionViewModel: UbicacionViewModel = viewModel()
 
     val puedeRegistrar by remember(estado) {
         derivedStateOf { viewModel.puedeRegistrar() }
-    }
-
-    LaunchedEffect(Unit) {
-        ubicacionViewModel.cargarRegiones()
     }
 
     Box(
@@ -176,7 +174,7 @@ fun RegisterScreen(
             }
             item {
                 LevelUpFechaNacimientoField(
-                    fechaNacimiento = estado.fechaNacimiento.valor,
+                    fechaNacimiento = formatFecha(estado.fechaNacimiento.valor),
                     onFechaNacimientoChange = { viewModel.onFechaNacimientoChange(it) },
                     isError = estado.fechaNacimiento.error != null,
                     isSuccess = estado.fechaNacimiento.isSuccess,
@@ -189,15 +187,33 @@ fun RegisterScreen(
                 LevelUpDropdownMenu(
                     label = "Región",
                     options = ubicacionViewModel.regiones.map { it.nombre },
-                    selectedOption = estado.region.valor,
+                    selectedOption = ubicacionViewModel.selectedRegion?.nombre,
                     onOptionSelected = { nombre ->
-                        val region = ubicacionViewModel.regiones.find { it.nombre == nombre }
-                        viewModel.onRegionChange(nombre)
-                        viewModel.onComunaChange("")
-                        if (region != null) ubicacionViewModel.cargarComunas(region.codigo)
+                        ubicacionViewModel.selectRegion(nombre)
+                        viewModel.onRegionChange(nombre)   // Actualiza Region en UsuarioViewModel
+                        viewModel.onComunaChange("")       // Limpia comuna en UsuarioViewModel
                     },
                     isError = estado.region.error != null,
+                    isSuccess = estado.region.isSuccess,
                     supportingText = errorSupportingText(estado.region.error)
+                )
+            }
+
+            item {
+                // Campo comuna
+                LevelUpDropdownMenu(
+                    label = "Comuna",
+                    options = ubicacionViewModel.selectedRegion?.comunas?.map { it.nombre } ?: emptyList(),
+                    selectedOption = ubicacionViewModel.selectedComuna?.nombre,
+                    onOptionSelected = { nombre ->
+                        ubicacionViewModel.selectComuna(nombre)
+                        viewModel.onComunaChange(nombre) // Actualiza Comuna en UsuarioViewModel
+                    },
+                    isError = estado.comuna.error != null,
+                    isSuccess = estado.region.isSuccess,
+                    supportingText = errorSupportingText(estado.comuna.error),
+                    enabled = ubicacionViewModel.selectedRegion != null,
+                    placeholder = if (ubicacionViewModel.selectedRegion == null) "Selecciona región primero" else null
                 )
             }
 

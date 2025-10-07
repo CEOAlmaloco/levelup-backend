@@ -16,6 +16,17 @@ import androidx.compose.ui.unit.sp
 import com.example.levelupprueba.model.FieldErrors
 import com.example.levelupprueba.ui.components.switches.levelUpSwitchColors
 
+/**
+ * Funcion que permite reutilizar el Switch LevelUp para opciones o confirmaciones
+ *
+ * @param checked Valor actual del switch
+ * @param onCheckedChange Callback para actualizar el valor del switch al seleccionar
+ * @param label Etiqueta del switch
+ * @param error Error que se mostrara debajo del campo
+ * @param modifier Modificador para personalizar el campo
+ * @param labelSpacing Espaciado entre la etiqueta y el switch
+ * @param errorFontSize Tamaño de fuente del mensaje de error
+ */
 @Composable
 fun LevelUpSwitchField(
     checked: Boolean,

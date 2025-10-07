@@ -18,6 +18,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 
+/**
+ * Funcion que permite reutilizar el campo de texto para la contraseña
+ *
+ * @param value Valor de la contraseña actual
+ * @param onValueChange Callback para actualizar la contraseña al escribir
+ * @param label Etiqueta del campo
+ * @param isError Muestra un indicador de error en el campo
+ * @param isSuccess Muestra un indicador de exito en el campo
+ * @param supportingText Mensaje de ayuda o error debajo del campo
+ * @param singleLine Indica si el campo solo puede tener una linea
+ * @param modifier Modificador para personalizar el campo
+ *
+ */
 @Composable
 fun LevelUpPasswordField(
     value: String,
