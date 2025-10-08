@@ -46,7 +46,7 @@ fun LevelUpDropdownMenu(
         ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.heightIn(max = 300.dp)
+            modifier = Modifier.heightIn(max = 285.dp)
         ) {
             options.forEach { option ->
                 DropdownMenuItem(
