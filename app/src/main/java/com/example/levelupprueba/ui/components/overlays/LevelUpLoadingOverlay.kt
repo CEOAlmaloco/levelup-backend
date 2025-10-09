@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 
 @Composable
 fun LevelUpLoadingOverlay(
-    visible: Boolean,
+    visible: Boolean = true,
     modifier: Modifier = Modifier,
     scrimColor: Color = MaterialTheme.colorScheme.scrim,
     contentAlignment: Alignment = Alignment.Center,

@@ -1,5 +1,6 @@
 package com.example.levelupprueba.ui.screens.home
 
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
@@ -355,8 +356,8 @@ fun RegisterScreen(
     )
 }
 
+@SuppressLint("ViewModelConstructorInComposable")
 @RequiresApi(Build.VERSION_CODES.O)
-@Preview(showBackground = true, name = "RegisterScreen Preview")
 @Composable
 @Preview(showBackground = true, name = "RegisterScreen Preview")
 fun PreviewRegisterScreen() {
