@@ -115,7 +115,7 @@ fun BlogListScreen(//aca creamos la pantalla de blogs
 
     // Loading Overlay
     if (estado.isLoading) {
-        LevelUpLoadingOverlay()
+
     }
 }
 

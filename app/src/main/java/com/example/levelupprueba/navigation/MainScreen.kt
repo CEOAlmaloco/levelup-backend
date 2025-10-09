@@ -141,7 +141,7 @@ fun MainScreen() {
 
             // Login
             composable("login") {
-                LoginScreen(viewModel = loginViewModel)
+                LoginScreen(navController = navController, viewModel = loginViewModel)
             }
 
             // Registro
