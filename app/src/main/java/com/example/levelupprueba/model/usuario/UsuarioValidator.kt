@@ -3,7 +3,8 @@ package com.example.levelupprueba.model.usuario
 import android.os.Build
 import android.util.Patterns
 import androidx.annotation.RequiresApi
-import com.example.levelupprueba.model.FieldErrors
+import com.example.levelupprueba.model.errors.FieldErrors
+import com.example.levelupprueba.model.errors.UsuarioFieldErrors
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -19,7 +20,7 @@ object UsuarioValidator {
     fun validarEmail(email: String): FieldErrors? =
         when {
             email.isBlank() -> FieldErrors.Obligatorio("correo")
-            !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> FieldErrors.EmailInvalido
+            !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> UsuarioFieldErrors.EmailInvalido
             else -> null
         }
 
@@ -31,13 +32,13 @@ object UsuarioValidator {
             else -> null
         }
 
-    fun validarConfirmPassword(password: String, confirm: String): FieldErrors? =
-        if (confirm != password) FieldErrors.PasswordNoCoincide else null
+    fun validarConfirmPassword(password: String, confirm: String): UsuarioFieldErrors? =
+        if (confirm != password) UsuarioFieldErrors.PasswordNoCoincide else null
 
     fun validarTelefono(telefono: String): FieldErrors? =
         when {
             telefono.isBlank() -> null // Campo opcional
-            !telefono.all { it.isDigit() } -> FieldErrors.TelefonoInvalido
+            !telefono.all { it.isDigit() } -> UsuarioFieldErrors.TelefonoInvalido
             telefono.length < 9 -> FieldErrors.MinLength("teléfono", 9)
             else -> null
         }
@@ -52,7 +53,7 @@ object UsuarioValidator {
                     val hoy = LocalDate.now()
                     val edad = fechaNacimiento.until(hoy).years
                     if (edad < 18) {
-                        FieldErrors.MenorEdad
+                        UsuarioFieldErrors.MenorEdad
                     } else {
                         null
                     }
@@ -72,10 +73,10 @@ object UsuarioValidator {
             direccion.isBlank() -> null // Campo opcional
             direccion.length > 300 -> FieldErrors.MaxLength("dirección", 300)
             !direccion.matches(Regex("^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\\s.,#-]+$")) ->
-                FieldErrors.DireccionInvalida
+                UsuarioFieldErrors.DireccionInvalida
             else -> null
         }
 
     fun validarTerminos(aceptado: Boolean): FieldErrors? =
-        if (!aceptado) FieldErrors.TerminosNoAceptados else null
+        if (!aceptado) UsuarioFieldErrors.TerminosNoAceptados else null
 }

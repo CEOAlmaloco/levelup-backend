@@ -1,10 +1,10 @@
 package com.example.levelupprueba.viewmodel
 
-import android.util.Log
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.levelupprueba.model.registro.RegistroUiState
-import com.example.levelupprueba.model.usuario.UsuarioCampo
+import com.example.levelupprueba.model.registro.RegisterStatus
 import com.example.levelupprueba.model.usuario.UsuarioUiState
 import com.example.levelupprueba.model.usuario.UsuarioValidator
 import kotlinx.coroutines.delay
@@ -21,8 +21,8 @@ class UsuarioViewModel: ViewModel() {
     val estado: StateFlow<UsuarioUiState> = _estado
 
     // Estado del proceso de registro (Loading, success, error)
-    private val _registroEstado = MutableStateFlow<RegistroUiState>(RegistroUiState.Idle)
-    val registroEstado: StateFlow<RegistroUiState> = _registroEstado
+    private val _registroEstado = MutableStateFlow<RegisterStatus>(RegisterStatus.Idle)
+    val registroEstado: StateFlow<RegisterStatus> = _registroEstado
 
     /**
      * Helper para actualizar el estado de un campo evitando repetición de código.
@@ -100,6 +100,7 @@ class UsuarioViewModel: ViewModel() {
     }
 
     // Actualiza el campo fechaNacimiento y valida en tiempo real
+    @RequiresApi(Build.VERSION_CODES.O)
     fun onFechaNacimientoChange(valor: String) = actualizarCampo {
         it.copy(
             fechaNacimiento = it.fechaNacimiento.copy(
@@ -154,6 +155,7 @@ class UsuarioViewModel: ViewModel() {
      * Validaciones del formulario completo.
      * Devuelve true si el formulario es válido.
      */
+    @RequiresApi(Build.VERSION_CODES.O)
     fun validarRegistro(): Boolean {
         val estadoActual = _estado.value
 
@@ -215,6 +217,7 @@ class UsuarioViewModel: ViewModel() {
         val todosLlenos = camposObligatorios.all {
             it.valor.isNotBlank() && (it != estadoActual.terminos || it.valor == "true")
         }
+
         val sinErrores = camposObligatorios.all { it.error == null }
 
         return todosLlenos && sinErrores
@@ -224,18 +227,18 @@ class UsuarioViewModel: ViewModel() {
     // En el futuro aquí se hará la petición HTTP al backend para validar
     fun registrarUsuario() {
         viewModelScope.launch {
-            _registroEstado.value = RegistroUiState.Loading
+            _registroEstado.value = RegisterStatus.Loading
             try {
                 delay(2000) // simula backend
-                _registroEstado.value = RegistroUiState.Success
+                _registroEstado.value = RegisterStatus.Success
             } catch (e: Exception) {
-                _registroEstado.value = RegistroUiState.Error("Ocurrió un error: ${e.message}")
+                _registroEstado.value = RegisterStatus.Error("Ocurrió un error: ${e.message}")
             }
         }
     }
 
     // Permite volver al estado inicial (después de mostrar mensaje de éxito)
     fun resetRegistroEstado() {
-        _registroEstado.value = RegistroUiState.Idle
+        _registroEstado.value = RegisterStatus.Idle
     }
 }
