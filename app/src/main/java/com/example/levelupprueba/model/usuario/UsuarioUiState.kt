@@ -1,7 +1,5 @@
 package com.example.levelupprueba.model.usuario
 
-import com.example.levelupprueba.model.FieldErrors
-
 // Datos del formulario de registro
 data class UsuarioUiState(
     val nombre: UsuarioCampo = UsuarioCampo(),

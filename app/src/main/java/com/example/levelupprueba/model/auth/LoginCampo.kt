@@ -1,6 +1,6 @@
 package com.example.levelupprueba.model.auth
 
-import com.example.levelupprueba.model.FieldErrors
+import com.example.levelupprueba.model.errors.FieldErrors
 
 data class LoginCampo(
     val valor: String = "",

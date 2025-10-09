@@ -21,28 +21,28 @@ fun LevelUpSectionDivider(
 ) {
     Row(
         modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = dimens.sectionSpacing),
+            .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         HorizontalDivider(
-            modifier = Modifier
-                .weight(1f),
+            modifier = Modifier.weight(1f),
             thickness = 1.dp,
             color = MaterialTheme.colorScheme.outline
         )
+
         Text(
             text = title.uppercase(),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-            modifier = Modifier
-                .padding(horizontal = dimens.fieldSpacing)
+            modifier = Modifier.padding(horizontal = dimens.fieldSpacing)
         )
+
         HorizontalDivider(
-            modifier = Modifier
-                .weight(1f),
+            modifier = Modifier.weight(1f),
             thickness = 1.dp,
             color = MaterialTheme.colorScheme.outline
         )
     }
 }
+
+

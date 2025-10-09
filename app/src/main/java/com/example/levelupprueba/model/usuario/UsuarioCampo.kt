@@ -1,6 +1,6 @@
 package com.example.levelupprueba.model.usuario
 
-import com.example.levelupprueba.model.FieldErrors
+import com.example.levelupprueba.model.errors.FieldErrors
 
 data class UsuarioCampo(
     val valor: String = "",

@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Start
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -24,9 +26,18 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import androidx.navigation.NavController
+import com.example.levelupprueba.model.auth.LoginStatus
+import com.example.levelupprueba.model.auth.isSuccess
+import com.example.levelupprueba.model.registro.RegisterStatus
+import com.example.levelupprueba.ui.components.buttons.LevelUpButton
+import com.example.levelupprueba.ui.components.dialogs.LevelUpAlertDialog
+import com.example.levelupprueba.ui.components.inputs.LevelUpPasswordField
 import com.example.levelupprueba.ui.components.inputs.LevelUpTextField
+import com.example.levelupprueba.ui.components.inputs.errorSupportingText
+import com.example.levelupprueba.ui.components.overlays.LevelUpLoadingOverlay
 import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.viewmodel.LoginViewModel
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
@@ -38,6 +49,8 @@ fun LoginScreen(
 
     // Observa el estado actual del login desde el ViewModel (emailOrName, password, errores, etc.)
     val estado by viewModel.estado.collectAsState()
+
+    val loginEstado by viewModel.loginEstado.collectAsState()
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -76,16 +89,18 @@ fun LoginScreen(
                         .size(120.dp)
                 )
 
+                Spacer(modifier = Modifier.height(dimens.smallSpacing))
+
                 Text(
                     text = "Bienvenido de vuelta, jugador",
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = dimens.titleSpacing), // Espaciado adaptativo para títulos
+                        .fillMaxWidth(),
                     textAlign = TextAlign.Center
                 )
 
+                Spacer(modifier = Modifier.height(dimens.mediumSpacing))
 
                 Text(
                     text = "Inicia Sesión",
@@ -95,7 +110,94 @@ fun LoginScreen(
                         .fillMaxWidth(),
                     textAlign = TextAlign.Center
                 )
+
+                Spacer(modifier = Modifier.height(dimens.largeSpacing))
+
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(dimens.fieldSpacing),
+                ){
+                    LevelUpTextField(
+                        value = estado.emailOrName.valor,
+                        onValueChange = viewModel::onEmailOrNameChange,
+                        label = "Correo o Nombre",
+                        isError = estado.emailOrName.error != null,
+                        isSuccess = estado.emailOrName.isSuccess,
+                        supportingText = errorSupportingText(estado.emailOrName.error)
+                    )
+
+                    LevelUpPasswordField(
+                        value = estado.password.valor,
+                        onValueChange = viewModel::onPasswordChange,
+                        label = "Contraseña",
+                        isError = estado.password.error != null,
+                        isSuccess = estado.password.isSuccess,
+                        supportingText = errorSupportingText(estado.password.error)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(dimens.sectionSpacing))
+
+                LevelUpButton(
+                    text = "Iniciar Sesión",
+                    icon = Icons.Filled.Start,
+                    iconSize = dimens.iconSize,
+                    enabled = viewModel.puedeIniciarSesion(),
+                    onClick = {
+                        if (viewModel.validarLogin()) {
+                            coroutineScope.launch {
+                                viewModel.loginUsuario()
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(dimens.buttonHeight) // Altura adaptativa del botón
+
+                )
             }
+
+            // Scrim con Loading
+            when (loginEstado){
+                is LoginStatus.Loading -> {
+                    // Overlay oscuro y spinner
+                }
+                is LoginStatus.Success -> {
+                    // Popup de éxito (AlertDialog)
+                    LevelUpAlertDialog(
+                        onDismissRequest = {
+                            viewModel.resetLoginEstado()
+                        },
+                        title = "¡Inicio de sesion exitoso!",
+                        text = "Has iniciado sesión correctamente.",
+                        confirmText = "Aceptar",
+                        onConfirm = {
+                            viewModel.resetLoginEstado()
+                            navController.navigate("home")
+                        }
+                    )
+                }
+                is LoginStatus.Error -> {
+                    // Popup de error (AlertDialog)
+                    val mensajeError = (loginEstado as LoginStatus.Error).mensajeError
+                    LevelUpAlertDialog(
+                        onDismissRequest = {
+                            viewModel.resetLoginEstado()
+                        },
+                        title = "Error",
+                        text = mensajeError,
+                        confirmText = "Cerrar",
+                        onConfirm = {
+                            viewModel.resetLoginEstado()
+                        }
+                    )
+                }
+
+                LoginStatus.Idle -> {}
+            }
+
         }
     }
+    LevelUpLoadingOverlay(
+        visible = loginEstado is LoginStatus.Loading
+    )
 }

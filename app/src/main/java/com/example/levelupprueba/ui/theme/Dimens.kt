@@ -12,7 +12,10 @@ data class Dimens(
     val fieldSpacing: Dp,     // Espacio vertical/entre campos del formulario
     val buttonHeight: Dp,     // Altura estándar de los botones
     val titleSpacing: Dp,      // Espacio debajo del título principal
-    val iconSize: Dp           // Tamaño del icono
+    val iconSize: Dp,           // Tamaño del icono
+    val smallSpacing: Dp,      // Espaciado pequeño (ej. entre icono y texto)
+    val mediumSpacing: Dp,     // Espaciado mediano (ej. entre elementos relacionados)
+    val largeSpacing: Dp       // Espaciado grande (ej. entre
 )
 
 // Set de dimensiones para pantallas compactas (móviles pequeños)
@@ -20,10 +23,13 @@ val compactDimens = Dimens(
     screenPadding = 16.dp,      // Margen lateral agradable y no apretado
     sectionSpacing = 16.dp,     // Aire entre secciones
     fieldSpacing = 8.dp,        // Aire entre campos (inputs)
-    buttonHeight = 40.dp,       // Botón suficientemente alto para toque cómodo
+    buttonHeight = 48.dp,       // Botón suficientemente alto para toque cómodo
     titleSpacing = 12.dp,       // Aire bajo el título principal/subtítulo
-    iconSize = 20.dp            // Iconos pequeños, pero legibles
-)
+    iconSize = 20.dp,           // Iconos pequeños, pero legibles
+    smallSpacing = 8.dp,   // Espaciado pequeño (ej. entre icono y texto)
+    mediumSpacing = 16.dp,  // Espaciado mediano (ej. entre elementos relacionados)
+    largeSpacing = 24.dp   // Espaciado grande (ej. entre secciones
+    )
 
 // Set de dimensiones para pantallas medianas (móviles normales, tablets pequeñas)
 val mediumDimens = Dimens(
@@ -32,7 +38,10 @@ val mediumDimens = Dimens(
     fieldSpacing = 12.dp,       // Aire entre campos más cómodo
     buttonHeight = 48.dp,       // Botón ideal para pantallas medianas
     titleSpacing = 16.dp,       // Separación visual bajo títulos
-    iconSize = 24.dp            // Iconos estándar Material Design
+    iconSize = 24.dp,            // Iconos estándar Material Design
+    smallSpacing = 8.dp,        // Espaciado pequeño (ej. entre icono y texto)
+    mediumSpacing = 20.dp,      // Espaciado mediano (ej. entre elementos relacionados)
+    largeSpacing = 32.dp,       // Espaciado grande (ej. entre secciones
 )
 
 // Set de dimensiones para pantallas expandidas (tablets grandes, escritorio)
@@ -42,5 +51,8 @@ val expandedDimens = Dimens(
     fieldSpacing = 16.dp,       // Aire entre campos más amplio
     buttonHeight = 56.dp,       // Botón grande y cómodo para pantallas grandes
     titleSpacing = 24.dp,       // Aire bajo título para jerarquía visual
-    iconSize = 32.dp            // Iconos grandes y claros
+    iconSize = 32.dp,            // Iconos grandes y claros
+    smallSpacing = 12.dp,       // Espaciado pequeño (ej. entre icono y texto)
+    mediumSpacing = 24.dp,      // Espaciado mediano (ej. entre elementos relacionados)
+    largeSpacing = 40.dp        // Espaciado grande (ej. entre secciones
 )

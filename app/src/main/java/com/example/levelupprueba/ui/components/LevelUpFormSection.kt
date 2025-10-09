@@ -25,15 +25,21 @@ fun LevelUpFormSection(
     Column(
         modifier = modifier
     ) {
-        LevelUpSectionDivider(title = title, dimens = dimens)
-        if (isLandscape) {
-            Spacer(modifier = Modifier.height(dimens.sectionSpacing / 2))
+
+        if (!isLandscape) {
+            // Espacio arriba del título (solo en vertical)
+            Spacer(modifier = Modifier.height(dimens.smallSpacing))
         }
 
+        // Divider centrado
+        LevelUpSectionDivider(title = title, dimens = dimens)
+
+        // Espacio después del divider antes de los campos
+        Spacer(modifier = Modifier.height(dimens.mediumSpacing))
+
+        // Contenido animado (campos)
         AnimatedVisibility(visible = true) {
-            Column(verticalArrangement = Arrangement.spacedBy(dimens.fieldSpacing)) {
-                content()
-            }
+            content()
         }
     }
 }
