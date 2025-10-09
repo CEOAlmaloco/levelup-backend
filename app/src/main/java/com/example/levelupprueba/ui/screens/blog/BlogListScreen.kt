@@ -18,9 +18,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.example.levelupprueba.R
 import com.example.levelupprueba.model.blog.Blog
 import com.example.levelupprueba.model.blog.FiltroBlog
 import com.example.levelupprueba.ui.components.buttons.LevelUpButton
@@ -127,19 +132,23 @@ fun BlogCard(blog: Blog) {//aca creamos la funcion para el blog card
                     .fillMaxWidth()
                     .height(200.dp)
             ) {
-                // Placeholder para imagen
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Imagen: ${blog.titulo.take(20)}...",//el take pone limitante de caracteres y tmb colocamos directamente la imagen de la categoria
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                // Cargamos la imagen con Coil
+                val context = LocalContext.current
+                val imageResourceId = context.resources.getIdentifier(
+                    blog.imagenUrl,
+                    "drawable",
+                    context.packageName
+                )
+
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(imageResourceId)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = blog.titulo,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
 
                 // Etiqueta de categoría
                 Card(
