@@ -3,7 +3,8 @@ package com.example.levelupprueba.ui.components.inputs
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import com.example.levelupprueba.model.FieldErrors
+import com.example.levelupprueba.model.errors.FieldErrors
+import com.example.levelupprueba.model.errors.UsuarioFieldErrors
 
 /**
  * Funcion reutilizable que permite mostrar un mensaje de error debajo de un field

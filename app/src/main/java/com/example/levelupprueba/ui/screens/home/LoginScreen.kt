@@ -1,93 +1,203 @@
 package com.example.levelupprueba.ui.screens.home
 
+import com.example.levelupprueba.R
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Start
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
+import androidx.navigation.NavController
+import com.example.levelupprueba.model.auth.LoginStatus
+import com.example.levelupprueba.model.auth.isSuccess
+import com.example.levelupprueba.model.registro.RegisterStatus
+import com.example.levelupprueba.ui.components.buttons.LevelUpButton
+import com.example.levelupprueba.ui.components.dialogs.LevelUpAlertDialog
+import com.example.levelupprueba.ui.components.inputs.LevelUpPasswordField
+import com.example.levelupprueba.ui.components.inputs.LevelUpTextField
+import com.example.levelupprueba.ui.components.inputs.errorSupportingText
+import com.example.levelupprueba.ui.components.overlays.LevelUpLoadingOverlay
+import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.viewmodel.LoginViewModel
+import kotlinx.coroutines.launch
+
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun LoginScreen(
+    navController: NavController,
     viewModel: LoginViewModel
 ){
-    //Calcula el tamaño de la ventana (compact, medium, expanded)
-    val windowSizeClass = calculateWindowSizeClass(
-        activity = LocalContext.current as android.app.Activity
-    )
-    val widthClass = windowSizeClass.widthSizeClass
 
     // Observa el estado actual del login desde el ViewModel (emailOrName, password, errores, etc.)
     val estado by viewModel.estado.collectAsState()
 
-    // Column organiza los elementos uno debajo del otro (vertical)
-    Column(
+    val loginEstado by viewModel.loginEstado.collectAsState()
+
+    val coroutineScope = rememberCoroutineScope()
+
+    //Utilizamos las dimensiones de Theme
+    val dimens = LocalDimens.current
+
+    Box(
         modifier = Modifier
-            .fillMaxSize()        // Ocupa todo el alto y ancho de la pantalla
-            .padding(16.dp),      // Deja un margen de 16dp alrededor
-        verticalArrangement = Arrangement.Center // Centra verticalmente
-    ) {
-
-        // Campo email o nombre de usuario
-        OutlinedTextField(
-            value = estado.emailOrName,                  // Valor actual del campo
-            onValueChange = viewModel::onEmailOrNameChange,  // Actualiza el campo en el ViewModel
-            label = { Text("Nombre o Correo") },             // Etiqueta encima del campo
-            isError = estado.errores.emailOrName != null,    // Muestra borde rojo si hay error en este campo
-            supportingText = {
-                // Si hay error, lo muestra debajo del campo en color de error
-                estado.errores.emailOrName?.let {
-                    Text(it, color = MaterialTheme.colorScheme.error)
-                }
-            },
-            singleLine = true,                // Solo una línea
-            modifier = Modifier.fillMaxWidth()// Campo ocupa todo el ancho disponible
-        )
-
-        // Espaciador (agrega espacio vertical entre componentes)
-        Spacer(modifier = Modifier.height(5.dp))
-
-        // Campo de texto para contraseña
-        OutlinedTextField(
-            value = estado.password,                   // Valor actual del campo de contraseña
-            onValueChange = viewModel::onPasswordChange, // Actualiza el campo en el ViewModel
-            label = {Text("Contraseña")},                // Etiqueta encima del campo
-            visualTransformation = PasswordVisualTransformation(), // Oculta los caracteres
-            supportingText = {
-                // Si hay error en la contraseña, lo muestra debajo
-                estado.errores.password?.let {
-                    Text(it, color = MaterialTheme.colorScheme.error)
-                }
-            },
-            singleLine = true,               // Solo una línea
-            modifier = Modifier.fillMaxWidth()// Campo ocupa todo el ancho disponible
-        )
-
-        // Espaciador (agrega espacio vertical entre componentes)
-        Spacer(modifier = Modifier.height(5.dp))
-
-        // Botón de iniciar sesión
-        Button(
-            onClick = { // Acción al hacer click
-                // Valida el formulario usando el ViewModel
-                if (viewModel.validarLogin()){
-                    // Si es válido, imprime los datos en consola (aquí iría la lógica real de login)
-                    println("Inicio de sesión exitoso!")
-                    println("Email: ${estado.emailOrName}, Contraseña ${estado.password}")
-                }
-            },
-            modifier = Modifier.fillMaxWidth() // El botón ocupa todo el ancho disponible
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(dimens.screenPadding)
+            .imePadding(),                  // Padding para teclado
+    ){
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            shape = RoundedCornerShape(16.dp)
         ) {
-            Text("Iniciar sesión")
-        }
+            Column(
+                modifier = Modifier
+                    .padding(dimens.screenPadding)
+                    .fillMaxSize()                   // Ocupa toda la pantalla disponible
+                    .navigationBarsPadding(),         // Padding para la barra de navegación
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ){
 
+                Image(
+                    painter = painterResource(id = R.drawable.levelup_logo),
+                    contentDescription = "Logo LevelUp",
+                    modifier = Modifier
+                        .size(120.dp)
+                )
+
+                Spacer(modifier = Modifier.height(dimens.smallSpacing))
+
+                Text(
+                    text = "Bienvenido de vuelta, jugador",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(dimens.mediumSpacing))
+
+                Text(
+                    text = "Inicia Sesión",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(dimens.largeSpacing))
+
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(dimens.fieldSpacing),
+                ){
+                    LevelUpTextField(
+                        value = estado.emailOrName.valor,
+                        onValueChange = viewModel::onEmailOrNameChange,
+                        label = "Correo o Nombre",
+                        isError = estado.emailOrName.error != null,
+                        isSuccess = estado.emailOrName.isSuccess,
+                        supportingText = errorSupportingText(estado.emailOrName.error)
+                    )
+
+                    LevelUpPasswordField(
+                        value = estado.password.valor,
+                        onValueChange = viewModel::onPasswordChange,
+                        label = "Contraseña",
+                        isError = estado.password.error != null,
+                        isSuccess = estado.password.isSuccess,
+                        supportingText = errorSupportingText(estado.password.error)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(dimens.sectionSpacing))
+
+                LevelUpButton(
+                    text = "Iniciar Sesión",
+                    icon = Icons.Filled.Start,
+                    iconSize = dimens.iconSize,
+                    enabled = viewModel.puedeIniciarSesion(),
+                    onClick = {
+                        if (viewModel.validarLogin()) {
+                            coroutineScope.launch {
+                                viewModel.loginUsuario()
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(dimens.buttonHeight) // Altura adaptativa del botón
+
+                )
+            }
+
+            // Scrim con Loading
+            when (loginEstado){
+                is LoginStatus.Loading -> {
+                    // Overlay oscuro y spinner
+                }
+                is LoginStatus.Success -> {
+                    // Popup de éxito (AlertDialog)
+                    LevelUpAlertDialog(
+                        onDismissRequest = {
+                            viewModel.resetLoginEstado()
+                        },
+                        title = "¡Inicio de sesion exitoso!",
+                        text = "Has iniciado sesión correctamente.",
+                        confirmText = "Aceptar",
+                        onConfirm = {
+                            viewModel.resetLoginEstado()
+                            navController.navigate("home")
+                        }
+                    )
+                }
+                is LoginStatus.Error -> {
+                    // Popup de error (AlertDialog)
+                    val mensajeError = (loginEstado as LoginStatus.Error).mensajeError
+                    LevelUpAlertDialog(
+                        onDismissRequest = {
+                            viewModel.resetLoginEstado()
+                        },
+                        title = "Error",
+                        text = mensajeError,
+                        confirmText = "Cerrar",
+                        onConfirm = {
+                            viewModel.resetLoginEstado()
+                        }
+                    )
+                }
+
+                LoginStatus.Idle -> {}
+            }
+
+        }
     }
+    LevelUpLoadingOverlay(
+        visible = loginEstado is LoginStatus.Loading
+    )
 }

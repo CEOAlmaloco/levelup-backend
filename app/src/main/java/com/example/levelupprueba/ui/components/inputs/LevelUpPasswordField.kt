@@ -44,11 +44,15 @@ fun LevelUpPasswordField(
 ) {
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
-    OutlinedTextField(
+        OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         colors = levelUpTextFieldColors(isSuccess = isSuccess),
-        label = { Text(label) },
+        label = {
+            Text(
+                text = label
+            )
+        },
         isError = isError,
         //Esto define como se muestra visualmente el texto escrito.
         //Si passwordvisible es true, el texto se muestra normal, si es false seran puntitos
@@ -65,7 +69,11 @@ fun LevelUpPasswordField(
             *       VisibilityOff: Ojo cerrado
             *   Cambia el valor de passwordVisible cuando el usuario toca el icono (false, true)
             * */
-            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+            IconButton(
+                onClick = {
+                    passwordVisible = !passwordVisible
+                }
+            ) {
                 Icon(
                     imageVector = image,
                     contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña",

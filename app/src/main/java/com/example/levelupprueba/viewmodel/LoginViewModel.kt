@@ -1,11 +1,16 @@
 package com.example.levelupprueba.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.example.levelupprueba.model.auth.LoginErrores
+import androidx.lifecycle.viewModelScope
+import com.example.levelupprueba.model.auth.LoginStatus
 import com.example.levelupprueba.model.auth.LoginUiState
+import com.example.levelupprueba.model.auth.LoginValidator
+import com.example.levelupprueba.model.usuario.Usuario
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 // ViewModel que gestiona el estado y la logica del formulario de login
 class LoginViewModel : ViewModel(){
@@ -14,48 +19,107 @@ class LoginViewModel : ViewModel(){
     //Estado expuesto: la UI observa este estado para mostrar los valores y errores
     val estado: StateFlow<LoginUiState> = _estado
 
-    // Actualiza el campo email/nombre en el estado y limpia su error
-    fun onEmailOrNameChange(valor: String){
-        _estado.update {
-            it.copy(emailOrName = valor, // Nuevo valor
-            errores = it.errores.copy(emailOrName = null) // Limpia error de este campo
-            )
-        }
+    private val _loginEstado = MutableStateFlow<LoginStatus>(LoginStatus.Idle)
+
+    val loginEstado: StateFlow<LoginStatus> = _loginEstado
+
+    //Usuario demo para login simulado
+    private val usuarioDemo = Usuario(
+        id = "123",
+        nombre = "LevelUp User",
+        apellidos = "Prueba",
+        email = "demo@duoc.cl",
+        password = "1234",
+        telefono = "123456789",
+        fechaNacimiento = "2000-01-01",
+        region = "Región Metropolitana",
+        comuna = "Santiago",
+        direccion = "Av. Siempre Viva 123",
+        referralCode = "LEVELUP1234",
+        points = 0,
+        role = "cliente"
+    )
+
+    private fun actualizarCampo(
+        update: (LoginUiState) -> LoginUiState
+    ) {
+        _estado.update { update(it) }
     }
 
-    // Actualiza el campo contraseña en el estado y limpia su error
-    fun onPasswordChange(valor: String) {
-        _estado.update {
-            it.copy(
-                password = valor, // Nuevo valor
-                errores = it.errores.copy(password = null) // Limpia error de este campo
+    fun onEmailOrNameChange(valor: String) = actualizarCampo {
+        it.copy(
+            emailOrName = it.emailOrName.copy(
+                valor = valor,
+                error = LoginValidator.validarEmailOrName(valor)
             )
-        }
+        )
     }
 
-    //Valida el formulario de login
-    //Retorna true si es valido, false si hay errores
-    fun validarLogin(): Boolean {
-        val estadoActual = _estado.value // Obtiene el estado actual
-        // Crea un objeto de errores según lo que falta o está mal
-        val errores = LoginErrores(
-            emailOrName = if (estadoActual.emailOrName.isBlank()) "El email o nombre son obligatorios" else null,
-            password = if (estadoActual.password.isBlank()) "La contraseña es obligatoria" else null
+    fun onPasswordChange(valor: String) = actualizarCampo {
+        it.copy(
+            password = it.password.copy(
+                valor = valor,
+                error = LoginValidator.validarPassword(valor)
+            )
         )
 
-        // Verifica si hay errores (Si alguno no es null)
-        val hayErrores = listOfNotNull(
-            errores.emailOrName,
-            errores.password
-        ).isNotEmpty()
-
-
-        //Actualiza el estado con los errores encontrados
-        _estado.update { it.copy(errores = errores) }
-
-        //Retorna true si NO hay errores
-        return !hayErrores
-
     }
 
+    fun validarLogin(): Boolean {
+        val estadoActual = _estado.value
+
+        //Valida todos los campos y actualiza errores
+        val nuevoEstado = estadoActual.copy(
+            emailOrName = estadoActual.emailOrName.copy(error = LoginValidator.validarEmailOrName(estadoActual.emailOrName.valor)),
+            password = estadoActual.password.copy(error = LoginValidator.validarPassword(estadoActual.password.valor))
+
+        )
+
+        val hayErrores = listOf(
+            nuevoEstado.emailOrName.error,
+            nuevoEstado.password.error
+        ).any { it != null }
+
+        _estado.value = nuevoEstado
+
+        return !hayErrores
+    }
+
+    fun loginUsuario(){
+        viewModelScope.launch {
+            _loginEstado.value = LoginStatus.Loading
+            delay(2000)
+            val emailOrName = _estado.value.emailOrName.valor
+            val password = _estado.value.password.valor
+
+            //Validación simulado contra usuario demo
+            if ((emailOrName == usuarioDemo.email || emailOrName == usuarioDemo.nombre) &&
+                password == usuarioDemo.password){
+                _loginEstado.value = LoginStatus.Success
+            } else {
+                _loginEstado.value = LoginStatus.Error(mensajeError = "Credenciales inválidas")
+            }
+        }
+    }
+
+    fun puedeIniciarSesion(): Boolean {
+        val estadoActual = _estado.value
+
+        val campos = listOf(
+            estadoActual.emailOrName,
+            estadoActual.password
+        )
+
+        val todosLlenos = campos.all {
+            it.valor.isNotBlank()
+        }
+
+        val sinErrores = campos.all { it.error == null }
+
+        return todosLlenos && sinErrores
+    }
+
+    fun resetLoginEstado(){
+        _loginEstado.value = LoginStatus.Idle
+    }
 }
