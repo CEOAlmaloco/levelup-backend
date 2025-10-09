@@ -7,4 +7,3 @@ data class LoginUiState(
     // Campo para la contraseña
     val password: LoginCampo = LoginCampo(),
 )
-// Modelo que representa los posibles errores del formulario de login

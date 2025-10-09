@@ -2,9 +2,6 @@ package com.example.levelupprueba.ui.screens.home
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.levelupprueba.model.registro.RegistroUiState
+import com.example.levelupprueba.model.registro.RegisterStatus
 import com.example.levelupprueba.model.usuario.isSuccess
 import com.example.levelupprueba.ui.components.LevelUpFormSection
 
@@ -91,25 +88,28 @@ fun RegisterScreen(
                     .fillMaxSize()                   // Ocupa toda la pantalla disponible
                     .navigationBarsPadding(),         // Padding para la barra de navegación
                 contentPadding = PaddingValues(dimens.screenPadding),
-                verticalArrangement = Arrangement.spacedBy(dimens.fieldSpacing) // Centra los elementos verticalmente
+                verticalArrangement = Arrangement.spacedBy(dimens.sectionSpacing) // Centra los elementos verticalmente
             ) {
                 item {
-                    Text(
-                        text = "¡Bienvenido a LevelUp-Gamer!",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier
-                            .padding(bottom = dimens.titleSpacing), // Espaciado adaptativo para títulos
-                        textAlign = TextAlign.Start // Se alinea al principio del margn
-                    )
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(dimens.smallSpacing)
+                    ) {
+                        Text(
+                            text = "¡Bienvenido a LevelUp-Gamer!",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier,
+                            textAlign = TextAlign.Start // Se alinea al principio del margn
+                        )
 
-                    Text(
-                        text = "Completa tus datos para registrarte",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier,
-                        textAlign = TextAlign.Start // Se alinea al principio del margen
-                    )
+                        Text(
+                            text = "Completa tus datos para registrarte",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier,
+                            textAlign = TextAlign.Start // Se alinea al principio del margen
+                        )
+                    }
                 }
 
                 item {
@@ -117,34 +117,38 @@ fun RegisterScreen(
                         title = "Datos Personales",
                         dimens = dimens
                     ) {
-                        // Campo nombre
-                        LevelUpTextField(
-                            value = estado.nombre.valor,
-                            onValueChange = viewModel::onNombreChange,
-                            label = "Nombre",
-                            isError = estado.nombre.error != null,
-                            isSuccess = estado.nombre.isSuccess,
-                            supportingText = errorSupportingText(estado.nombre.error)
-                        )
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(dimens.fieldSpacing)
+                        ) {
+                            // Campo nombre
+                            LevelUpTextField(
+                                value = estado.nombre.valor,
+                                onValueChange = viewModel::onNombreChange,
+                                label = "Nombre",
+                                isError = estado.nombre.error != null,
+                                isSuccess = estado.nombre.isSuccess,
+                                supportingText = errorSupportingText(estado.nombre.error)
+                            )
 
-                        // Campo apellidos
-                        LevelUpTextField(
-                            value = estado.apellidos.valor,
-                            onValueChange = viewModel::onApellidosChange,
-                            label = "Apellidos",
-                            isError = estado.apellidos.error != null,
-                            isSuccess = estado.apellidos.isSuccess,
-                            supportingText = errorSupportingText(estado.apellidos.error)
-                        )
+                            // Campo apellidos
+                            LevelUpTextField(
+                                value = estado.apellidos.valor,
+                                onValueChange = viewModel::onApellidosChange,
+                                label = "Apellidos",
+                                isError = estado.apellidos.error != null,
+                                isSuccess = estado.apellidos.isSuccess,
+                                supportingText = errorSupportingText(estado.apellidos.error)
+                            )
 
-                        // Campo fechaNacimiento
-                        LevelUpFechaNacimientoField(
-                            fechaNacimiento = formatFecha(estado.fechaNacimiento.valor),
-                            onFechaNacimientoChange = { viewModel.onFechaNacimientoChange(it) },
-                            isError = estado.fechaNacimiento.error != null,
-                            isSuccess = estado.fechaNacimiento.isSuccess,
-                            supportingText = errorSupportingText(estado.fechaNacimiento.error)
-                        )
+                            // Campo fechaNacimiento
+                            LevelUpFechaNacimientoField(
+                                fechaNacimiento = formatFecha(estado.fechaNacimiento.valor),
+                                onFechaNacimientoChange = viewModel::onFechaNacimientoChange,
+                                isError = estado.fechaNacimiento.error != null,
+                                isSuccess = estado.fechaNacimiento.isSuccess,
+                                supportingText = errorSupportingText(estado.fechaNacimiento.error)
+                            )
+                        }
                     }
                 }
 
@@ -153,45 +157,49 @@ fun RegisterScreen(
                         title = "Datos de contacto",
                         dimens = dimens
                     ) {
-                        // Campo email
-                        LevelUpTextField(
-                            value = estado.email.valor,
-                            onValueChange = viewModel::onEmailChange,
-                            label = "Correo Electrónico",
-                            isError = estado.email.error != null,
-                            isSuccess = estado.email.isSuccess,
-                            supportingText = errorSupportingText(estado.email.error),
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Email
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(dimens.fieldSpacing)
+                        ) {
+                            // Campo email
+                            LevelUpTextField(
+                                value = estado.email.valor,
+                                onValueChange = viewModel::onEmailChange,
+                                label = "Correo Electrónico",
+                                isError = estado.email.error != null,
+                                isSuccess = estado.email.isSuccess,
+                                supportingText = errorSupportingText(estado.email.error),
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Email
+                                )
                             )
-                        )
 
-                        // Campo teléfono
-                        LevelUpTextField(
-                            value = estado.telefono.valor,
-                            onValueChange = { nuevoNumero ->
-                                if (nuevoNumero.all { it.isDigit() }) {
-                                    viewModel.onTelefonoChange(nuevoNumero)
-                                }
-                            },
-                            label = "Teléfono (Opcional)",
-                            isError = estado.telefono.error != null,
-                            isSuccess = estado.telefono.isSuccess,
-                            supportingText = errorSupportingText(estado.telefono.error),
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Phone
+                            // Campo teléfono
+                            LevelUpTextField(
+                                value = estado.telefono.valor,
+                                onValueChange = { nuevoNumero ->
+                                    if (nuevoNumero.all { it.isDigit() }) {
+                                        viewModel.onTelefonoChange(nuevoNumero)
+                                    }
+                                },
+                                label = "Teléfono (Opcional)",
+                                isError = estado.telefono.error != null,
+                                isSuccess = estado.telefono.isSuccess,
+                                supportingText = errorSupportingText(estado.telefono.error),
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Phone
+                                )
                             )
-                        )
 
-                        // Campo dirección
-                        LevelUpTextField(
-                            value = estado.direccion.valor,
-                            onValueChange = viewModel::onDireccionChange,
-                            label = "Dirección (Opcional)",
-                            isError = estado.direccion.error != null,
-                            isSuccess = estado.direccion.isSuccess,
-                            supportingText = errorSupportingText(estado.direccion.error)
-                        )
+                            // Campo dirección
+                            LevelUpTextField(
+                                value = estado.direccion.valor,
+                                onValueChange = viewModel::onDireccionChange,
+                                label = "Dirección (Opcional)",
+                                isError = estado.direccion.error != null,
+                                isSuccess = estado.direccion.isSuccess,
+                                supportingText = errorSupportingText(estado.direccion.error)
+                            )
+                        }
                     }
                 }
 
@@ -200,37 +208,41 @@ fun RegisterScreen(
                         title = "Ubicación",
                         dimens = dimens
                     ) {
-                        // Campo región
-                        LevelUpDropdownMenu(
-                            label = "Región",
-                            options = ubicacionViewModel.regiones.map { it.nombre },
-                            selectedOption = ubicacionViewModel.selectedRegion?.nombre,
-                            onOptionSelected = { nombre ->
-                                ubicacionViewModel.selectRegion(nombre)
-                                viewModel.onRegionChange(nombre)   // Actualiza Region en UsuarioViewModel
-                                viewModel.onComunaChange("")       // Limpia comuna en UsuarioViewModel
-                            },
-                            isError = estado.region.error != null,
-                            isSuccess = estado.region.isSuccess,
-                            supportingText = errorSupportingText(estado.region.error)
-                        )
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(dimens.fieldSpacing)
+                        ) {
+                            // Campo región
+                            LevelUpDropdownMenu(
+                                label = "Región",
+                                options = ubicacionViewModel.regiones.map { it.nombre },
+                                selectedOption = ubicacionViewModel.selectedRegion?.nombre,
+                                onOptionSelected = { nombre ->
+                                    ubicacionViewModel.selectRegion(nombre)
+                                    viewModel.onRegionChange(nombre)   // Actualiza Region en UsuarioViewModel
+                                    viewModel.onComunaChange("")       // Limpia comuna en UsuarioViewModel
+                                },
+                                isError = estado.region.error != null,
+                                isSuccess = estado.region.isSuccess,
+                                supportingText = errorSupportingText(estado.region.error)
+                            )
 
-                        // Campo comuna
-                        LevelUpDropdownMenu(
-                            label = "Comuna",
-                            options = ubicacionViewModel.selectedRegion?.comunas?.map { it.nombre }
-                                ?: emptyList(),
-                            selectedOption = ubicacionViewModel.selectedComuna?.nombre,
-                            onOptionSelected = { nombre ->
-                                ubicacionViewModel.selectComuna(nombre)
-                                viewModel.onComunaChange(nombre) // Actualiza Comuna en UsuarioViewModel
-                            },
-                            isError = estado.comuna.error != null,
-                            isSuccess = estado.comuna.isSuccess,
-                            supportingText = errorSupportingText(estado.comuna.error),
-                            enabled = ubicacionViewModel.selectedRegion != null,
-                            placeholder = if (ubicacionViewModel.selectedRegion == null) "Selecciona región primero" else null
-                        )
+                            // Campo comuna
+                            LevelUpDropdownMenu(
+                                label = "Comuna",
+                                options = ubicacionViewModel.selectedRegion?.comunas?.map { it.nombre }
+                                    ?: emptyList(),
+                                selectedOption = ubicacionViewModel.selectedComuna?.nombre,
+                                onOptionSelected = { nombre ->
+                                    ubicacionViewModel.selectComuna(nombre)
+                                    viewModel.onComunaChange(nombre) // Actualiza Comuna en UsuarioViewModel
+                                },
+                                isError = estado.comuna.error != null,
+                                isSuccess = estado.comuna.isSuccess,
+                                supportingText = errorSupportingText(estado.comuna.error),
+                                enabled = ubicacionViewModel.selectedRegion != null,
+                                placeholder = if (ubicacionViewModel.selectedRegion == null) "Selecciona región primero" else null
+                            )
+                        }
                     }
                 }
 
@@ -240,35 +252,39 @@ fun RegisterScreen(
                         title = "Seguridad",
                         dimens = dimens
                     ) {
-                        // Campo password
-                        LevelUpPasswordField(
-                            value = estado.password.valor,
-                            onValueChange = viewModel::onPasswordChange,
-                            label = "Contraseña",
-                            isError = estado.password.error != null,
-                            isSuccess = estado.password.isSuccess,
-                            supportingText = errorSupportingText(estado.password.error)
-                        )
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(dimens.fieldSpacing)
+                        ) {
+                            // Campo password
+                            LevelUpPasswordField(
+                                value = estado.password.valor,
+                                onValueChange = viewModel::onPasswordChange,
+                                label = "Contraseña",
+                                isError = estado.password.error != null,
+                                isSuccess = estado.password.isSuccess,
+                                supportingText = errorSupportingText(estado.password.error)
+                            )
 
-                        // Campo confirmPassword
-                        LevelUpPasswordField(
-                            value = estado.confirmPassword.valor,
-                            onValueChange = viewModel::onConfirmPasswordChange,
-                            label = "Confirmar Contraseña",
-                            isError = estado.confirmPassword.error != null,
-                            isSuccess = estado.confirmPassword.isSuccess,
-                            supportingText = errorSupportingText(estado.confirmPassword.error)
-                        )
+                            // Campo confirmPassword
+                            LevelUpPasswordField(
+                                value = estado.confirmPassword.valor,
+                                onValueChange = viewModel::onConfirmPasswordChange,
+                                label = "Confirmar Contraseña",
+                                isError = estado.confirmPassword.error != null,
+                                isSuccess = estado.confirmPassword.isSuccess,
+                                supportingText = errorSupportingText(estado.confirmPassword.error)
+                            )
 
-                        LevelUpSwitchField(
-                            checked = estado.terminos.valor == "true",
-                            onCheckedChange = {
-                                viewModel.onTerminosChange(it)
-                            },
-                            label = "Acepto los términos y condiciones",
-                            error = estado.terminos.error,
-                            labelSpacing = dimens.fieldSpacing // tu valor personalizado de espaciado
-                        )
+                            LevelUpSwitchField(
+                                checked = estado.terminos.valor == "true",
+                                onCheckedChange = {
+                                    viewModel.onTerminosChange(it)
+                                },
+                                label = "Acepto los términos y condiciones",
+                                error = estado.terminos.error,
+                                labelSpacing = dimens.fieldSpacing // tu valor personalizado de espaciado
+                            )
+                        }
                     }
                 }
 
@@ -278,15 +294,13 @@ fun RegisterScreen(
                         text = "Registrar",
                         icon = Icons.Filled.Check,
                         iconSize = dimens.iconSize,
-                        enabled = puedeRegistrar && registroEstado != RegistroUiState.Loading,
+                        enabled = puedeRegistrar && registroEstado != RegisterStatus.Loading,
                         onClick = {
                             // Valida el formulario usando el ViewModel
                             if (viewModel.validarRegistro()) {
                                 coroutineScope.launch {
                                     viewModel.registrarUsuario()
                                 }
-                                // Aquí podrías navegar con navController, por ejemplo:
-                                // navController.navigate("login")
                             }
                         },
                         modifier = Modifier
@@ -299,10 +313,10 @@ fun RegisterScreen(
 
         // Scrim con Loading
         when (registroEstado){
-            is RegistroUiState.Loading -> {
+            is RegisterStatus.Loading -> {
                 // Overlay oscuro y spinner
             }
-            is RegistroUiState.Success -> {
+            is RegisterStatus.Success -> {
                 // Popup de éxito (AlertDialog)
                 LevelUpAlertDialog(
                     onDismissRequest = {
@@ -313,13 +327,13 @@ fun RegisterScreen(
                     confirmText = "Aceptar",
                     onConfirm = {
                         viewModel.resetRegistroEstado()
-                        //navController.navigate("login")
+                        navController.navigate("login")
                     }
                 )
             }
-            is RegistroUiState.Error -> {
+            is RegisterStatus.Error -> {
                 // Popup de error (AlertDialog)
-                val mensajeError = (registroEstado as RegistroUiState.Error).mensajeError
+                val mensajeError = (registroEstado as RegisterStatus.Error).mensajeError
                 LevelUpAlertDialog(
                     onDismissRequest = {
                         viewModel.resetRegistroEstado()
@@ -333,11 +347,11 @@ fun RegisterScreen(
                 )
             }
 
-            RegistroUiState.Idle -> {}
+            RegisterStatus.Idle -> {}
         }
     }
     LevelUpLoadingOverlay(
-        visible = registroEstado is RegistroUiState.Loading
+        visible = registroEstado is RegisterStatus.Loading
     )
 }
 
