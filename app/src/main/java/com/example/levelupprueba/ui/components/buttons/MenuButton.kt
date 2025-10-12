@@ -3,6 +3,7 @@ package com.example.levelupprueba.ui.components.buttons
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -15,6 +16,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.levelupprueba.ui.theme.ButtonColors
+import com.example.levelupprueba.ui.theme.Dimens
 
 /**
  * Colores personalizados para Button siguiendo la paleta de la app LevelUp
@@ -32,7 +34,6 @@ import com.example.levelupprueba.ui.theme.ButtonColors
  * @param modifier Modificar para personalizar el estilo del botón.
  * @param onClick Accion que se ejecuta al presionar el botón.
  * @param icon (Opcional) Icono a mostrar antes del texto.
- * @param iconSize Tamaño del icono. Tiene un tamaño de 24.dp por defecto.
  * @param iconTint Color del icono. Por defecto tiene el color onPrimary.
  * @param enabled Esto indica si el boton esta deshabilitado o no, dependiendo si es true o false.
  */
@@ -41,8 +42,8 @@ fun MenuButton(
     text: String, // Texto que se va a mostrar dentro del botón
     modifier: Modifier = Modifier, // Permite modificar el botón desde afuera
     onClick: () -> Unit, // Función que se ejecuta al hacer clic en el botón
+    dimens: Dimens,
     icon: ImageVector? = null, // Opcional: icono a mostrar junto al texto (si es null no se muestra)
-    iconSize: Dp = 24.dp, // Tamaño del icono, por defecto 24.dp
     iconTint: Color = MaterialTheme.colorScheme.onPrimary, // Color del icono, por defecto uno del tema
     enabled: Boolean = true // Si está en false, el botón aparece deshabilitado y no responde al tap
 )  {
@@ -54,7 +55,7 @@ fun MenuButton(
             containerColor = ButtonColors.MenuBackground,
             contentColor = ButtonColors.MenuContent
         ),
-        shape = MaterialTheme.shapes.extraLarge // Refuerza el borde redondeado del botón
+        shape = RoundedCornerShape(dimens.buttonCornerRadius) // Refuerza el borde redondeado del botón
 
     ){
         // Si el parámetro icon no es null, muestra el icono antes del texto
@@ -62,10 +63,10 @@ fun MenuButton(
             Icon(
                 icon, // Vector de imagen del icono a mostrar
                 contentDescription = null, // Descripción para accesibilidad (puedes poner texto si quieres)
-                modifier = Modifier.size(iconSize), // Aplica el tamaño especificado al icono
+                modifier = Modifier.size(dimens.buttonIconSize), // Aplica el tamaño especificado al icono
                 tint = iconTint // Aplica el color especificado al icono
             )
-            Spacer(Modifier.width(8.dp)) // Espacio horizontal entre el icono y el texto
+            Spacer(Modifier.width(dimens.smallSpacing)) // Espacio horizontal entre el icono y el texto
         }
         Text(text)
     }

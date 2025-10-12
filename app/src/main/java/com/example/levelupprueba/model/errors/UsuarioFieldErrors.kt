@@ -4,6 +4,10 @@ sealed class UsuarioFieldErrors : FieldErrors() {
     object EmailInvalido : UsuarioFieldErrors() {
         override fun mensaje(): String = "Correo inválido"
     }
+
+    object EmailDominioNoPermitido : UsuarioFieldErrors(){
+        override fun mensaje(): String = "Solo se permite correo @gmail.com o @duoc.cl"
+    }
     object PasswordLimite : UsuarioFieldErrors() {
         override fun mensaje(): String = "La contraseña debe tener entre 4 y 10 caracteres"
     }
@@ -13,14 +17,8 @@ sealed class UsuarioFieldErrors : FieldErrors() {
     object TelefonoInvalido : UsuarioFieldErrors() {
         override fun mensaje(): String = "El teléfono solo debe contener números"
     }
-    object TelefonoLimite : UsuarioFieldErrors() {
-        override fun mensaje(): String = "El teléfono debe tener al menos 9 dígitos"
-    }
     object MenorEdad : UsuarioFieldErrors() {
         override fun mensaje(): String = "Debes ser mayor de 18 años"
-    }
-    object DireccionLimite : UsuarioFieldErrors() {
-        override fun mensaje(): String = "La dirección no puede tener más de 300 caracteres"
     }
     object DireccionInvalida : UsuarioFieldErrors() {
         override fun mensaje(): String = "La dirección contiene caracteres no válidos"
