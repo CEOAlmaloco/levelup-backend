@@ -7,7 +7,6 @@ import com.example.levelupprueba.data.local.UserDataStore
 import com.example.levelupprueba.model.auth.LoginStatus
 import com.example.levelupprueba.model.auth.LoginUiState
 import com.example.levelupprueba.model.auth.LoginValidator
-import com.example.levelupprueba.model.usuario.Usuario
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
