@@ -12,10 +12,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
 import com.example.levelupprueba.model.usuario.UsuarioUiState
 import com.example.levelupprueba.model.usuario.isSuccess
-import com.example.levelupprueba.ui.components.LevelUpFormSection
 import com.example.levelupprueba.ui.components.dropdown.LevelUpDropdownMenu
 import com.example.levelupprueba.ui.components.inputs.LevelUpFechaNacimientoField
 import com.example.levelupprueba.ui.components.inputs.LevelUpPasswordField

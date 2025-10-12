@@ -8,9 +8,7 @@ sealed class UsuarioFieldErrors : FieldErrors() {
     object EmailDominioNoPermitido : UsuarioFieldErrors(){
         override fun mensaje(): String = "Solo se permite correo @gmail.com o @duoc.cl"
     }
-    object PasswordLimite : UsuarioFieldErrors() {
-        override fun mensaje(): String = "La contraseña debe tener entre 4 y 10 caracteres"
-    }
+
     object PasswordNoCoincide : UsuarioFieldErrors() {
         override fun mensaje(): String = "Las contraseñas no coinciden"
     }

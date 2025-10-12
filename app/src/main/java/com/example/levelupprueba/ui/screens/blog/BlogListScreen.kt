@@ -1,13 +1,8 @@
 package com.example.levelupprueba.ui.screens.blog
 
 // IMPORTAMOS LITERALMENTE TODO
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -25,11 +20,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.example.levelupprueba.R
 import com.example.levelupprueba.model.blog.Blog
 import com.example.levelupprueba.model.blog.FiltroBlog
-import com.example.levelupprueba.ui.components.buttons.LevelUpButton
-import com.example.levelupprueba.ui.components.overlays.LevelUpLoadingOverlay
 import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.viewmodel.BlogViewModel
 

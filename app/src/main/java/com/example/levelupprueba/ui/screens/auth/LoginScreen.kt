@@ -5,17 +5,13 @@ import androidx.activity.ComponentActivity
 import com.example.levelupprueba.R
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Start
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -24,10 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.unit.*
-import androidx.navigation.NavController
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.levelupprueba.MainActivity
 import com.example.levelupprueba.model.auth.LoginStatus
@@ -45,7 +38,6 @@ import com.example.levelupprueba.ui.components.topbars.LevelUpTopBar
 import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.ui.theme.SemanticColors
 import com.example.levelupprueba.viewmodel.LoginViewModel
-import com.example.levelupprueba.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
 
 

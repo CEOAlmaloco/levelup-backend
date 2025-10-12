@@ -4,7 +4,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
-import com.example.levelupprueba.ui.theme.NeutralDivider
 import com.example.levelupprueba.ui.theme.SemanticColors
 import com.example.levelupprueba.ui.theme.TextDisabled
 

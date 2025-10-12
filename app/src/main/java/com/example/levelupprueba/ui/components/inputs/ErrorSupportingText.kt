@@ -5,7 +5,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.TextUnit
 import com.example.levelupprueba.model.errors.FieldErrors
-import com.example.levelupprueba.model.errors.UsuarioFieldErrors
 
 /**
  * Funcion reutilizable que permite mostrar un mensaje de error debajo de un field

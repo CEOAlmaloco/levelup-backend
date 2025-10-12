@@ -9,12 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.levelupprueba.model.errors.FieldErrors
-import com.example.levelupprueba.model.errors.UsuarioFieldErrors
 import com.example.levelupprueba.ui.components.switches.levelUpSwitchColors
 import com.example.levelupprueba.ui.theme.Dimens
 
