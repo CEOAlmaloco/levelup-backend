@@ -21,6 +21,7 @@ object UsuarioValidator {
         when {
             email.isBlank() -> FieldErrors.Obligatorio("correo")
             !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> UsuarioFieldErrors.EmailInvalido
+            !email.endsWith("@gmail.com") && !email.endsWith("@duoc.cl") -> UsuarioFieldErrors.EmailDominioNoPermitido
             else -> null
         }
 

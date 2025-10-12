@@ -1,11 +1,19 @@
 package com.example.levelupprueba.ui.components.inputs
 
+import androidx.annotation.Size
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import com.example.levelupprueba.ui.theme.Dimens
 
 /**
  * Text Field personalizado estándar para formularios
@@ -42,12 +50,13 @@ fun LevelUpTextField(
     placeholder: @Composable (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    dimens: Dimens
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         colors = levelUpTextFieldColors(isSuccess = isSuccess),
-        label = { Text(label) },
+        label = { Text(text = label, fontSize = dimens.bodySize) },
         enabled = enabled,
         isError = isError,
         supportingText = supportingText,
@@ -55,7 +64,8 @@ fun LevelUpTextField(
         readOnly = readOnly,
         trailingIcon = trailingIcon,
         placeholder = placeholder,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth(),
         keyboardOptions = keyboardOptions
     )
 }

@@ -3,6 +3,7 @@ package com.example.levelupprueba.ui.components.inputs
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.TextUnit
 import com.example.levelupprueba.model.errors.FieldErrors
 import com.example.levelupprueba.model.errors.UsuarioFieldErrors
 
@@ -13,5 +14,18 @@ import com.example.levelupprueba.model.errors.UsuarioFieldErrors
  *
  */
 @Composable
-fun errorSupportingText(error: FieldErrors?): (@Composable () -> Unit)? =
-    error?.let { {Text(it.mensaje(), color = MaterialTheme.colorScheme.error)} }
+fun errorSupportingText(
+    error: FieldErrors?,
+    fontSize: TextUnit
+): (@Composable () -> Unit)? =
+    error?.let {
+        {
+            Text(
+                text = it.mensaje(),
+                color = MaterialTheme.colorScheme.error,
+                fontSize = fontSize
+            )
+        }
+    }
+
+
