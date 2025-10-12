@@ -26,8 +26,8 @@ import com.example.levelupprueba.ui.theme.Dimens
  * @param label Etiqueta del switch
  * @param error Error que se mostrara debajo del campo
  * @param modifier Modificador para personalizar el campo
- * @param labelSpacing Espaciado entre la etiqueta y el switch
- * @param errorFontSize Tamaño de fuente del mensaje de error
+ * @param dimens Dimensiones del campo
+ *
  */
 @Composable
 fun LevelUpSwitchField(
@@ -48,7 +48,7 @@ fun LevelUpSwitchField(
             colors = levelUpSwitchColors()
         )
         Spacer(Modifier.width(dimens.smallSpacing))
-        Text(label)
+        Text(label, fontSize = dimens.bodySize)
     }
     if (error != null){
         Text(

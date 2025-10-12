@@ -1,10 +1,13 @@
 package com.example.levelupprueba.viewmodel
 
+import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.levelupprueba.data.local.UserDataStore
 import com.example.levelupprueba.model.registro.RegisterStatus
+import com.example.levelupprueba.model.usuario.Usuario
 import com.example.levelupprueba.model.usuario.UsuarioUiState
 import com.example.levelupprueba.model.usuario.UsuarioValidator
 import kotlinx.coroutines.delay
@@ -12,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 class UsuarioViewModel: ViewModel() {
 
@@ -23,6 +27,9 @@ class UsuarioViewModel: ViewModel() {
     // Estado del proceso de registro (Loading, success, error)
     private val _registroEstado = MutableStateFlow<RegisterStatus>(RegisterStatus.Idle)
     val registroEstado: StateFlow<RegisterStatus> = _registroEstado
+
+    // Instancia del DataStore
+    var userDataStore: UserDataStore? = null
 
     /**
      * Helper para actualizar el estado de un campo evitando repetición de código.
@@ -225,11 +232,28 @@ class UsuarioViewModel: ViewModel() {
 
     // Simula el proceso de registro con delay utilizando launch y estados
     // En el futuro aquí se hará la petición HTTP al backend para validar
-    fun registrarUsuario() {
+    fun registrarUsuario(context: Context) {
         viewModelScope.launch {
             _registroEstado.value = RegisterStatus.Loading
             try {
                 delay(2000) // simula backend
+                val usuario = Usuario(
+                    id = UUID.randomUUID().toString(),
+                    nombre = _estado.value.nombre.valor,
+                    apellidos = _estado.value.apellidos.valor,
+                    email = _estado.value.email.valor,
+                    password = _estado.value.password.valor,
+                    telefono = _estado.value.telefono.valor,
+                    fechaNacimiento = _estado.value.fechaNacimiento.valor,
+                    region = _estado.value.region.valor,
+                    comuna = _estado.value.comuna.valor,
+                    direccion = _estado.value.direccion.valor,
+                    referralCode = "",
+                    points = 0,
+                    role = "cliente"
+                )
+                userDataStore = UserDataStore(context)
+                userDataStore?.addUsuario(usuario)
                 _registroEstado.value = RegisterStatus.Success
             } catch (e: Exception) {
                 _registroEstado.value = RegisterStatus.Error("Ocurrió un error: ${e.message}")

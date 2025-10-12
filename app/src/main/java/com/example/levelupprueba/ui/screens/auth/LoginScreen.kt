@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import com.example.levelupprueba.R
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.*
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -31,6 +33,7 @@ import com.example.levelupprueba.MainActivity
 import com.example.levelupprueba.model.auth.LoginStatus
 import com.example.levelupprueba.model.auth.isSuccess
 import com.example.levelupprueba.ui.components.LevelUpCard
+import com.example.levelupprueba.ui.components.LevelUpClickableTextLink
 import com.example.levelupprueba.ui.components.LevelUpSpacedColumn
 import com.example.levelupprueba.ui.components.buttons.LevelUpButton
 import com.example.levelupprueba.ui.components.dialogs.LevelUpAlertDialog
@@ -40,6 +43,7 @@ import com.example.levelupprueba.ui.components.inputs.errorSupportingText
 import com.example.levelupprueba.ui.components.overlays.LevelUpLoadingOverlay
 import com.example.levelupprueba.ui.components.topbars.LevelUpTopBar
 import com.example.levelupprueba.ui.theme.LocalDimens
+import com.example.levelupprueba.ui.theme.SemanticColors
 import com.example.levelupprueba.viewmodel.LoginViewModel
 import com.example.levelupprueba.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
@@ -171,7 +175,7 @@ fun LoginScreen(
                             onClick = {
                                 if (viewModel.validarLogin()) {
                                     coroutineScope.launch {
-                                        viewModel.loginUsuario()
+                                        viewModel.loginUsuario(context, estado.emailOrName.valor, estado.password.valor)
                                     }
                                 }
                             },
@@ -180,6 +184,30 @@ fun LoginScreen(
                                 .height(dimens.buttonHeight), // Altura adaptativa del botón
                             dimens = dimens
                         )
+
+                        Spacer(modifier = Modifier.height(dimens.sectionSpacing))
+
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "¿No tienes una cuenta?",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = dimens.captionSize
+                            )
+
+                            Spacer(modifier = Modifier.width(4.dp))
+
+                            LevelUpClickableTextLink(
+                                text = "Regístrate",
+                                color = SemanticColors.AccentBlue,
+                                onClick = { navController.navigate("registro") },
+                                dimens = dimens
+                            )
+                        }
                     }
 
                     // Scrim con Loading

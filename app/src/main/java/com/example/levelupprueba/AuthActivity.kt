@@ -7,18 +7,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Modifier
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
+import com.example.levelupprueba.data.local.UserDataStore
+import com.example.levelupprueba.model.usuario.Usuario
 import com.example.levelupprueba.navigation.AuthNavigation
 import com.example.levelupprueba.ui.theme.LevelUpPruebaTheme
 import com.example.levelupprueba.viewmodel.MainViewModel
+import kotlinx.coroutines.launch
 
 
 class AuthActivity : ComponentActivity() {
@@ -29,6 +29,32 @@ class AuthActivity : ComponentActivity() {
 
         // Detecta si es tablet usando smallestScreenWidthDp
         val isTablet = resources.configuration.smallestScreenWidthDp >= 600
+
+        // Define el usuarioDemo
+        val usuarioDemo = Usuario(
+            id = "123",
+            nombre = "LevelUp User",
+            apellidos = "Prueba",
+            email = "demo@duoc.cl",
+            password = "1234",
+            telefono = "123456789",
+            fechaNacimiento = "2000-01-01",
+            region = "Región Metropolitana",
+            comuna = "Santiago",
+            direccion = "Av. Siempre Viva 123",
+            referralCode = "LEVELUP1234",
+            points = 0,
+            role = "cliente"
+        )
+
+        val userDataStore = UserDataStore(this)
+        lifecycleScope.launch {
+            // Solo lo agrega si no existe ya
+            val usuarios = userDataStore.getUsuarios()
+            if (usuarios.none { it.email == usuarioDemo.email }) {
+                userDataStore.addUsuario(usuarioDemo)
+            }
+        }
 
         // Si NO es tablet, fuerza portrait
         if (!isTablet) {

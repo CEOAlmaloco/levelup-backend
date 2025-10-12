@@ -1,7 +1,9 @@
 package com.example.levelupprueba.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.levelupprueba.data.local.UserDataStore
 import com.example.levelupprueba.model.auth.LoginStatus
 import com.example.levelupprueba.model.auth.LoginUiState
 import com.example.levelupprueba.model.auth.LoginValidator
@@ -22,23 +24,6 @@ class LoginViewModel : ViewModel(){
     private val _loginEstado = MutableStateFlow<LoginStatus>(LoginStatus.Idle)
 
     val loginEstado: StateFlow<LoginStatus> = _loginEstado
-
-    //Usuario demo para login simulado
-    private val usuarioDemo = Usuario(
-        id = "123",
-        nombre = "LevelUp User",
-        apellidos = "Prueba",
-        email = "demo@duoc.cl",
-        password = "1234",
-        telefono = "123456789",
-        fechaNacimiento = "2000-01-01",
-        region = "Región Metropolitana",
-        comuna = "Santiago",
-        direccion = "Av. Siempre Viva 123",
-        referralCode = "LEVELUP1234",
-        points = 0,
-        role = "cliente"
-    )
 
     private fun actualizarCampo(
         update: (LoginUiState) -> LoginUiState
@@ -85,19 +70,29 @@ class LoginViewModel : ViewModel(){
         return !hayErrores
     }
 
-    fun loginUsuario(){
+    fun loginUsuario(context: Context, emailOrName: String, password: String){
         viewModelScope.launch {
             _loginEstado.value = LoginStatus.Loading
             delay(2000)
-            val emailOrName = _estado.value.emailOrName.valor
-            val password = _estado.value.password.valor
+            try {
+                // Leer todos los usuarios guardados
+                val userDataStore = UserDataStore(context)
+                val usuarios = userDataStore.getUsuarios()
 
-            //Validación simulado contra usuario demo
-            if ((emailOrName == usuarioDemo.email || emailOrName == usuarioDemo.nombre) &&
-                password == usuarioDemo.password){
-                _loginEstado.value = LoginStatus.Success
-            } else {
-                _loginEstado.value = LoginStatus.Error(mensajeError = "Credenciales inválidas")
+                // Buscar usuario por email o nombre, y comparar password
+                val usuario = usuarios.find {
+                    (it.email == emailOrName || it.nombre == emailOrName) &&
+                            it.password == password
+                }
+
+                if (usuario != null) {
+                    _loginEstado.value = LoginStatus.Success
+                    // si quieres, puedes guardar la sesión del usuario aquí
+                } else {
+                    _loginEstado.value = LoginStatus.Error("Credenciales inválidas")
+                }
+            } catch (e: Exception) {
+                _loginEstado.value = LoginStatus.Error("Ocurrió un error: ${e.message}")
             }
         }
     }
