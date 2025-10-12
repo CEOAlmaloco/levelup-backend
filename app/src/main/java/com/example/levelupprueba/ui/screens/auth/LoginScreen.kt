@@ -26,6 +26,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.example.levelupprueba.MainActivity
 import com.example.levelupprueba.model.auth.LoginStatus
 import com.example.levelupprueba.model.auth.isSuccess
@@ -48,7 +49,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel,
-    mainViewModel: MainViewModel
+    navController: NavHostController
 ){
 
     // Observa el estado actual del login desde el ViewModel (emailOrName, password, errores, etc.)
@@ -72,7 +73,11 @@ fun LoginScreen(
                     title = "Inicio de Sesión",
                     onBackClick = {
                         coroutineScope.launch {
-                            mainViewModel.navigateBack()
+                            val canGoBack = navController.popBackStack()
+                            if (!canGoBack) {
+                                context.startActivity(Intent(context, MainActivity::class.java))
+                                (context as? ComponentActivity)?.finish()
+                            }
                         }
                     },
                     dimens = dimens
