@@ -22,7 +22,11 @@ import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AuthNavigation(mainViewModel: MainViewModel, navController: NavHostController){
+fun AuthNavigation(
+    mainViewModel: MainViewModel,
+    navController: NavHostController,
+    startDestination: String = "welcome"
+){
 
     val usuarioViewModel: UsuarioViewModel = viewModel()
 
@@ -33,7 +37,7 @@ fun AuthNavigation(mainViewModel: MainViewModel, navController: NavHostControlle
     val coroutineScope = rememberCoroutineScope()
     NavHost(
         navController = navController,
-        startDestination = "welcome"
+        startDestination = startDestination
     ) {
         composable("welcome"){
             WelcomeScreen(
@@ -59,7 +63,7 @@ fun AuthNavigation(mainViewModel: MainViewModel, navController: NavHostControlle
         }
 
         composable("login"){
-            LoginScreen(loginViewModel, mainViewModel)
+            LoginScreen(loginViewModel, navController)
         }
     }
 }

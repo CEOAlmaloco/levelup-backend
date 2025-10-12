@@ -46,6 +46,8 @@ class AuthActivity : ComponentActivity() {
 
             val navController =  rememberNavController()
 
+            val startDestination = intent.getStringExtra("startDestination") ?: "welcome"
+
             // LaunchedEffect SOLO AQUÍ, no en cada pantalla
             LaunchedEffect(Unit) {
                 mainViewModel.navigationEvent.collect { event ->
@@ -71,7 +73,8 @@ class AuthActivity : ComponentActivity() {
             ) {
                 AuthNavigation(
                     mainViewModel = mainViewModel,
-                    navController = navController
+                    navController = navController,
+                    startDestination = startDestination
                 )
             }
         }
