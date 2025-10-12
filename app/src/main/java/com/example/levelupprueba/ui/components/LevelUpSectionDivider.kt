@@ -26,7 +26,7 @@ fun LevelUpSectionDivider(
     ) {
         HorizontalDivider(
             modifier = Modifier.weight(1f),
-            thickness = 1.dp,
+            thickness = dimens.dividerThickness,
             color = MaterialTheme.colorScheme.outline
         )
 
@@ -34,12 +34,13 @@ fun LevelUpSectionDivider(
             text = title.uppercase(),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-            modifier = Modifier.padding(horizontal = dimens.fieldSpacing)
+            modifier = Modifier.padding(horizontal = dimens.fieldSpacing),
+            fontSize = dimens.captionSize
         )
 
         HorizontalDivider(
             modifier = Modifier.weight(1f),
-            thickness = 1.dp,
+            thickness = dimens.dividerThickness,
             color = MaterialTheme.colorScheme.outline
         )
     }

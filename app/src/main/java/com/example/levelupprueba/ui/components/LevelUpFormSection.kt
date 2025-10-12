@@ -39,7 +39,11 @@ fun LevelUpFormSection(
 
         // Contenido animado (campos)
         AnimatedVisibility(visible = true) {
-            content()
+            Column(
+                verticalArrangement = Arrangement.spacedBy(dimens.fieldSpacing)
+            ){
+                content()
+            }
         }
     }
 }

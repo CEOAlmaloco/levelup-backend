@@ -32,6 +32,7 @@ val DarkColorScheme = darkColorScheme(
     onBackground = TextHigh,
     surface = NeutralSurface,
     onSurface = TextMedium,
+    onSurfaceVariant = TextMedium,
     error = BrandError,
     onError = TextHigh,
     outline = NeutralDivider,

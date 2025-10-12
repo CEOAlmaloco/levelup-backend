@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.sp
 import com.example.levelupprueba.model.errors.FieldErrors
 import com.example.levelupprueba.model.errors.UsuarioFieldErrors
 import com.example.levelupprueba.ui.components.switches.levelUpSwitchColors
+import com.example.levelupprueba.ui.theme.Dimens
 
 /**
  * Funcion que permite reutilizar el Switch LevelUp para opciones o confirmaciones
@@ -35,8 +36,7 @@ fun LevelUpSwitchField(
     label: String,
     error: FieldErrors?,
     modifier: Modifier = Modifier,
-    labelSpacing: Dp = 8.dp,
-    errorFontSize: TextUnit = 12.sp
+    dimens: Dimens
 ){
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -47,14 +47,14 @@ fun LevelUpSwitchField(
             onCheckedChange = onCheckedChange,
             colors = levelUpSwitchColors()
         )
-        Spacer(Modifier.width(labelSpacing))
+        Spacer(Modifier.width(dimens.smallSpacing))
         Text(label)
     }
     if (error != null){
         Text(
-            error.mensaje(),
+            text = error.mensaje(),
             color = MaterialTheme.colorScheme.error,
-            fontSize = errorFontSize
+            fontSize = dimens.captionSize
         )
     }
 }

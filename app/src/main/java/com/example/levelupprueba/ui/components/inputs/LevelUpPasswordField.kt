@@ -1,6 +1,9 @@
 package com.example.levelupprueba.ui.components.inputs
 
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -15,8 +18,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import com.example.levelupprueba.ui.theme.Dimens
 
 /**
  * Funcion que permite reutilizar el campo de texto para la contraseña
@@ -40,7 +45,8 @@ fun LevelUpPasswordField(
     isSuccess: Boolean = false,
     supportingText: (@Composable (() -> Unit))? = null,
     singleLine: Boolean = true,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    dimens: Dimens
 ) {
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
@@ -50,7 +56,8 @@ fun LevelUpPasswordField(
         colors = levelUpTextFieldColors(isSuccess = isSuccess),
         label = {
             Text(
-                text = label
+                text = label,
+                fontSize = dimens.bodySize
             )
         },
         isError = isError,
@@ -77,12 +84,15 @@ fun LevelUpPasswordField(
                 Icon(
                     imageVector = image,
                     contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña",
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier
+                        .size(dimens.iconSize)
                 )
             }
         },
         supportingText = supportingText,
         singleLine = singleLine,
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth(),
     )
 }
