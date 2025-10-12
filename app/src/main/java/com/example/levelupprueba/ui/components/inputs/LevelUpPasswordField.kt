@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -34,7 +36,7 @@ import com.example.levelupprueba.ui.theme.Dimens
  * @param supportingText Mensaje de ayuda o error debajo del campo
  * @param singleLine Indica si el campo solo puede tener una linea
  * @param modifier Modificador para personalizar el campo
- *
+ * @param dimens Dimensiones del campo
  */
 @Composable
 fun LevelUpPasswordField(
@@ -46,6 +48,8 @@ fun LevelUpPasswordField(
     supportingText: (@Composable (() -> Unit))? = null,
     singleLine: Boolean = true,
     modifier: Modifier = Modifier,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
     dimens: Dimens
 ) {
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
@@ -94,5 +98,7 @@ fun LevelUpPasswordField(
         singleLine = singleLine,
         modifier = modifier
             .fillMaxWidth(),
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions
     )
 }

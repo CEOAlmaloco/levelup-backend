@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -33,7 +34,8 @@ import com.example.levelupprueba.ui.theme.Dimens
  * @param placeholder Texto que se muestra cuando el campo está vacío
  * @param modifier Modificador para personalizar el campo
  * @param keyboardOptions Opciones de teclado para el campo
- *
+ * @param dimens Dimensiones del campo
+
  */
 @Composable
 fun LevelUpTextField(
@@ -50,6 +52,7 @@ fun LevelUpTextField(
     placeholder: @Composable (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
     dimens: Dimens
 ) {
     OutlinedTextField(
@@ -66,6 +69,7 @@ fun LevelUpTextField(
         placeholder = placeholder,
         modifier = modifier
             .fillMaxWidth(),
-        keyboardOptions = keyboardOptions
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions
     )
 }
