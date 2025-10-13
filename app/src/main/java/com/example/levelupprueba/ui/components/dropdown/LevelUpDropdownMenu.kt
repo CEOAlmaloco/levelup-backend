@@ -9,8 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import com.example.levelupprueba.ui.components.inputs.LevelUpTextField
+import com.example.levelupprueba.ui.components.inputs.LevelUpOutlinedTextField
 import com.example.levelupprueba.ui.theme.Dimens
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,7 +35,7 @@ fun LevelUpDropdownMenu(
         onExpandedChange = { expanded = it },
         modifier = modifier
     ) {
-        LevelUpTextField(
+        LevelUpOutlinedTextField(
             value = selectedOption ?: "",
             onValueChange = {},
             label = label,
