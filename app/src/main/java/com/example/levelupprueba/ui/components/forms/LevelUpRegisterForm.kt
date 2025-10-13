@@ -18,7 +18,7 @@ import com.example.levelupprueba.ui.components.dropdown.LevelUpDropdownMenu
 import com.example.levelupprueba.ui.components.inputs.LevelUpFechaNacimientoField
 import com.example.levelupprueba.ui.components.inputs.LevelUpPasswordField
 import com.example.levelupprueba.ui.components.inputs.LevelUpSwitchField
-import com.example.levelupprueba.ui.components.inputs.LevelUpTextField
+import com.example.levelupprueba.ui.components.inputs.LevelUpOutlinedTextField
 import com.example.levelupprueba.ui.components.inputs.errorSupportingText
 import com.example.levelupprueba.ui.components.inputs.supportingTextOrError
 import com.example.levelupprueba.viewmodel.UsuarioViewModel
@@ -50,7 +50,7 @@ fun LevelUpRegisterForm(
 
     Column {
         LevelUpFormSection(title = "Datos Personales", dimens = dimens) {
-            LevelUpTextField(
+            LevelUpOutlinedTextField(
                 value = estado.nombre.valor,
                 onValueChange = usuarioViewModel::onNombreChange,
                 label = "Nombre",
@@ -70,7 +70,7 @@ fun LevelUpRegisterForm(
                 ),
                 dimens = dimens
             )
-            LevelUpTextField(
+            LevelUpOutlinedTextField(
                 value = estado.apellidos.valor,
                 onValueChange = usuarioViewModel::onApellidosChange,
                 label = "Apellidos",
@@ -108,7 +108,7 @@ fun LevelUpRegisterForm(
         Spacer(modifier = Modifier.height(dimens.sectionSpacing))
 
         LevelUpFormSection(title = "Datos de contacto", dimens = dimens) {
-            LevelUpTextField(
+            LevelUpOutlinedTextField(
                 value = estado.email.valor,
                 onValueChange = usuarioViewModel::onEmailChange,
                 label = "Correo Electrónico",
@@ -130,7 +130,7 @@ fun LevelUpRegisterForm(
                 ),
                 dimens = dimens
             )
-            LevelUpTextField(
+            LevelUpOutlinedTextField(
                 value = estado.telefono.valor,
                 onValueChange = { nuevoNumero ->
                     if (nuevoNumero.all { it.isDigit() }) {
@@ -154,7 +154,7 @@ fun LevelUpRegisterForm(
                 ),
                 dimens = dimens
             )
-            LevelUpTextField(
+            LevelUpOutlinedTextField(
                 value = estado.direccion.valor,
                 onValueChange = usuarioViewModel::onDireccionChange,
                 label = "Dirección (Opcional)",

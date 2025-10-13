@@ -31,7 +31,7 @@ import com.example.levelupprueba.ui.theme.Dimens
 
  */
 @Composable
-fun LevelUpTextField(
+fun LevelUpOutlinedTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,

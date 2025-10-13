@@ -1,6 +1,7 @@
 package com.example.levelupprueba.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -14,8 +15,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.example.levelupprueba.ui.components.inputs.levelUpOutlinedTextFieldColors
 import com.example.levelupprueba.ui.theme.LocalDimens
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -23,7 +27,6 @@ import com.example.levelupprueba.ui.theme.LocalDimens
 fun LevelUpMainTopBar(
     isLoggedIn: Boolean,
     nombre: String?,
-    apellidos: String?,
     title: String = "Inicio",
     onMenuClick: () -> Unit,
     onCartClick: () -> Unit,
@@ -35,7 +38,7 @@ fun LevelUpMainTopBar(
 
     Surface(
         shadowElevation = 4.dp,
-        color = MaterialTheme.colorScheme.surface
+        color = MaterialTheme.colorScheme.surface,
     ) {
         Column {
             CenterAlignedTopAppBar(
@@ -52,30 +55,21 @@ fun LevelUpMainTopBar(
                     LevelUpProfileIconButton(
                         isLoggedIn = isLoggedIn,
                         nombre = nombre,
-                        apellidos = apellidos,
                         onClick = onProfileClick
                     )
                 }
             )
 
-            OutlinedTextField(
+            LevelUpSearchBar(
                 value = search,
-                onValueChange = { search = it },
-                placeholder = { Text("Buscar...") },
+                onValueChange = {search = it},
+                onSearch = {query -> onSearchClick(query)},
                 modifier = Modifier
-                    .fillMaxWidth()
                     .padding(
-                        horizontal = dimens.mediumSpacing,
-                        ),
-                singleLine = true,
-                trailingIcon = {
-                    IconButton(onClick = { onSearchClick(search) }) {
-                        Icon(Icons.Default.Search, contentDescription = "Buscar")
-                    }
-                },
-                colors = levelUpTextFieldColors(),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = { onSearchClick(search) })
+                        start = dimens.screenPadding,
+                        end = dimens.screenPadding,
+                        bottom = dimens.mediumSpacing
+                    )
             )
         }
     }

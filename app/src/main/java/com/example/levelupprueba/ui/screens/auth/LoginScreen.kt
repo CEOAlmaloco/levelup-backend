@@ -31,7 +31,7 @@ import com.example.levelupprueba.ui.components.LevelUpSpacedColumn
 import com.example.levelupprueba.ui.components.buttons.LevelUpButton
 import com.example.levelupprueba.ui.components.dialogs.LevelUpAlertDialog
 import com.example.levelupprueba.ui.components.inputs.LevelUpPasswordField
-import com.example.levelupprueba.ui.components.inputs.LevelUpTextField
+import com.example.levelupprueba.ui.components.inputs.LevelUpOutlinedTextField
 import com.example.levelupprueba.ui.components.inputs.errorSupportingText
 import com.example.levelupprueba.ui.components.overlays.LevelUpLoadingOverlay
 import com.example.levelupprueba.ui.components.topbars.LevelUpTopBar
@@ -137,7 +137,7 @@ fun LoginScreen(
                         Column(
                             verticalArrangement = Arrangement.spacedBy(dimens.fieldSpacing),
                         ){
-                            LevelUpTextField(
+                            LevelUpOutlinedTextField(
                                 value = estado.emailOrName.valor,
                                 onValueChange = viewModel::onEmailOrNameChange,
                                 label = "Correo o Nombre",
