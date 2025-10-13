@@ -54,7 +54,7 @@ fun LevelUpPasswordField(
         OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        colors = levelUpTextFieldColors(isSuccess = isSuccess),
+        colors = levelUpOutlinedTextFieldColors(isSuccess = isSuccess),
         label = {
             Text(
                 text = label,

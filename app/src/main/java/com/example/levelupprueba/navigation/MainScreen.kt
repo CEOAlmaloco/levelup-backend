@@ -21,6 +21,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.levelupprueba.AuthActivity
+import com.example.levelupprueba.data.local.getUserSessionFlow
+import com.example.levelupprueba.ui.components.LevelUpMainTopBar
 import com.example.levelupprueba.ui.screens.auth.LoginScreen
 import com.example.levelupprueba.ui.screens.auth.RegisterScreen
 import com.example.levelupprueba.ui.screens.blog.BlogListScreen
@@ -47,12 +49,14 @@ fun MainScreen(mainViewModel: MainViewModel, navController: NavHostController) {
     val blogViewModel: BlogViewModel = viewModel()
     val productoViewModel: ProductoViewModel = viewModel()
     val loginViewModel: LoginViewModel = viewModel()
+
+    // Estado de login
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    // Estado de sesión (simplificado por ahora)
-    var isLoggedIn by remember { mutableStateOf(false) }
-
+    val userSessionFlow = getUserSessionFlow(context)
+    val userSession by userSessionFlow.collectAsState(initial = null)
+    val isLoggedIn = userSession != null && userSession?.userId.isNullOrBlank()
     // Items del bottom navigation
     val bottomNavItems = listOf(
         Screen.Home,
@@ -62,6 +66,25 @@ fun MainScreen(mainViewModel: MainViewModel, navController: NavHostController) {
     )
 
     Scaffold(
+        topBar = {
+            LevelUpMainTopBar(
+                isLoggedIn = isLoggedIn,
+                nombre = userSession?.displayName,
+                apellidos = null,
+                onMenuClick = {
+                    // TODO: Abrir menú
+                },
+                onCartClick = {
+                    // TODO: Ir al carrito
+                },
+                onProfileClick = {
+                    // TODO: Ir al perfil
+                },
+                onSearchClick = {
+
+                }
+            )
+        },
         bottomBar = {
             NavigationBar {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()

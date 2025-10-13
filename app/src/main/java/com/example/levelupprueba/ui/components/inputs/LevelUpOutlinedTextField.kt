@@ -51,7 +51,7 @@ fun LevelUpTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        colors = levelUpTextFieldColors(isSuccess = isSuccess),
+        colors = levelUpOutlinedTextFieldColors(isSuccess = isSuccess),
         label = { Text(text = label, fontSize = dimens.bodySize) },
         enabled = enabled,
         isError = isError,

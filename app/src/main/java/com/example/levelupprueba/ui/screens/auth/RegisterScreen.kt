@@ -19,9 +19,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.levelupprueba.model.registro.RegisterStatus
-import com.example.levelupprueba.ui.components.LevelUpCard
-import com.example.levelupprueba.ui.components.LevelUpClickableTextLink
-import com.example.levelupprueba.ui.components.LevelUpRegisterForm
+import com.example.levelupprueba.ui.components.cards.LevelUpCard
+import com.example.levelupprueba.ui.components.inputs.LevelUpClickableTextLink
+import com.example.levelupprueba.ui.components.forms.LevelUpRegisterForm
 import com.example.levelupprueba.ui.components.LevelUpSpacedColumn
 import com.example.levelupprueba.ui.components.dialogs.LevelUpAlertDialog
 import com.example.levelupprueba.ui.components.buttons.LevelUpButton

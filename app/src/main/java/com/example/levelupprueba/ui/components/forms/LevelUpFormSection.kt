@@ -1,4 +1,4 @@
-package com.example.levelupprueba.ui.components
+package com.example.levelupprueba.ui.components.forms
 
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
