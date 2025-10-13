@@ -1,4 +1,4 @@
-package com.example.levelupprueba.ui.components
+package com.example.levelupprueba.ui.components.inputs
 
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.MaterialTheme

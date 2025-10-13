@@ -58,7 +58,7 @@ fun LevelUpFechaNacimientoField(
     OutlinedTextField(
         value = fechaNacimiento,                // Muestra la fecha actual
         onValueChange = {},                     // Deshabilitado, solo se cambia por el DatePicker
-        colors = levelUpTextFieldColors(isSuccess = isSuccess),                        // Aplica los colores personalizados
+        colors = levelUpOutlinedTextFieldColors(isSuccess = isSuccess),                        // Aplica los colores personalizados
         label = {                               // Etiqueta del campo
             Text(
                 text = "Fecha de Nacimiento",

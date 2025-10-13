@@ -1,13 +1,11 @@
-package com.example.levelupprueba.ui.components
+package com.example.levelupprueba.ui.components.buttons
 
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
-import com.example.levelupprueba.ui.components.buttons.LevelUpButton
-import com.example.levelupprueba.ui.components.buttons.LevelUpOutlinedButton
-import com.example.levelupprueba.ui.components.buttons.LevelUpTextButton
+import com.example.levelupprueba.ui.components.LevelUpSpacedColumn
 import com.example.levelupprueba.ui.theme.Dimens
 import com.example.levelupprueba.ui.theme.LocalDimens
 
@@ -18,8 +16,9 @@ fun LevelUpAuthButtons(
     onGuestClick: () -> Unit,
     buttonHeight: Dp,
     textColor: Color,
-    dimens: Dimens
 ) {
+    val dimens = LocalDimens.current
+
     LevelUpSpacedColumn(spacing = LocalDimens.current.mediumSpacing) {
         LevelUpButton(
             text = "Iniciar Sesión",

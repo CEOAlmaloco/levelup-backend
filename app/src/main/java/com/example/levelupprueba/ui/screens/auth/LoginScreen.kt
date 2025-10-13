@@ -25,8 +25,8 @@ import androidx.navigation.NavHostController
 import com.example.levelupprueba.MainActivity
 import com.example.levelupprueba.model.auth.LoginStatus
 import com.example.levelupprueba.model.auth.isSuccess
-import com.example.levelupprueba.ui.components.LevelUpCard
-import com.example.levelupprueba.ui.components.LevelUpClickableTextLink
+import com.example.levelupprueba.ui.components.cards.LevelUpCard
+import com.example.levelupprueba.ui.components.inputs.LevelUpClickableTextLink
 import com.example.levelupprueba.ui.components.LevelUpSpacedColumn
 import com.example.levelupprueba.ui.components.buttons.LevelUpButton
 import com.example.levelupprueba.ui.components.dialogs.LevelUpAlertDialog

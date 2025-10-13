@@ -16,7 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import com.example.levelupprueba.ui.components.LevelUpAuthButtons
+import com.example.levelupprueba.ui.components.buttons.LevelUpAuthButtons
 import com.example.levelupprueba.ui.components.LevelUpSpacedColumn
 import com.example.levelupprueba.ui.theme.LocalDimens
 
@@ -79,7 +79,6 @@ fun WelcomeScreen(
                 onGuestClick = onGuestClick,
                 buttonHeight = dimens.buttonHeight,
                 textColor = MaterialTheme.colorScheme.onSurface,
-                dimens = dimens
             )
         }
     }

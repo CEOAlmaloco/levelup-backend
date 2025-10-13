@@ -13,7 +13,7 @@ import com.example.levelupprueba.ui.theme.TextDisabled
  * @param isSuccess Indica si el campo de texto está en estado de éxito
  */
 @Composable
-fun levelUpTextFieldColors(isSuccess: Boolean = false): TextFieldColors = OutlinedTextFieldDefaults.colors(
+fun levelUpOutlinedTextFieldColors(isSuccess: Boolean = false): TextFieldColors = OutlinedTextFieldDefaults.colors(
     focusedTextColor = MaterialTheme.colorScheme.onPrimary,
     unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
     disabledTextColor = TextDisabled,
@@ -30,5 +30,4 @@ fun levelUpTextFieldColors(isSuccess: Boolean = false): TextFieldColors = Outlin
 
     cursorColor = SemanticColors.AccentBlue,
     errorCursorColor = SemanticColors.Error,
-
 )

@@ -1,4 +1,4 @@
-package com.example.levelupprueba.ui.components
+package com.example.levelupprueba.ui.components.forms
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -56,7 +56,10 @@ fun LevelUpRegisterForm(
                 label = "Nombre",
                 isError = estado.nombre.error != null,
                 isSuccess = estado.nombre.isSuccess,
-                supportingText = errorSupportingText(fontSize = dimens.captionSize, error = estado.nombre.error),
+                supportingText = errorSupportingText(
+                    fontSize = dimens.captionSize,
+                    error = estado.nombre.error
+                ),
                 modifier = Modifier.focusRequester(nombreFocus),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
@@ -73,7 +76,10 @@ fun LevelUpRegisterForm(
                 label = "Apellidos",
                 isError = estado.apellidos.error != null,
                 isSuccess = estado.apellidos.isSuccess,
-                supportingText = errorSupportingText(fontSize = dimens.captionSize, error = estado.apellidos.error),
+                supportingText = errorSupportingText(
+                    fontSize = dimens.captionSize,
+                    error = estado.apellidos.error
+                ),
                 modifier = Modifier.focusRequester(apellidosFocus),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
@@ -89,7 +95,10 @@ fun LevelUpRegisterForm(
                 onFechaNacimientoChange = usuarioViewModel::onFechaNacimientoChange,
                 isError = estado.fechaNacimiento.error != null,
                 isSuccess = estado.fechaNacimiento.isSuccess,
-                supportingText = errorSupportingText(fontSize = dimens.captionSize, error = estado.fechaNacimiento.error),
+                supportingText = errorSupportingText(
+                    fontSize = dimens.captionSize,
+                    error = estado.fechaNacimiento.error
+                ),
                 modifier = Modifier
                     .focusRequester(fechaNacimientoFocus),
                 dimens = dimens
@@ -131,7 +140,10 @@ fun LevelUpRegisterForm(
                 label = "Teléfono (Opcional)",
                 isError = estado.telefono.error != null,
                 isSuccess = estado.telefono.isSuccess,
-                supportingText = errorSupportingText(fontSize = dimens.captionSize, error = estado.telefono.error),
+                supportingText = errorSupportingText(
+                    fontSize = dimens.captionSize,
+                    error = estado.telefono.error
+                ),
                 modifier = Modifier.focusRequester(telefonoFocus),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Phone,
@@ -148,7 +160,10 @@ fun LevelUpRegisterForm(
                 label = "Dirección (Opcional)",
                 isError = estado.direccion.error != null,
                 isSuccess = estado.direccion.isSuccess,
-                supportingText = errorSupportingText(fontSize = dimens.captionSize, error = estado.direccion.error),
+                supportingText = errorSupportingText(
+                    fontSize = dimens.captionSize,
+                    error = estado.direccion.error
+                ),
                 modifier = Modifier.focusRequester(direccionFocus),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
@@ -175,14 +190,18 @@ fun LevelUpRegisterForm(
                 },
                 isError = estado.region.error != null,
                 isSuccess = estado.region.isSuccess,
-                supportingText = errorSupportingText(fontSize = dimens.captionSize, error = estado.region.error),
+                supportingText = errorSupportingText(
+                    fontSize = dimens.captionSize,
+                    error = estado.region.error
+                ),
                 modifier = Modifier.focusRequester(regionFocus),
                 dimens = dimens
             )
 
             LevelUpDropdownMenu(
                 label = "Comuna",
-                options = ubicacionViewModel.selectedRegion?.comunas?.map { it.nombre } ?: emptyList(),
+                options = ubicacionViewModel.selectedRegion?.comunas?.map { it.nombre }
+                    ?: emptyList(),
                 selectedOption = ubicacionViewModel.selectedComuna?.nombre,
                 onOptionSelected = { nombre ->
                     ubicacionViewModel.selectComuna(nombre)
@@ -190,7 +209,10 @@ fun LevelUpRegisterForm(
                 },
                 isError = estado.comuna.error != null,
                 isSuccess = estado.comuna.isSuccess,
-                supportingText = errorSupportingText(fontSize = dimens.captionSize, error = estado.comuna.error),
+                supportingText = errorSupportingText(
+                    fontSize = dimens.captionSize,
+                    error = estado.comuna.error
+                ),
                 enabled = ubicacionViewModel.selectedRegion != null,
                 placeholder = if (ubicacionViewModel.selectedRegion == null) "Selecciona región primero" else null,
                 modifier = Modifier.focusRequester(comunaFocus),

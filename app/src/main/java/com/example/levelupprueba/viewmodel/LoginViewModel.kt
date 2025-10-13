@@ -4,9 +4,11 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.levelupprueba.data.local.UserDataStore
+import com.example.levelupprueba.data.local.saveUserSession
 import com.example.levelupprueba.model.auth.LoginStatus
 import com.example.levelupprueba.model.auth.LoginUiState
 import com.example.levelupprueba.model.auth.LoginValidator
+import com.example.levelupprueba.model.auth.UserSession
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -86,7 +88,13 @@ class LoginViewModel : ViewModel(){
 
                 if (usuario != null) {
                     _loginEstado.value = LoginStatus.Success
-                    // si quieres, puedes guardar la sesión del usuario aquí
+                    val session = UserSession(
+                        displayName = usuario.nombre,
+                        loginAt = System.currentTimeMillis(),
+                        userId = usuario.id,
+                        role = usuario.role
+                    )
+                    saveUserSession(context, session)
                 } else {
                     _loginEstado.value = LoginStatus.Error("Credenciales inválidas")
                 }
