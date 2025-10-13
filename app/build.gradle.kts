@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("kotlin-kapt")
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.10"
 }
 
@@ -41,6 +42,11 @@ android {
 }
 
 dependencies {
+    val roomVersion = "2.6.1"
+    val lifecycleVersion = "2.8.6"
+    val activityCompose = "1.9.3"
+    val navCompose = "2.8.3"
+
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
     implementation("androidx.compose.animation:animation:1.5.0")
@@ -48,6 +54,9 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0-rc02")
     implementation("androidx.compose.material3:material3-window-size-class:1.2.0")
+    implementation("androidx.room:room-runtime:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
+    kapt("androidx.room:room-compiler:$roomVersion")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
