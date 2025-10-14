@@ -17,6 +17,7 @@ import com.example.levelupprueba.data.repository.UsuarioRepository
 import com.example.levelupprueba.navigation.MainScreen
 import com.example.levelupprueba.ui.theme.LevelUpPruebaTheme
 import com.example.levelupprueba.viewmodel.BlogViewModel
+import com.example.levelupprueba.viewmodel.EventoViewModel
 import com.example.levelupprueba.viewmodel.LoginViewModel
 import com.example.levelupprueba.viewmodel.LoginViewModelFactory
 import com.example.levelupprueba.viewmodel.MainViewModel
@@ -52,6 +53,7 @@ class MainActivity : ComponentActivity() {
             val loginViewModel: LoginViewModel = viewModel(factory = loginViewModelFactory)
             val blogViewModel: BlogViewModel = viewModel() // si no requiere parámetros
             val productoViewModel: ProductoViewModel = viewModel() // si no requiere parámetros
+            val eventoViewModel: EventoViewModel = viewModel()
 
             LaunchedEffect(Unit) {
                 mainViewModel.navigationEvent.collect { event ->
@@ -80,7 +82,8 @@ class MainActivity : ComponentActivity() {
                     usuarioViewModel = usuarioViewModel,
                     loginViewModel = loginViewModel,
                     blogViewModel = blogViewModel,
-                    productoViewModel = productoViewModel
+                    productoViewModel = productoViewModel,
+                    eventoViewModel = eventoViewModel
                 )
             }
         }
