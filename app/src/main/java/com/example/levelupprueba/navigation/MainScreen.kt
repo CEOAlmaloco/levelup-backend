@@ -26,7 +26,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.levelupprueba.AuthActivity
+import com.example.levelupprueba.data.local.clearUserSession
 import com.example.levelupprueba.data.local.getUserSessionFlow
+import com.example.levelupprueba.ui.components.DrawerSection
+import com.example.levelupprueba.ui.components.LevelUpDrawer
 import com.example.levelupprueba.ui.components.LevelUpMainTopBar
 import com.example.levelupprueba.ui.screens.auth.LoginScreen
 import com.example.levelupprueba.ui.screens.auth.RegisterScreen
@@ -49,25 +52,24 @@ sealed class Screen(val route: String, val title: String, val icon: androidx.com
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(mainViewModel: MainViewModel, navController: NavHostController) {
+fun MainScreen(
+    mainViewModel: MainViewModel,
+    navController: NavHostController,
+    usuarioViewModel: UsuarioViewModel,
+    loginViewModel: LoginViewModel,
+    blogViewModel: BlogViewModel,
+    productoViewModel: ProductoViewModel
+) {
 
     // Estado de login
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    
-    // ViewModels compartidos
-    val usuarioViewModel: UsuarioViewModel = viewModel()
-    val blogViewModel: BlogViewModel = viewModel()
-    val productoViewModel: ProductoViewModel = viewModel()
-    val eventoViewModel: EventoViewModel = viewModel()
-    val loginViewModel: LoginViewModel = viewModel()
-    
-    // Inicializar EventoViewModel con contexto para DataStore
-    eventoViewModel.inicializar(context)
-
+    val focusManager = LocalFocusManager.current
     val userSessionFlow = getUserSessionFlow(context)
     val userSession by userSessionFlow.collectAsState(initial = null)
     val isLoggedIn = userSession != null && !userSession?.userId.isNullOrBlank()
+
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
     // Items del bottom navigation
     val bottomNavItems = listOf(
@@ -78,7 +80,24 @@ fun MainScreen(mainViewModel: MainViewModel, navController: NavHostController) {
         Screen.Perfil
     )
 
-    val focusManager = LocalFocusManager.current
+    val drawerSections = listOf(
+        DrawerSection(
+            icon = Icons.Default.Home,
+            label = "Inicio"
+        ),
+        DrawerSection(
+            icon = Icons.Default.ShoppingCart,
+            label = "Productos"
+        ),
+        DrawerSection(
+            icon = Icons.Default.Article,
+            label = "Blog"
+        ),
+        DrawerSection(
+            icon = Icons.Default.Person,
+            label = "Perfil"
+        )
+    )
 
 
     Box(
@@ -88,29 +107,90 @@ fun MainScreen(mainViewModel: MainViewModel, navController: NavHostController) {
                 detectTapGestures(onTap = { focusManager.clearFocus() })
             }
     ){
-        Scaffold(
-            topBar = {
-                LevelUpMainTopBar(
+        ModalNavigationDrawer(
+            drawerState = drawerState,
+            gesturesEnabled = true,
+            drawerContent = {
+                LevelUpDrawer(
                     isLoggedIn = isLoggedIn,
-                    nombre = userSession?.displayName,
-                    onMenuClick = {
-                        // TODO: Abrir menú
-                    },
-                    onCartClick = {
-                        // TODO: Ir al carrito
+                    userName = userSession?.displayName,
+                    avatar = null,
+                    onBackClick = {
+                        coroutineScope.launch {
+                            drawerState.close()
+                        }
                     },
                     onProfileClick = {
-                        // TODO: Ir al perfil
+                        if (!isLoggedIn) {
+                            val intent = Intent(context, AuthActivity::class.java)
+                            intent.putExtra("startDestination", "login")
+                            context.startActivity(intent)
+                            (context as? Activity)?.finish()
+                        } else {
+                            coroutineScope.launch {
+                                drawerState.close()
+                            }
+                            navController.navigate(Screen.Perfil.route)
+                        }
                     },
-                    onSearchClick = {
+                    onLogoutClick = {
+                        coroutineScope.launch{
+                            clearUserSession(context)
+                            drawerState.close()
 
-                    }
+                            val intent = Intent(context, AuthActivity::class.java)
+                            intent.putExtra("startDestination", "login")
+                            context.startActivity(intent)
+                            (context as? Activity)?.finish()
+                        }
+                    },
+                    onSectionClick = { section ->
+                        coroutineScope.launch { drawerState.close() }
+                        when (section.label){
+                            "Inicio" -> navController.navigate(Screen.Home.route)
+                            "Productos" -> navController.navigate(Screen.Productos.route)
+                            "Blog" -> navController.navigate(Screen.Blog.route)
+                            "Perfil" -> {
+                                if (!isLoggedIn) {
+                                    val intent = Intent(context, AuthActivity::class.java)
+                                    intent.putExtra("startDestination", "login")
+                                    context.startActivity(intent)
+                                    (context as? Activity)?.finish()
+                                } else {
+                                    navController.navigate(Screen.Perfil.route)
+                                }
+                            }
+                        }
+                    },
+                    sections = drawerSections
                 )
-            },
-            bottomBar = {
-                NavigationBar {
-                    val navBackStackEntry by navController.currentBackStackEntryAsState()
-                    val currentDestination = navBackStackEntry?.destination
+            }
+        ){
+            Scaffold(
+                topBar = {
+                    LevelUpMainTopBar(
+                        isLoggedIn = isLoggedIn,
+                        nombre = userSession?.displayName,
+                        onMenuClick = {
+                            coroutineScope.launch {
+                                drawerState.open()
+                            }
+                        },
+                        onCartClick = {
+                            // TODO: Ir al carrito
+                        },
+                        onProfileClick = {
+                            // TODO: Ir al perfil
+                        },
+                        onSearchClick = {
+
+                        }
+                    )
+                },
+                bottomBar = {
+                    NavigationBar {
+                        val navBackStackEntry by navController.currentBackStackEntryAsState()
+                        val currentDestination = navBackStackEntry?.destination
 
                     bottomNavItems.forEach { screen ->
                         NavigationBarItem(
@@ -160,7 +240,7 @@ fun MainScreen(mainViewModel: MainViewModel, navController: NavHostController) {
                 composable(Screen.Blog.route) {
                     BlogListScreen(blogViewModel)
                 }
-                
+
                 // Eventos - Pantalla de eventos gaming y sistema LevelUp
                 composable(Screen.Eventos.route) {
                     EventoScreen(viewModel = eventoViewModel)

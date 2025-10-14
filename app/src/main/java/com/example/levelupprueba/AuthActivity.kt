@@ -10,14 +10,21 @@ import androidx.annotation.RequiresApi
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
+import com.example.levelupprueba.data.local.AppDatabase
 import com.example.levelupprueba.data.local.UserDataStore
+import com.example.levelupprueba.data.repository.UsuarioRepository
 import com.example.levelupprueba.model.usuario.Usuario
 import com.example.levelupprueba.navigation.AuthNavigation
 import com.example.levelupprueba.ui.theme.LevelUpPruebaTheme
+import com.example.levelupprueba.viewmodel.LoginViewModel
+import com.example.levelupprueba.viewmodel.LoginViewModelFactory
 import com.example.levelupprueba.viewmodel.MainViewModel
+import com.example.levelupprueba.viewmodel.UsuarioViewModel
+import com.example.levelupprueba.viewmodel.UsuarioViewModelFactory
 import kotlinx.coroutines.launch
 
 
@@ -29,32 +36,6 @@ class AuthActivity : ComponentActivity() {
 
         // Detecta si es tablet usando smallestScreenWidthDp
         val isTablet = resources.configuration.smallestScreenWidthDp >= 600
-
-        // Define el usuarioDemo
-        val usuarioDemo = Usuario(
-            id = "123",
-            nombre = "LevelUp User",
-            apellidos = "Prueba",
-            email = "demo@duoc.cl",
-            password = "1234",
-            telefono = "123456789",
-            fechaNacimiento = "2000-01-01",
-            region = "Región Metropolitana",
-            comuna = "Santiago",
-            direccion = "Av. Siempre Viva 123",
-            referralCode = "LEVELUP1234",
-            points = 0,
-            role = "cliente"
-        )
-
-        val userDataStore = UserDataStore(this)
-        lifecycleScope.launch {
-            // Solo lo agrega si no existe ya
-            val usuarios = userDataStore.getUsuarios()
-            if (usuarios.none { it.email == usuarioDemo.email }) {
-                userDataStore.addUsuario(usuarioDemo)
-            }
-        }
 
         // Si NO es tablet, fuerza portrait
         if (!isTablet) {
@@ -74,6 +55,20 @@ class AuthActivity : ComponentActivity() {
 
             val startDestination = intent.getStringExtra("startDestination") ?: "welcome"
 
+            val context = LocalContext.current
+
+            // DAO y Repository
+            val usuarioDao = AppDatabase.getInstance(context).usuarioDao()
+            val usuarioRepository = UsuarioRepository(usuarioDao)
+
+            // Instanciar Factories
+
+            val usuarioViewModelFactory = UsuarioViewModelFactory(usuarioRepository)
+            val loginViewModelFactory = LoginViewModelFactory(usuarioRepository)
+
+            // Instanciar ViewModels
+            val usuarioViewModel: UsuarioViewModel = viewModel(factory = usuarioViewModelFactory)
+            val loginViewModel: LoginViewModel = viewModel(factory = loginViewModelFactory)
             // LaunchedEffect SOLO AQUÍ, no en cada pantalla
             LaunchedEffect(Unit) {
                 mainViewModel.navigationEvent.collect { event ->
@@ -99,6 +94,8 @@ class AuthActivity : ComponentActivity() {
             ) {
                 AuthNavigation(
                     mainViewModel = mainViewModel,
+                    usuarioViewModel = usuarioViewModel,
+                    loginViewModel = loginViewModel,
                     navController = navController,
                     startDestination = startDestination
                 )

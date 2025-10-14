@@ -4,7 +4,9 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.levelupprueba.data.local.UserDataStore
+import com.example.levelupprueba.data.local.clearUserSession
 import com.example.levelupprueba.data.local.saveUserSession
+import com.example.levelupprueba.data.repository.UsuarioRepository
 import com.example.levelupprueba.model.auth.LoginStatus
 import com.example.levelupprueba.model.auth.LoginUiState
 import com.example.levelupprueba.model.auth.LoginValidator
@@ -16,7 +18,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 // ViewModel que gestiona el estado y la logica del formulario de login
-class LoginViewModel : ViewModel(){
+class LoginViewModel(
+    private val usuarioRepository: UsuarioRepository
+) : ViewModel(){
     //Estado interno mutable: se guarda el estado actual del formulario
     private val _estado = MutableStateFlow(LoginUiState())
     //Estado expuesto: la UI observa este estado para mostrar los valores y errores
@@ -76,20 +80,20 @@ class LoginViewModel : ViewModel(){
             _loginEstado.value = LoginStatus.Loading
             delay(2000)
             try {
-                // Leer todos los usuarios guardados
-                val userDataStore = UserDataStore(context)
-                val usuarios = userDataStore.getUsuarios()
 
+                //Consulta usuarios desde Room
+                val usuarios = usuarioRepository.getAllUsuarios()
                 // Buscar usuario por email o nombre, y comparar password
                 val usuario = usuarios.find {
-                    (it.email == emailOrName || it.nombre == emailOrName) &&
+                    (it.email.equals(emailOrName.trim(), ignoreCase = true) ||
+                            it.nombre.equals(emailOrName.trim(), ignoreCase = true)) &&
                             it.password == password
                 }
 
                 if (usuario != null) {
                     _loginEstado.value = LoginStatus.Success
                     val session = UserSession(
-                        displayName = usuario.nombre,
+                        displayName = usuario.nombre.split(" ")[0],
                         loginAt = System.currentTimeMillis(),
                         userId = usuario.id,
                         role = usuario.role
@@ -123,5 +127,11 @@ class LoginViewModel : ViewModel(){
 
     fun resetLoginEstado(){
         _loginEstado.value = LoginStatus.Idle
+    }
+
+    fun logout(context: Context){
+        viewModelScope.launch {
+            clearUserSession(context)
+        }
     }
 }

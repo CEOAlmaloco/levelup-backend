@@ -12,9 +12,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.levelupprueba.ui.theme.ButtonColors
 import com.example.levelupprueba.ui.theme.Dimens
+import com.example.levelupprueba.ui.theme.LocalDimens
 
 /**
  * Colores personalizados para Button siguiendo la paleta de la app LevelUp
@@ -40,20 +42,23 @@ fun MenuButton(
     text: String, // Texto que se va a mostrar dentro del botón
     modifier: Modifier = Modifier, // Permite modificar el botón desde afuera
     onClick: () -> Unit, // Función que se ejecuta al hacer clic en el botón
-    dimens: Dimens,
+    dimens: Dimens = LocalDimens.current,
+    containerColor: Color = ButtonColors.MenuBackground, // Color de fondo del botón
+    contentColor: Color = ButtonColors.MenuContent, // Color del texto del botón
     icon: ImageVector? = null, // Opcional: icono a mostrar junto al texto (si es null no se muestra)
     iconTint: Color = MaterialTheme.colorScheme.onPrimary, // Color del icono, por defecto uno del tema
-    enabled: Boolean = true // Si está en false, el botón aparece deshabilitado y no responde al tap
+    enabled: Boolean = true, // Si está en false, el botón aparece deshabilitado y no responde al tap
+    shape: Shape = RoundedCornerShape(dimens.buttonCornerRadius) // Refuerza el borde redondeado del botón
 )  {
     Button(
         onClick = onClick,  // Acción a ejecutar al presionar el botón
         enabled = enabled, // Si está en false, el botón se muestra deshabilitado
         modifier = modifier,
         colors = ButtonDefaults.buttonColors(
-            containerColor = ButtonColors.MenuBackground,
-            contentColor = ButtonColors.MenuContent
+            containerColor = containerColor,
+            contentColor = contentColor
         ),
-        shape = RoundedCornerShape(dimens.buttonCornerRadius) // Refuerza el borde redondeado del botón
+        shape = shape // Refuerza el borde redondeado del botón
 
     ){
         // Si el parámetro icon no es null, muestra el icono antes del texto
