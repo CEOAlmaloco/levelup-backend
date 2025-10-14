@@ -8,7 +8,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.runtime.*
@@ -18,7 +21,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.levelupprueba.data.repository.UsuarioRepository
 import com.example.levelupprueba.model.registro.RegisterStatus
+import com.example.levelupprueba.ui.components.LevelUpIconButton
 import com.example.levelupprueba.ui.components.cards.LevelUpCard
 import com.example.levelupprueba.ui.components.inputs.LevelUpClickableTextLink
 import com.example.levelupprueba.ui.components.forms.LevelUpRegisterForm
@@ -48,9 +53,6 @@ fun RegisterScreen(
     // Observa el estado de proceso de registro
     val registroEstado by viewModel.registroEstado.collectAsState()
 
-    // Contexto para el registro
-    val context = LocalContext.current
-
     val coroutineScope = rememberCoroutineScope()
 
     val puedeRegistrar by remember(estado) {
@@ -68,13 +70,19 @@ fun RegisterScreen(
         topBar = {
             Column {
                 LevelUpTopBar(
-                    title = "Registro",
-                    onBackClick = {
-                        coroutineScope.launch {
-                            mainViewModel.navigateBack()
-                        }
+                    showNavigationIcon = true,
+                    navigationIcon = {
+                        LevelUpIconButton(
+                            onClick = {
+                                coroutineScope.launch {
+                                    mainViewModel.navigateBack()
+                                }
+                            },
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Atrás"
+                        )
                     },
-                    dimens = dimens
+                    titleText = "Registro"
                 )
                 Spacer(modifier = Modifier.height(dimens.sectionSpacing))
             }
@@ -139,7 +147,7 @@ fun RegisterScreen(
                                     // Valida el formulario usando el ViewModel
                                     if (viewModel.validarRegistro()) {
                                         coroutineScope.launch {
-                                            viewModel.registrarUsuario(context)
+                                            viewModel.registrarUsuario()
                                         }
                                     }
                                 },
@@ -224,23 +232,4 @@ fun RegisterScreen(
             }
         }
     )
-}
-
-@SuppressLint("ViewModelConstructorInComposable")
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-@Preview(showBackground = true, name = "RegisterScreen Preview")
-fun PreviewRegisterScreen() {
-    val viewModel = UsuarioViewModel()
-    val mainViewModel = MainViewModel()
-
-
-    CompositionLocalProvider(
-        LocalDimens provides compactDimens // o mediumDimens, expandedDimens
-    ) {
-        RegisterScreen(
-            viewModel = viewModel,
-            mainViewModel = mainViewModel
-        )
-    }
 }

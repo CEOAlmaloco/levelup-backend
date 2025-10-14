@@ -9,30 +9,29 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.Dp
+import com.example.levelupprueba.ui.theme.Dimens
 import com.example.levelupprueba.ui.theme.LocalDimens
 
 @Composable
 fun LevelUpIconButton(
     onClick: () -> Unit,
     imageVector: ImageVector,
-    tint: Color = MaterialTheme.colorScheme.onSurface,
+    contentDescription: String,
     modifier: Modifier = Modifier,
-    contentDescription: String
-){
-    val dimens = LocalDimens.current
-
+    tint: Color = MaterialTheme.colorScheme.onBackground,
+    iconSize: Dp? = null, // Si es null, usa el default
+    buttonSize: Dp? = null  // Si es null, usa el default
+) {
     IconButton(
         onClick = onClick,
-        modifier = modifier
-            .padding(horizontal = dimens.smallSpacing)
-            .size(dimens.iconSize)
+        modifier = if (buttonSize != null) modifier.size(buttonSize) else modifier
     ) {
         Icon(
             imageVector = imageVector,
             contentDescription = contentDescription,
             tint = tint,
-            modifier = Modifier
-                .size(dimens.iconSize)
+            modifier = if (iconSize != null) Modifier.size(iconSize) else Modifier
         )
     }
 }

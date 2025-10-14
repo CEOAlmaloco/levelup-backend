@@ -28,12 +28,11 @@ import kotlinx.coroutines.launch
 fun AuthNavigation(
     mainViewModel: MainViewModel,
     navController: NavHostController,
+    usuarioViewModel: UsuarioViewModel,
+    loginViewModel: LoginViewModel,
     startDestination: String = "welcome"
 ){
 
-    val usuarioViewModel: UsuarioViewModel = viewModel()
-
-    val loginViewModel: LoginViewModel = viewModel()
 
     val context = LocalContext.current
 
