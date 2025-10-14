@@ -14,34 +14,42 @@ import com.example.levelupprueba.ui.theme.LocalDimens
 
 @Composable
 fun LevelUpSectionDivider(
-    title: String,
+    title: String? = null,
     modifier: Modifier = Modifier,
     dimens: Dimens = LocalDimens.current
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    if (title.isNullOrBlank()){
         HorizontalDivider(
-            modifier = Modifier.weight(1f),
+            modifier = modifier.fillMaxWidth(),
             thickness = dimens.dividerThickness,
             color = MaterialTheme.colorScheme.outline
         )
+    } else {
+        Row(
+            modifier = modifier
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            HorizontalDivider(
+                modifier = Modifier.weight(1f),
+                thickness = dimens.dividerThickness,
+                color = MaterialTheme.colorScheme.outline
+            )
 
-        Text(
-            text = title.uppercase(),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-            modifier = Modifier.padding(horizontal = dimens.fieldSpacing),
-            fontSize = dimens.captionSize
-        )
+            Text(
+                text = title.uppercase(),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                modifier = Modifier.padding(horizontal = dimens.fieldSpacing),
+                fontSize = dimens.captionSize
+            )
 
-        HorizontalDivider(
-            modifier = Modifier.weight(1f),
-            thickness = dimens.dividerThickness,
-            color = MaterialTheme.colorScheme.outline
-        )
+            HorizontalDivider(
+                modifier = Modifier.weight(1f),
+                thickness = dimens.dividerThickness,
+                color = MaterialTheme.colorScheme.outline
+            )
+        }
     }
 }
 

@@ -14,6 +14,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import com.example.levelupprueba.ui.components.inputs.levelUpOutlinedTextFieldColors
@@ -27,7 +30,9 @@ fun LevelUpSearchBar(
     onSearch: (String) -> Unit,
     modifier: Modifier,
     placeholder: String = "Buscar...",
-    dimens: Dimens = LocalDimens.current
+    dimens: Dimens = LocalDimens.current,
+    onFocusChanged: (Boolean) -> Unit = {},
+    focusRequester: FocusRequester? = null
 ){
     val focusManager = LocalFocusManager.current
 
@@ -36,22 +41,23 @@ fun LevelUpSearchBar(
         onValueChange = onValueChange,
         placeholder = { Text(placeholder) },
         modifier = modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
+            .onFocusChanged{ focusState ->
+                onFocusChanged(focusState.isFocused)
+            }
+        ,
         singleLine = true,
         trailingIcon = {
-            IconButton(
+            LevelUpIconButton(
                 onClick = {
                     onSearch(value)
                     focusManager.clearFocus()
                 },
-                modifier = Modifier.size(dimens.iconSize)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Buscar",
-                    modifier = Modifier.size(dimens.iconSize)
-                )
-            }
+                imageVector = Icons.Default.Search,
+                contentDescription = "Buscar",
+                tint = MaterialTheme.colorScheme.onSurface,
+            )
         },
         colors = levelUpOutlinedTextFieldColors(),
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),

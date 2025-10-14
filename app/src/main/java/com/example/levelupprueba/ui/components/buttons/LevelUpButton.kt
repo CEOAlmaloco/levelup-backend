@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.levelupprueba.ui.components.animatedTapScale
 import com.example.levelupprueba.ui.theme.ButtonColors
@@ -47,6 +48,7 @@ fun LevelUpButton(
     icon: ImageVector? = null, // Opcional: icono a mostrar junto al texto (si es null no se muestra)
     iconTint: Color = MaterialTheme.colorScheme.onPrimary, // Color del icono, por defecto el color del tema
     enabled: Boolean = true, // Si está en false, el botón aparece deshabilitado y no responde al tap
+    shape: Shape = RoundedCornerShape(dimens.buttonCornerRadius) // Refuerza el borde redondeado del botón
 ) {
 
     // Animación de colores del gradiente
@@ -72,7 +74,7 @@ fun LevelUpButton(
     Box(
         modifier = modifier
             .animatedTapScale(interactionSource)
-            .clip(RoundedCornerShape(dimens.buttonCornerRadius)) // Aplica bordes redondeados
+            .clip(shape) // Aplica bordes redondeados
             .background(
                 Brush.horizontalGradient(
                     colors = listOf(animatedStartColor, animatedEndColor)

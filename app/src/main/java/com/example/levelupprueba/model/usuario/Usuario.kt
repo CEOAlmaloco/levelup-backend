@@ -1,10 +1,11 @@
 package com.example.levelupprueba.model.usuario
 
-import kotlinx.serialization.Serializable
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
-@Serializable
+@Entity(tableName = "usuarios")
 data class Usuario(
-    val id: String,
+    @PrimaryKey val id: String,
     val nombre: String,
     val apellidos: String,
     val email: String,
