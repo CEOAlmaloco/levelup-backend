@@ -58,7 +58,8 @@ fun MainScreen(
     usuarioViewModel: UsuarioViewModel,
     loginViewModel: LoginViewModel,
     blogViewModel: BlogViewModel,
-    productoViewModel: ProductoViewModel
+    productoViewModel: ProductoViewModel,
+    eventoViewModel: EventoViewModel
 ) {
 
     // Estado de login
@@ -106,7 +107,7 @@ fun MainScreen(
             .pointerInput(Unit) {
                 detectTapGestures(onTap = { focusManager.clearFocus() })
             }
-    ){
+    ) {
         ModalNavigationDrawer(
             drawerState = drawerState,
             gesturesEnabled = true,
@@ -134,7 +135,7 @@ fun MainScreen(
                         }
                     },
                     onLogoutClick = {
-                        coroutineScope.launch{
+                        coroutineScope.launch {
                             clearUserSession(context)
                             drawerState.close()
 
@@ -146,7 +147,7 @@ fun MainScreen(
                     },
                     onSectionClick = { section ->
                         coroutineScope.launch { drawerState.close() }
-                        when (section.label){
+                        when (section.label) {
                             "Inicio" -> navController.navigate(Screen.Home.route)
                             "Productos" -> navController.navigate(Screen.Productos.route)
                             "Blog" -> navController.navigate(Screen.Blog.route)
@@ -165,7 +166,7 @@ fun MainScreen(
                     sections = drawerSections
                 )
             }
-        ){
+        ) {
             Scaffold(
                 topBar = {
                     LevelUpMainTopBar(
@@ -192,88 +193,88 @@ fun MainScreen(
                         val navBackStackEntry by navController.currentBackStackEntryAsState()
                         val currentDestination = navBackStackEntry?.destination
 
-                    bottomNavItems.forEach { screen ->
-                        NavigationBarItem(
-                            icon = { Icon(screen.icon, contentDescription = screen.title) },
-                            label = { Text(screen.title) },
-                            selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                            onClick = {
-                                // Si intenta ir a perfil sin login, redirige a login
-                                if (screen.route == "perfil" && !isLoggedIn) {
-                                    val intent = Intent(context, AuthActivity::class.java)
-                                    intent.putExtra("startDestination", "login")
-                                    context.startActivity(intent)
-                                    (context as? Activity)?.finish()
-                                } else {
-                                    coroutineScope.launch {
-                                        mainViewModel.navigateTo(screen.route)
+                        bottomNavItems.forEach { screen ->
+                            NavigationBarItem(
+                                icon = { Icon(screen.icon, contentDescription = screen.title) },
+                                label = { Text(screen.title) },
+                                selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                                onClick = {
+                                    // Si intenta ir a perfil sin login, redirige a login
+                                    if (screen.route == "perfil" && !isLoggedIn) {
+                                        val intent = Intent(context, AuthActivity::class.java)
+                                        intent.putExtra("startDestination", "login")
+                                        context.startActivity(intent)
+                                        (context as? Activity)?.finish()
+                                    } else {
+                                        coroutineScope.launch {
+                                            mainViewModel.navigateTo(screen.route)
+                                        }
                                     }
                                 }
+                            )
+                        }
+                    }
+                }
+            ) { innerPadding ->
+                NavHost(
+                    navController = navController,
+                    startDestination = Screen.Eventos.route, // ⛔⛔⛔⛔⛔⛔⛔ CAMBIADO TEMPORALMENTE A EVENTOS PARA TESTING⛔⛔⛔⛔⛔
+                    // startDestination = Screen.Home.route, // ← Descomentar esto para volver al inicio normal
+                    modifier = Modifier.padding(innerPadding)
+                ) {
+                    // Home
+                    composable(Screen.Home.route) {
+                        HomeScreenProductos(
+                            viewModel = productoViewModel,
+                            onVerMasClick = {
+                                navController.navigate(Screen.Productos.route)
                             }
                         )
                     }
-                }
-            }
-        ) { innerPadding ->
-            NavHost(
-                navController = navController,
-                startDestination = Screen.Eventos.route, // ⛔⛔⛔⛔⛔⛔⛔ CAMBIADO TEMPORALMENTE A EVENTOS PARA TESTING⛔⛔⛔⛔⛔
-                // startDestination = Screen.Home.route, // ← Descomentar esto para volver al inicio normal
-                modifier = Modifier.padding(innerPadding)
-            ) {
-                // Home
-                composable(Screen.Home.route) {
-                    HomeScreenProductos(
-                        viewModel = productoViewModel,
-                        onVerMasClick = {
-                            navController.navigate(Screen.Productos.route)
-                        }
-                    )
-                }
 
-                // Productos
-                composable(Screen.Productos.route) {
-                    ProductosScreen(viewModel = productoViewModel)
-                }
+                    // Productos
+                    composable(Screen.Productos.route) {
+                        ProductosScreen(viewModel = productoViewModel)
+                    }
 
-                // Blog
-                composable(Screen.Blog.route) {
-                    BlogListScreen(blogViewModel)
-                }
+                    // Blog
+                    composable(Screen.Blog.route) {
+                        BlogListScreen(blogViewModel)
+                    }
 
-                // Eventos - Pantalla de eventos gaming y sistema LevelUp
-                composable(Screen.Eventos.route) {
-                    EventoScreen(viewModel = eventoViewModel)
-                }
+                    // Eventos - Pantalla de eventos gaming y sistema LevelUp
+                    composable(Screen.Eventos.route) {
+                        EventoScreen(viewModel = eventoViewModel)
+                    }
 
-                // Login
-                composable("login") {
-                    LoginScreen(navController = navController, viewModel = loginViewModel)
-                }
+                    // Login
+                    composable("login") {
+                        LoginScreen(navController = navController, viewModel = loginViewModel)
+                    }
 
-                // Registro
-                composable("registro") {
-                    RegisterScreen(
-                        mainViewModel = mainViewModel,
-                        viewModel = usuarioViewModel
-                    )
-                }
+                    // Registro
+                    composable("registro") {
+                        RegisterScreen(
+                            mainViewModel = mainViewModel,
+                            viewModel = usuarioViewModel
+                        )
+                    }
 
-                // Perfil (requiere login)
-                composable(Screen.Perfil.route) {
-                    if (isLoggedIn) {
-                        // TODO: Pantalla de perfil
-                        Text("Perfil de usuario")
-                    } else {
-                        // Redirige a login
-                        LaunchedEffect(Unit) {
-                            navController.navigate("login")
+                    // Perfil (requiere login)
+                    composable(Screen.Perfil.route) {
+                        if (isLoggedIn) {
+                            // TODO: Pantalla de perfil
+                            Text("Perfil de usuario")
+                        } else {
+                            // Redirige a login
+                            LaunchedEffect(Unit) {
+                                navController.navigate("login")
+                            }
                         }
                     }
                 }
             }
         }
     }
-
 }
 
