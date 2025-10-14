@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.levelupprueba.ui.components.animatedTapScale
 import com.example.levelupprueba.ui.theme.ButtonColors
 import com.example.levelupprueba.ui.theme.Dimens
+import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.ui.theme.TextDisabled
 
 /**
@@ -35,14 +36,12 @@ fun LevelUpOutlinedButton(
     textTint: Color = MaterialTheme.colorScheme.onSurface,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
-    dimens: Dimens,
+    dimens: Dimens = LocalDimens.current,
     icon: ImageVector? = null,
     iconTint: Color = MaterialTheme.colorScheme.onSurface,
     enabled: Boolean = true,
-    shape: Shape = MaterialTheme.shapes.extraLarge,
+    shape: Shape = RoundedCornerShape(dimens.buttonCornerRadius),
 ) {
-    val shape = shape
-
     // Animaciones de colores (degradado dinámico)
     val animatedStartColor by animateColorAsState(
         targetValue = if (enabled) ButtonColors.LevelUpGradientStart else ButtonColors.Disabled
@@ -62,7 +61,7 @@ fun LevelUpOutlinedButton(
     Box(
         modifier = modifier
             .animatedTapScale(interactionSource)
-            .clip(RoundedCornerShape(dimens.buttonCornerRadius))
+            .clip(shape)
             // Borde degradado
             .border(
                 width = dimens.dividerThickness,

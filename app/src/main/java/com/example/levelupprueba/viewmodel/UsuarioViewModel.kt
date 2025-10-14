@@ -6,6 +6,7 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.levelupprueba.data.local.UserDataStore
+import com.example.levelupprueba.data.repository.UsuarioRepository
 import com.example.levelupprueba.model.registro.RegisterStatus
 import com.example.levelupprueba.model.usuario.Usuario
 import com.example.levelupprueba.model.usuario.UsuarioUiState
@@ -17,7 +18,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
 
-class UsuarioViewModel: ViewModel() {
+class UsuarioViewModel(
+    private val usuarioRepository: UsuarioRepository
+): ViewModel() {
 
     // Estado interno mutable
     private val _estado = MutableStateFlow(UsuarioUiState())
@@ -27,9 +30,6 @@ class UsuarioViewModel: ViewModel() {
     // Estado del proceso de registro (Loading, success, error)
     private val _registroEstado = MutableStateFlow<RegisterStatus>(RegisterStatus.Idle)
     val registroEstado: StateFlow<RegisterStatus> = _registroEstado
-
-    // Instancia del DataStore
-    var userDataStore: UserDataStore? = null
 
     /**
      * Helper para actualizar el estado de un campo evitando repetición de código.
@@ -232,13 +232,17 @@ class UsuarioViewModel: ViewModel() {
 
     // Simula el proceso de registro con delay utilizando launch y estados
     // En el futuro aquí se hará la petición HTTP al backend para validar
-    fun registrarUsuario(context: Context) {
+    fun registrarUsuario() {
         viewModelScope.launch {
             _registroEstado.value = RegisterStatus.Loading
             try {
                 delay(2000) // simula backend
+                if(usuarioRepository.emailExists(_estado.value.email.valor)){
+                    _registroEstado.value = RegisterStatus.Error("El email ya está registrado")
+                    return@launch // Detener aquí, NO guardar usuario
+                }
                 val usuario = Usuario(
-                    id = UUID.randomUUID().toString(),
+                    id = "",
                     nombre = _estado.value.nombre.valor,
                     apellidos = _estado.value.apellidos.valor,
                     email = _estado.value.email.valor,
@@ -248,12 +252,11 @@ class UsuarioViewModel: ViewModel() {
                     region = _estado.value.region.valor,
                     comuna = _estado.value.comuna.valor,
                     direccion = _estado.value.direccion.valor,
-                    referralCode = "",
+                    referralCode = usuarioRepository.generateReferralCode(_estado.value.nombre.valor),
                     points = 0,
                     role = "cliente"
                 )
-                userDataStore = UserDataStore(context)
-                userDataStore?.addUsuario(usuario)
+                usuarioRepository.saveUsuario(usuario)
                 _registroEstado.value = RegisterStatus.Success
             } catch (e: Exception) {
                 _registroEstado.value = RegisterStatus.Error("Ocurrió un error: ${e.message}")

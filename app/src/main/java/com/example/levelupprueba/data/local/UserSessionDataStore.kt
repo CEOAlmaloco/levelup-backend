@@ -34,3 +34,9 @@ fun getUserSessionFlow(context: Context) = context.userSessionDataStore.data.map
         role = prefs[UserSessionKeys.ROLE] ?: ""
     )
 }
+
+suspend fun clearUserSession(context: Context) {
+    context.userSessionDataStore.edit { prefs ->
+        prefs.clear()
+    }
+}

@@ -11,12 +11,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import com.example.levelupprueba.ui.theme.LocalDimens
+import com.example.levelupprueba.ui.theme.SemanticColors
 
 @Composable
 fun LevelUpProfileIcon(
     isLoggedIn: Boolean,
     nombre: String?,
 ){
+    val dimens = LocalDimens.current
     val initials = if (isLoggedIn && !nombre.isNullOrBlank()) {
         val trimmed = nombre.trim()
         if (trimmed.length >= 2)
@@ -27,15 +30,15 @@ fun LevelUpProfileIcon(
 
     Box(
         modifier = Modifier
-            .size(32.dp)
+            .size(dimens.avatarSize)
             .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.onSurface),
+            .background(SemanticColors.AccentBlue),
         contentAlignment = Alignment.Center
     ){
         Text(
             text = initials,
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.surface
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.87f)
         )
     }
 }

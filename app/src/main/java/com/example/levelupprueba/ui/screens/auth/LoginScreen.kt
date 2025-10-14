@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Start
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -25,6 +26,7 @@ import androidx.navigation.NavHostController
 import com.example.levelupprueba.MainActivity
 import com.example.levelupprueba.model.auth.LoginStatus
 import com.example.levelupprueba.model.auth.isSuccess
+import com.example.levelupprueba.ui.components.LevelUpIconButton
 import com.example.levelupprueba.ui.components.cards.LevelUpCard
 import com.example.levelupprueba.ui.components.inputs.LevelUpClickableTextLink
 import com.example.levelupprueba.ui.components.LevelUpSpacedColumn
@@ -66,17 +68,23 @@ fun LoginScreen(
         topBar = {
             Column {
                 LevelUpTopBar(
-                    title = "Inicio de Sesión",
-                    onBackClick = {
-                        coroutineScope.launch {
-                            val canGoBack = navController.popBackStack()
-                            if (!canGoBack) {
-                                context.startActivity(Intent(context, MainActivity::class.java))
-                                (context as? ComponentActivity)?.finish()
-                            }
-                        }
+                    showNavigationIcon = true,
+                    navigationIcon = {
+                        LevelUpIconButton(
+                            onClick = {
+                                coroutineScope.launch {
+                                    val canGoBack = navController.popBackStack()
+                                    if (!canGoBack) {
+                                        context.startActivity(Intent(context, MainActivity::class.java))
+                                        (context as? ComponentActivity)?.finish()
+                                    }
+                                }
+                            },
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Atrás"
+                        )
                     },
-                    dimens = dimens
+                    titleText = "Inicio de Sesión"
                 )
                 Spacer(modifier = Modifier.height(dimens.sectionSpacing))
             }
