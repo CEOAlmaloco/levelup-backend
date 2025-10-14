@@ -31,6 +31,7 @@ import com.example.levelupprueba.ui.components.LevelUpMainTopBar
 import com.example.levelupprueba.ui.screens.auth.LoginScreen
 import com.example.levelupprueba.ui.screens.auth.RegisterScreen
 import com.example.levelupprueba.ui.screens.blog.BlogListScreen
+import com.example.levelupprueba.ui.screens.eventos.EventoScreen
 import com.example.levelupprueba.ui.screens.home.HomeScreenProductos
 import com.example.levelupprueba.ui.screens.productos.ProductosScreen
 import com.example.levelupprueba.viewmodel.*
@@ -41,6 +42,7 @@ sealed class Screen(val route: String, val title: String, val icon: androidx.com
     object Home : Screen("home", "Inicio", Icons.Filled.Home)
     object Productos : Screen("productos", "Productos", Icons.Filled.ShoppingCart)
     object Blog : Screen("blogs", "Blog", Icons.Filled.Article)
+    object Eventos : Screen("eventos", "Eventos", Icons.Filled.Event) //Agregado para eventos gaming
     object Perfil : Screen("perfil", "Perfil", Icons.Filled.Person)
 }
 
@@ -49,15 +51,19 @@ sealed class Screen(val route: String, val title: String, val icon: androidx.com
 @Composable
 fun MainScreen(mainViewModel: MainViewModel, navController: NavHostController) {
 
+    // Estado de login
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    
     // ViewModels compartidos
     val usuarioViewModel: UsuarioViewModel = viewModel()
     val blogViewModel: BlogViewModel = viewModel()
     val productoViewModel: ProductoViewModel = viewModel()
+    val eventoViewModel: EventoViewModel = viewModel()
     val loginViewModel: LoginViewModel = viewModel()
-
-    // Estado de login
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
+    
+    // Inicializar EventoViewModel con contexto para DataStore
+    eventoViewModel.inicializar(context)
 
     val userSessionFlow = getUserSessionFlow(context)
     val userSession by userSessionFlow.collectAsState(initial = null)
@@ -68,6 +74,7 @@ fun MainScreen(mainViewModel: MainViewModel, navController: NavHostController) {
         Screen.Home,
         Screen.Productos,
         Screen.Blog,
+        Screen.Eventos, // Agregado para eventos gaming
         Screen.Perfil
     )
 
@@ -130,7 +137,8 @@ fun MainScreen(mainViewModel: MainViewModel, navController: NavHostController) {
         ) { innerPadding ->
             NavHost(
                 navController = navController,
-                startDestination = Screen.Home.route,
+                startDestination = Screen.Eventos.route, // ⛔⛔⛔⛔⛔⛔⛔ CAMBIADO TEMPORALMENTE A EVENTOS PARA TESTING⛔⛔⛔⛔⛔
+                // startDestination = Screen.Home.route, // ← Descomentar esto para volver al inicio normal
                 modifier = Modifier.padding(innerPadding)
             ) {
                 // Home
@@ -151,6 +159,11 @@ fun MainScreen(mainViewModel: MainViewModel, navController: NavHostController) {
                 // Blog
                 composable(Screen.Blog.route) {
                     BlogListScreen(blogViewModel)
+                }
+                
+                // Eventos - Pantalla de eventos gaming y sistema LevelUp
+                composable(Screen.Eventos.route) {
+                    EventoScreen(viewModel = eventoViewModel)
                 }
 
                 // Login
