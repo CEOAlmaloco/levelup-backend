@@ -181,7 +181,14 @@ fun MainScreen(
                             // TODO: Ir al carrito
                         },
                         onProfileClick = {
-                            // TODO: Ir al perfil
+                            if (!isLoggedIn) {
+                                val intent = Intent(context, AuthActivity::class.java)
+                                intent.putExtra("startDestination", "login")
+                                context.startActivity(intent)
+                                (context as? Activity)?.finish()
+                            } else {
+                                navController.navigate(Screen.Perfil.route)
+                            }
                         },
                         onSearchClick = {
 
