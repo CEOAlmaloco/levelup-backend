@@ -9,12 +9,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.levelupprueba.model.FieldErrors
+import com.example.levelupprueba.model.errors.FieldErrors
 import com.example.levelupprueba.ui.components.switches.levelUpSwitchColors
+import com.example.levelupprueba.ui.theme.Dimens
 
 /**
  * Funcion que permite reutilizar el Switch LevelUp para opciones o confirmaciones
@@ -24,8 +21,8 @@ import com.example.levelupprueba.ui.components.switches.levelUpSwitchColors
  * @param label Etiqueta del switch
  * @param error Error que se mostrara debajo del campo
  * @param modifier Modificador para personalizar el campo
- * @param labelSpacing Espaciado entre la etiqueta y el switch
- * @param errorFontSize Tamaño de fuente del mensaje de error
+ * @param dimens Dimensiones del campo
+ *
  */
 @Composable
 fun LevelUpSwitchField(
@@ -34,8 +31,7 @@ fun LevelUpSwitchField(
     label: String,
     error: FieldErrors?,
     modifier: Modifier = Modifier,
-    labelSpacing: Dp = 8.dp,
-    errorFontSize: TextUnit = 12.sp
+    dimens: Dimens
 ){
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -46,14 +42,14 @@ fun LevelUpSwitchField(
             onCheckedChange = onCheckedChange,
             colors = levelUpSwitchColors()
         )
-        Spacer(Modifier.width(labelSpacing))
-        Text(label)
+        Spacer(Modifier.width(dimens.smallSpacing))
+        Text(label, fontSize = dimens.bodySize)
     }
     if (error != null){
         Text(
-            error.mensaje(),
+            text = error.mensaje(),
             color = MaterialTheme.colorScheme.error,
-            fontSize = errorFontSize
+            fontSize = dimens.captionSize
         )
     }
 }

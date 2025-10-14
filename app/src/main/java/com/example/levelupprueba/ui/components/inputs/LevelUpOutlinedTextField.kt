@@ -1,11 +1,13 @@
 package com.example.levelupprueba.ui.components.inputs
 
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.example.levelupprueba.ui.theme.Dimens
 
 /**
  * Text Field personalizado estándar para formularios
@@ -25,10 +27,11 @@ import androidx.compose.ui.Modifier
  * @param placeholder Texto que se muestra cuando el campo está vacío
  * @param modifier Modificador para personalizar el campo
  * @param keyboardOptions Opciones de teclado para el campo
- *
+ * @param dimens Dimensiones del campo
+
  */
 @Composable
-fun LevelUpTextField(
+fun LevelUpOutlinedTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
@@ -42,12 +45,14 @@ fun LevelUpTextField(
     placeholder: @Composable (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    dimens: Dimens
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        colors = levelUpTextFieldColors(isSuccess = isSuccess),
-        label = { Text(label) },
+        colors = levelUpOutlinedTextFieldColors(isSuccess = isSuccess),
+        label = { Text(text = label, fontSize = dimens.bodySize) },
         enabled = enabled,
         isError = isError,
         supportingText = supportingText,
@@ -55,7 +60,9 @@ fun LevelUpTextField(
         readOnly = readOnly,
         trailingIcon = trailingIcon,
         placeholder = placeholder,
-        modifier = modifier.fillMaxWidth(),
-        keyboardOptions = keyboardOptions
+        modifier = modifier
+            .fillMaxWidth(),
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions
     )
 }

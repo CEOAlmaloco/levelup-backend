@@ -1,10 +1,14 @@
 package com.example.levelupprueba.viewmodel
 
-import android.util.Log
+import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.levelupprueba.model.registro.RegistroUiState
-import com.example.levelupprueba.model.usuario.UsuarioCampo
+import com.example.levelupprueba.data.local.UserDataStore
+import com.example.levelupprueba.data.repository.UsuarioRepository
+import com.example.levelupprueba.model.registro.RegisterStatus
+import com.example.levelupprueba.model.usuario.Usuario
 import com.example.levelupprueba.model.usuario.UsuarioUiState
 import com.example.levelupprueba.model.usuario.UsuarioValidator
 import kotlinx.coroutines.delay
@@ -12,8 +16,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 
-class UsuarioViewModel: ViewModel() {
+class UsuarioViewModel(
+    private val usuarioRepository: UsuarioRepository
+): ViewModel() {
 
     // Estado interno mutable
     private val _estado = MutableStateFlow(UsuarioUiState())
@@ -21,8 +28,8 @@ class UsuarioViewModel: ViewModel() {
     val estado: StateFlow<UsuarioUiState> = _estado
 
     // Estado del proceso de registro (Loading, success, error)
-    private val _registroEstado = MutableStateFlow<RegistroUiState>(RegistroUiState.Idle)
-    val registroEstado: StateFlow<RegistroUiState> = _registroEstado
+    private val _registroEstado = MutableStateFlow<RegisterStatus>(RegisterStatus.Idle)
+    val registroEstado: StateFlow<RegisterStatus> = _registroEstado
 
     /**
      * Helper para actualizar el estado de un campo evitando repetición de código.
@@ -100,6 +107,7 @@ class UsuarioViewModel: ViewModel() {
     }
 
     // Actualiza el campo fechaNacimiento y valida en tiempo real
+    @RequiresApi(Build.VERSION_CODES.O)
     fun onFechaNacimientoChange(valor: String) = actualizarCampo {
         it.copy(
             fechaNacimiento = it.fechaNacimiento.copy(
@@ -154,6 +162,7 @@ class UsuarioViewModel: ViewModel() {
      * Validaciones del formulario completo.
      * Devuelve true si el formulario es válido.
      */
+    @RequiresApi(Build.VERSION_CODES.O)
     fun validarRegistro(): Boolean {
         val estadoActual = _estado.value
 
@@ -215,6 +224,7 @@ class UsuarioViewModel: ViewModel() {
         val todosLlenos = camposObligatorios.all {
             it.valor.isNotBlank() && (it != estadoActual.terminos || it.valor == "true")
         }
+
         val sinErrores = camposObligatorios.all { it.error == null }
 
         return todosLlenos && sinErrores
@@ -224,18 +234,38 @@ class UsuarioViewModel: ViewModel() {
     // En el futuro aquí se hará la petición HTTP al backend para validar
     fun registrarUsuario() {
         viewModelScope.launch {
-            _registroEstado.value = RegistroUiState.Loading
+            _registroEstado.value = RegisterStatus.Loading
             try {
                 delay(2000) // simula backend
-                _registroEstado.value = RegistroUiState.Success
+                if(usuarioRepository.emailExists(_estado.value.email.valor)){
+                    _registroEstado.value = RegisterStatus.Error("El email ya está registrado")
+                    return@launch // Detener aquí, NO guardar usuario
+                }
+                val usuario = Usuario(
+                    id = "",
+                    nombre = _estado.value.nombre.valor,
+                    apellidos = _estado.value.apellidos.valor,
+                    email = _estado.value.email.valor,
+                    password = _estado.value.password.valor,
+                    telefono = _estado.value.telefono.valor,
+                    fechaNacimiento = _estado.value.fechaNacimiento.valor,
+                    region = _estado.value.region.valor,
+                    comuna = _estado.value.comuna.valor,
+                    direccion = _estado.value.direccion.valor,
+                    referralCode = usuarioRepository.generateReferralCode(_estado.value.nombre.valor),
+                    points = 0,
+                    role = "cliente"
+                )
+                usuarioRepository.saveUsuario(usuario)
+                _registroEstado.value = RegisterStatus.Success
             } catch (e: Exception) {
-                _registroEstado.value = RegistroUiState.Error("Ocurrió un error: ${e.message}")
+                _registroEstado.value = RegisterStatus.Error("Ocurrió un error: ${e.message}")
             }
         }
     }
 
     // Permite volver al estado inicial (después de mostrar mensaje de éxito)
     fun resetRegistroEstado() {
-        _registroEstado.value = RegistroUiState.Idle
+        _registroEstado.value = RegisterStatus.Idle
     }
 }

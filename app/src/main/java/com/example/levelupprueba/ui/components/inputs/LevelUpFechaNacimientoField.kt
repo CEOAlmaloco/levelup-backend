@@ -3,6 +3,7 @@ package com.example.levelupprueba.ui.components.inputs
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.DatePicker
@@ -15,7 +16,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.example.levelupprueba.ui.theme.Dimens
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -47,7 +48,8 @@ fun LevelUpFechaNacimientoField(
     isError: Boolean = false,                   // Indica si el campo está en estado de error
     isSuccess: Boolean = false,                 // Indica si el campo está en estado de éxito
     supportingText: (@Composable (() -> Unit))? = null, // Mensaje de ayuda o error debajo del campo
-    modifier: Modifier = Modifier                        // Modificador para personalizar el campo (por ej. ancho)
+    modifier: Modifier = Modifier,                        // Modificador para personalizar el campo (por ej. ancho)
+    dimens: Dimens
 ) {
     // Estado local para mostrar/ocultar el DatePicker
     var showDatePicker by remember { mutableStateOf(false) }
@@ -56,8 +58,12 @@ fun LevelUpFechaNacimientoField(
     OutlinedTextField(
         value = fechaNacimiento,                // Muestra la fecha actual
         onValueChange = {},                     // Deshabilitado, solo se cambia por el DatePicker
-        colors = levelUpTextFieldColors(isSuccess = isSuccess),                        // Aplica los colores personalizados
-        label = { Text("Fecha de Nacimiento") },// Etiqueta del campo
+        colors = levelUpOutlinedTextFieldColors(isSuccess = isSuccess),                        // Aplica los colores personalizados
+        label = {                               // Etiqueta del campo
+            Text(
+                text = "Fecha de Nacimiento",
+                fontSize = dimens.bodySize)
+            },
         isError = isError,                      // Marca el campo como error si corresponde
         readOnly = true,
         supportingText = supportingText,        // Muestra texto de ayuda/error debajo del campo         // El usuario no puede editar manualmente
@@ -70,11 +76,13 @@ fun LevelUpFechaNacimientoField(
                 Icon(
                     imageVector = Icons.Filled.CalendarToday,
                     contentDescription = "Seleccionar Fecha",
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(dimens.iconSize)
                 )
             }
         },
-        modifier = modifier.fillMaxWidth()                     // Modificador externo (ejemplo: fillMaxWidth)
+        modifier = modifier
+            .fillMaxWidth()
     )
 
     // Si hay que mostrar el DatePicker (cuando se toca el ícono)
