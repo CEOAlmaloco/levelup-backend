@@ -81,4 +81,7 @@ dependencies {
 
     // Coil - Carga de imágenes
     implementation("io.coil-kt:coil-compose:2.5.0")
+
+    // OSMDroid - Mapa OpenStreetMap (sin API key) ya q no se puede con JS como el otro tengo q hacer una cosa rara 
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
 }
