@@ -8,6 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import com.example.levelupprueba.ui.theme.Dimens
+import com.example.levelupprueba.ui.theme.LocalDimens
 
 @Composable
 fun LevelUpAlertDialog(
@@ -19,7 +20,7 @@ fun LevelUpAlertDialog(
     dismissText: String? = null,
     onDismiss: (() -> Unit)? = null,
     icon: (@Composable (() -> Unit))? = null,
-    dimens: Dimens
+    dimens: Dimens = LocalDimens.current
 ){
     AlertDialog(
         onDismissRequest = onDismissRequest,

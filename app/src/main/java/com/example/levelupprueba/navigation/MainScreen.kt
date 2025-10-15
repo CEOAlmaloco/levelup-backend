@@ -28,15 +28,20 @@ import androidx.navigation.compose.rememberNavController
 import com.example.levelupprueba.AuthActivity
 import com.example.levelupprueba.data.local.clearUserSession
 import com.example.levelupprueba.data.local.getUserSessionFlow
+import com.example.levelupprueba.model.auth.UserSession
+import com.example.levelupprueba.model.profile.ProfileStatus
 import com.example.levelupprueba.ui.components.DrawerSection
 import com.example.levelupprueba.ui.components.LevelUpDrawer
 import com.example.levelupprueba.ui.components.LevelUpMainTopBar
+import com.example.levelupprueba.ui.components.LevelUpNavigationBar
+import com.example.levelupprueba.ui.components.overlays.LevelUpLoadingOverlay
 import com.example.levelupprueba.ui.screens.auth.LoginScreen
 import com.example.levelupprueba.ui.screens.auth.RegisterScreen
 import com.example.levelupprueba.ui.screens.blog.BlogListScreen
 import com.example.levelupprueba.ui.screens.eventos.EventoScreen
 import com.example.levelupprueba.ui.screens.home.HomeScreenProductos
 import com.example.levelupprueba.ui.screens.productos.ProductosScreen
+import com.example.levelupprueba.ui.screens.profile.ProfileScreen
 import com.example.levelupprueba.viewmodel.*
 import kotlinx.coroutines.launch
 
@@ -47,30 +52,45 @@ sealed class Screen(val route: String, val title: String, val icon: androidx.com
     object Blog : Screen("blogs", "Blog", Icons.Filled.Article)
     object Eventos : Screen("eventos", "Eventos", Icons.Filled.Event) //Agregado para eventos gaming
     object Perfil : Screen("perfil", "Perfil", Icons.Filled.Person)
+
+    object Screens {
+        val all = listOf(
+            Home,
+            Productos,
+            Blog,
+            Eventos,
+            Perfil
+        )
+    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
+    userSession: UserSession?,
+    isLoading: Boolean,
+    avatar: String?,
     mainViewModel: MainViewModel,
     navController: NavHostController,
     usuarioViewModel: UsuarioViewModel,
     loginViewModel: LoginViewModel,
     blogViewModel: BlogViewModel,
     productoViewModel: ProductoViewModel,
-    eventoViewModel: EventoViewModel
+    eventoViewModel: EventoViewModel,
+    profileViewModel: ProfileViewModel
 ) {
 
     // Estado de login
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
-    val userSessionFlow = getUserSessionFlow(context)
-    val userSession by userSessionFlow.collectAsState(initial = null)
     val isLoggedIn = userSession != null && !userSession?.userId.isNullOrBlank()
-
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val currentTitle = Screen.Screens.all.find { it.route == currentRoute }?.title ?: "LevelUp"
 
     // Items del bottom navigation
     val bottomNavItems = listOf(
@@ -78,8 +98,9 @@ fun MainScreen(
         Screen.Productos,
         Screen.Blog,
         Screen.Eventos, // Agregado para eventos gaming
-        Screen.Perfil
     )
+
+    val showBottomBar = currentRoute in bottomNavItems.map {it.route}
 
     val drawerSections = listOf(
         DrawerSection(
@@ -95,11 +116,24 @@ fun MainScreen(
             label = "Blog"
         ),
         DrawerSection(
-            icon = Icons.Default.Person,
-            label = "Perfil"
+            icon = Icons.Default.Event,
+            label = "Eventos"
         )
     )
 
+    // Función centralizada
+    fun handleProfileNavigation() {
+        if (!isLoggedIn) {
+            val intent = Intent(context, AuthActivity::class.java)
+            intent.putExtra("startDestination", "login")
+            context.startActivity(intent)
+            (context as? Activity)?.finish()
+        } else {
+            navController.navigate(Screen.Perfil.route)
+        }
+    }
+
+    val profileUiState by profileViewModel.estado.collectAsState()
 
     Box(
         modifier = Modifier
@@ -115,32 +149,25 @@ fun MainScreen(
                 LevelUpDrawer(
                     isLoggedIn = isLoggedIn,
                     userName = userSession?.displayName,
-                    avatar = null,
+                    avatar = avatar,
                     onBackClick = {
                         coroutineScope.launch {
                             drawerState.close()
                         }
                     },
                     onProfileClick = {
-                        if (!isLoggedIn) {
-                            val intent = Intent(context, AuthActivity::class.java)
-                            intent.putExtra("startDestination", "login")
-                            context.startActivity(intent)
-                            (context as? Activity)?.finish()
-                        } else {
-                            coroutineScope.launch {
-                                drawerState.close()
-                            }
-                            navController.navigate(Screen.Perfil.route)
+                        coroutineScope.launch {
+                            drawerState.close()
                         }
+                        handleProfileNavigation()
                     },
                     onLogoutClick = {
                         coroutineScope.launch {
-                            clearUserSession(context)
+                            loginViewModel.logout(context, mainViewModel)
                             drawerState.close()
 
                             val intent = Intent(context, AuthActivity::class.java)
-                            intent.putExtra("startDestination", "login")
+                            intent.putExtra("startDestination", "welcome")
                             context.startActivity(intent)
                             (context as? Activity)?.finish()
                         }
@@ -151,16 +178,7 @@ fun MainScreen(
                             "Inicio" -> navController.navigate(Screen.Home.route)
                             "Productos" -> navController.navigate(Screen.Productos.route)
                             "Blog" -> navController.navigate(Screen.Blog.route)
-                            "Perfil" -> {
-                                if (!isLoggedIn) {
-                                    val intent = Intent(context, AuthActivity::class.java)
-                                    intent.putExtra("startDestination", "login")
-                                    context.startActivity(intent)
-                                    (context as? Activity)?.finish()
-                                } else {
-                                    navController.navigate(Screen.Perfil.route)
-                                }
-                            }
+                            "Eventos" -> navController.navigate(Screen.Eventos.route)
                         }
                     },
                     sections = drawerSections
@@ -169,57 +187,54 @@ fun MainScreen(
         ) {
             Scaffold(
                 topBar = {
-                    LevelUpMainTopBar(
-                        isLoggedIn = isLoggedIn,
-                        nombre = userSession?.displayName,
-                        onMenuClick = {
-                            coroutineScope.launch {
-                                drawerState.open()
-                            }
-                        },
-                        onCartClick = {
-                            // TODO: Ir al carrito
-                        },
-                        onProfileClick = {
-                            if (!isLoggedIn) {
-                                val intent = Intent(context, AuthActivity::class.java)
-                                intent.putExtra("startDestination", "login")
-                                context.startActivity(intent)
-                                (context as? Activity)?.finish()
-                            } else {
-                                navController.navigate(Screen.Perfil.route)
-                            }
-                        },
-                        onSearchClick = {
+                    if (currentRoute == Screen.Perfil.route){
+                        LevelUpMainTopBar(
+                            title = "Perfil",
+                            isLoggedIn = isLoggedIn,
+                            nombre = userSession?.displayName,
+                            avatar = avatar,
+                            showMenu = false,
+                            showCart = false,
+                            showProfile = false,
+                            showSearch = false,
+                            showBackArrow = true,
+                            onBackClick = { navController.popBackStack() },
+                            onMenuClick = {},
+                            onCartClick = {},
+                            onProfileClick = {},
+                            onSearchClick = {}
+                        )
+                    } else{
+                        LevelUpMainTopBar(
+                            title = currentTitle,
+                            isLoggedIn = isLoggedIn,
+                            nombre = userSession?.displayName,
+                            onMenuClick = {
+                                coroutineScope.launch {
+                                    drawerState.open()
+                                }
+                            },
+                            onCartClick = {
+                                // TODO: Ir al carrito
+                            },
+                            onProfileClick = {
+                                handleProfileNavigation()
+                            },
+                            onSearchClick = {
 
-                        }
-                    )
+                            },
+                            avatar = avatar
+                        )
+                    }
                 },
                 bottomBar = {
-                    NavigationBar {
-                        val navBackStackEntry by navController.currentBackStackEntryAsState()
-                        val currentDestination = navBackStackEntry?.destination
-
-                        bottomNavItems.forEach { screen ->
-                            NavigationBarItem(
-                                icon = { Icon(screen.icon, contentDescription = screen.title) },
-                                label = { Text(screen.title) },
-                                selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                                onClick = {
-                                    // Si intenta ir a perfil sin login, redirige a login
-                                    if (screen.route == "perfil" && !isLoggedIn) {
-                                        val intent = Intent(context, AuthActivity::class.java)
-                                        intent.putExtra("startDestination", "login")
-                                        context.startActivity(intent)
-                                        (context as? Activity)?.finish()
-                                    } else {
-                                        coroutineScope.launch {
-                                            mainViewModel.navigateTo(screen.route)
-                                        }
-                                    }
-                                }
-                            )
-                        }
+                    if (showBottomBar) {
+                        LevelUpNavigationBar(
+                            navController = navController,
+                            mainViewModel = mainViewModel,
+                            bottomNavItems = bottomNavItems,
+                            coroutineScope = coroutineScope
+                        )
                     }
                 }
             ) { innerPadding ->
@@ -256,7 +271,7 @@ fun MainScreen(
 
                     // Login
                     composable("login") {
-                        LoginScreen(navController = navController, viewModel = loginViewModel)
+                        LoginScreen(navController = navController, viewModel = loginViewModel, mainViewModel = mainViewModel)
                     }
 
                     // Registro
@@ -269,19 +284,36 @@ fun MainScreen(
 
                     // Perfil (requiere login)
                     composable(Screen.Perfil.route) {
-                        if (isLoggedIn) {
-                            // TODO: Pantalla de perfil
-                            Text("Perfil de usuario")
-                        } else {
-                            // Redirige a login
-                            LaunchedEffect(Unit) {
-                                navController.navigate("login")
+                        when{
+                            isLoading -> {
+                                LevelUpLoadingOverlay()
+                            }
+                            isLoggedIn -> {
+                                ProfileScreen(
+                                    viewModel = profileViewModel,
+                                    mainViewModel = mainViewModel,
+                                    isLoggedIn = isLoggedIn,
+                                    userId = userSession?.userId ?: "",
+                                    displayName = userSession?.displayName ?: "",
+                                )
+                            }
+                            else -> {
+                                // Redirige a login
+                                LaunchedEffect(Unit) {
+                                    navController.navigate("login")
+                                }
                             }
                         }
                     }
                 }
             }
         }
+        LevelUpLoadingOverlay(
+            visible = (
+                    profileUiState.profileStatus is ProfileStatus.Loading ||
+                            profileUiState.profileStatus is ProfileStatus.Saving
+                    )
+        )
     }
 }
 

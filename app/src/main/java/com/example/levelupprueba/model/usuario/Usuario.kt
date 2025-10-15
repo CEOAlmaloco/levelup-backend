@@ -18,5 +18,6 @@ data class Usuario(
     val referralCode: String,
     val points: Int = 0,
     val redeemedCodes: List<String> = emptyList(),//kitian te agrege esto adicional para el canje de puntos
-    val role: String
+    val role: String,
+    val avatar: String?
 )

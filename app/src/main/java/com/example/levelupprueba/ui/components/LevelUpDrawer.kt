@@ -13,7 +13,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
@@ -41,7 +44,7 @@ import com.example.levelupprueba.ui.theme.SemanticColors
 fun LevelUpDrawer(
     isLoggedIn: Boolean,
     userName: String?,
-    avatar: ImageBitmap?,
+    avatar: String?,
     onBackClick: () -> Unit,
     onProfileClick: () -> Unit,
     onLogoutClick: () -> Unit,
@@ -53,21 +56,21 @@ fun LevelUpDrawer(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(dimens.screenPadding)
+            .padding(dimens.screenPadding),
+        contentAlignment = Alignment.Center
     ) {
         LevelUpCard(
             modifier = Modifier
                 .fillMaxWidth()
-
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(bottom = dimens.mediumSpacing)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .fillMaxWidth()
                         .padding(bottom = dimens.smallSpacing)
                 ) {
                     LevelUpIconButton(
@@ -79,33 +82,23 @@ fun LevelUpDrawer(
                     )
                 }
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .padding(bottom = dimens.mediumSpacing)
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    if (avatar != null) {
-                        Image(
-                            bitmap = avatar,
-                            contentDescription = "Avatar",
-                            modifier = Modifier
-                                .size(dimens.avatarSize)
-                                .clip(CircleShape)
-                        )
-                    } else {
-                        LevelUpProfileIcon(
-                            isLoggedIn = isLoggedIn,
-                            nombre = userName
-                        )
-                    }
+                    LevelUpProfileAvatarButton(
+                        isLoggedIn = isLoggedIn,
+                        nombre = userName,
+                        onClick = onProfileClick,
+                        avatar = avatar
+                    )
                     Spacer(Modifier.height(dimens.smallSpacing))
 
                     Text(
-                        text = if (userName.isNullOrBlank()) "Invitado" else userName,
+                        text = if (userName.isNullOrBlank()) "Invitado" else "¡Hola, $userName!",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
-                    Spacer(Modifier.height(dimens.smallSpacing))
+                    Spacer(Modifier.height(dimens.mediumSpacing))
 
                     LevelUpOutlinedButton(
                         onClick = onProfileClick,
@@ -116,35 +109,28 @@ fun LevelUpDrawer(
                 Spacer(Modifier.height(dimens.sectionSpacing))
 
                 sections.forEach { section ->
-                    NavigationDrawerItem(
-                        icon = {
-                            Icon(
-                                imageVector = section.icon,
-                                contentDescription = section.label
-                            )
-                        },
-                        label = {
-                            Text(
-                                text = section.label
-                            )
-                        },
-                        selected = false,
+                    LevelUpDrawerItem(
+                        imageVector = section.icon,
+                        contentDescription = section.label,
+                        text = section.label,
                         onClick = { onSectionClick(section) }
                     )
                     LevelUpSectionDivider()
                 }
 
-                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.height(dimens.largeSpacing))
 
                 if (isLoggedIn) {
                     MenuButton(
                         text = "Cerrar sesión",
                         icon = Icons.Default.ExitToApp,
+                        modifier = Modifier
+                            .fillMaxWidth(),
                         onClick = onLogoutClick,
                         contentColor = MaterialTheme.colorScheme.onBackground,
                         containerColor = SemanticColors.AccentRed
                     )
-                } else null
+                }
             }
         }
     }

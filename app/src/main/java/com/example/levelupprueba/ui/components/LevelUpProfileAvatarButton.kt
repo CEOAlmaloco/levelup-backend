@@ -5,15 +5,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.levelupprueba.ui.theme.LocalDimens
 
 @Composable
-fun LevelUpProfileIconButton(
+fun LevelUpProfileAvatarButton(
+    avatar: String?,
     isLoggedIn: Boolean,
     nombre: String?,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    iconSize: Dp = LocalDimens.current.avatarSize,
+
 ){
     val dimens = LocalDimens.current
 
@@ -23,9 +27,17 @@ fun LevelUpProfileIconButton(
             .padding(horizontal = dimens.smallSpacing)
             .size(50.dp)
     ) {
-        LevelUpProfileIcon(
-            isLoggedIn = isLoggedIn,
-            nombre = nombre
-        )
+        if (avatar != null && avatar.isNotBlank()) {
+            LevelUpProfileImage(
+                image = avatar,
+                iconSize = iconSize
+            )
+        } else {
+            LevelUpProfileIcon(
+                isLoggedIn = isLoggedIn,
+                nombre = nombre,
+                iconSize = iconSize
+            )
+        }
     }
 }

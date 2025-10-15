@@ -40,6 +40,7 @@ import com.example.levelupprueba.ui.components.topbars.LevelUpTopBar
 import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.ui.theme.SemanticColors
 import com.example.levelupprueba.viewmodel.LoginViewModel
+import com.example.levelupprueba.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
 
 
@@ -47,7 +48,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel,
-    navController: NavHostController
+    navController: NavHostController,
+    mainViewModel: MainViewModel
 ){
 
     // Observa el estado actual del login desde el ViewModel (emailOrName, password, errores, etc.)
@@ -175,7 +177,7 @@ fun LoginScreen(
                             onClick = {
                                 if (viewModel.validarLogin()) {
                                     coroutineScope.launch {
-                                        viewModel.loginUsuario(context, estado.emailOrName.valor, estado.password.valor)
+                                        viewModel.loginUsuario(context, estado.emailOrName.valor, estado.password.valor, mainViewModel)
                                     }
                                 }
                             },

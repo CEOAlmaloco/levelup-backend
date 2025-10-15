@@ -23,6 +23,7 @@ import com.example.levelupprueba.ui.theme.LevelUpPruebaTheme
 import com.example.levelupprueba.viewmodel.LoginViewModel
 import com.example.levelupprueba.viewmodel.LoginViewModelFactory
 import com.example.levelupprueba.viewmodel.MainViewModel
+import com.example.levelupprueba.viewmodel.MainViewModelFactory
 import com.example.levelupprueba.viewmodel.UsuarioViewModel
 import com.example.levelupprueba.viewmodel.UsuarioViewModelFactory
 import kotlinx.coroutines.launch
@@ -49,8 +50,6 @@ class AuthActivity : ComponentActivity() {
             // Calcula el tamaño de la ventana
             val windowSizeClass = calculateWindowSizeClass(this)
 
-            val mainViewModel: MainViewModel = viewModel()
-
             val navController =  rememberNavController()
 
             val startDestination = intent.getStringExtra("startDestination") ?: "welcome"
@@ -62,14 +61,15 @@ class AuthActivity : ComponentActivity() {
             val usuarioRepository = UsuarioRepository(usuarioDao)
 
             // Instanciar Factories
-
+            val mainViewModelFactory = MainViewModelFactory(context, usuarioRepository)
             val usuarioViewModelFactory = UsuarioViewModelFactory(usuarioRepository)
             val loginViewModelFactory = LoginViewModelFactory(usuarioRepository)
 
             // Instanciar ViewModels
+            val mainViewModel: MainViewModel = viewModel(factory = mainViewModelFactory)
             val usuarioViewModel: UsuarioViewModel = viewModel(factory = usuarioViewModelFactory)
             val loginViewModel: LoginViewModel = viewModel(factory = loginViewModelFactory)
-            // LaunchedEffect SOLO AQUÍ, no en cada pantalla
+
             LaunchedEffect(Unit) {
                 mainViewModel.navigationEvent.collect { event ->
                     when (event) {

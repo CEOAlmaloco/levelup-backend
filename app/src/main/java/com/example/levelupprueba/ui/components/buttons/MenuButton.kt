@@ -1,6 +1,8 @@
 package com.example.levelupprueba.ui.components.buttons
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,10 +12,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.levelupprueba.ui.components.animatedTapScale
 import com.example.levelupprueba.ui.theme.ButtonColors
 import com.example.levelupprueba.ui.theme.Dimens
 import com.example.levelupprueba.ui.theme.LocalDimens
@@ -50,10 +54,17 @@ fun MenuButton(
     enabled: Boolean = true, // Si está en false, el botón aparece deshabilitado y no responde al tap
     shape: Shape = RoundedCornerShape(dimens.buttonCornerRadius) // Refuerza el borde redondeado del botón
 )  {
+
+    //Animacion del scale al tap
+    val interactionSource = remember { MutableInteractionSource() }
+
     Button(
+
         onClick = onClick,  // Acción a ejecutar al presionar el botón
         enabled = enabled, // Si está en false, el botón se muestra deshabilitado
-        modifier = modifier,
+        modifier = modifier
+            .animatedTapScale(interactionSource = interactionSource)
+            .height(dimens.buttonHeight),
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
             contentColor = contentColor
@@ -71,6 +82,10 @@ fun MenuButton(
             )
             Spacer(Modifier.width(dimens.smallSpacing)) // Espacio horizontal entre el icono y el texto
         }
-        Text(text)
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelLarge,
+            fontSize = dimens.buttonTextSize
+        ) // Muestra el texto del botón)
     }
 }

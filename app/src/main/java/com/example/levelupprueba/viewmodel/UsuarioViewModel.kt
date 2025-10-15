@@ -254,7 +254,8 @@ class UsuarioViewModel(
                     direccion = _estado.value.direccion.valor,
                     referralCode = usuarioRepository.generateReferralCode(_estado.value.nombre.valor),
                     points = 0,
-                    role = "cliente"
+                    role = "cliente",
+                    avatar = null
                 )
                 usuarioRepository.saveUsuario(usuario)
                 _registroEstado.value = RegisterStatus.Success

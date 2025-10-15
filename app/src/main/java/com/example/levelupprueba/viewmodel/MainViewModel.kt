@@ -1,14 +1,56 @@
 package com.example.levelupprueba.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.levelupprueba.data.local.getUserSessionFlow
+import com.example.levelupprueba.data.repository.UsuarioRepository
+import com.example.levelupprueba.model.auth.UserSession
 import kotlinx.coroutines.flow.StateFlow
 import com.example.levelupprueba.navigation.NavigationEvents
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
-class MainViewModel : ViewModel() {
+class MainViewModel(
+    private val usuarioRepository: UsuarioRepository,
+    context: Context) : ViewModel() {
     private val _navigationEvent = MutableSharedFlow<NavigationEvents>()
     val navigationEvent: SharedFlow<NavigationEvents> = _navigationEvent
+
+    private val _userSessionFlow = MutableStateFlow<UserSession?>(null)
+    val userSessionFlow: StateFlow<UserSession?> get() = _userSessionFlow.asStateFlow()
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> get() = _isLoading.asStateFlow()
+
+    private val _avatar = MutableStateFlow<String?>(null)
+    val avatar: StateFlow<String?> get() = _avatar.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            getUserSessionFlow(context).collect { session ->
+                _userSessionFlow.value = session
+                // Si hay sesión, carga el avatar del usuario de Room
+                if (session.userId.isNotBlank()) {
+                    val usuario = usuarioRepository.getUsuarioById(session.userId)
+                    _avatar.value = usuario?.avatar
+                } else {
+                    _avatar.value = null
+                }
+            }
+        }
+    }
+
+    fun setUserSession(session: UserSession?) {
+        _userSessionFlow.value = session
+    }
+
+    fun updateAvatar(path: String?) {
+        _avatar.value = path
+    }
 
     suspend fun navigateTo(route: String) {
         _navigationEvent.emit(NavigationEvents.NavigateTo(route))

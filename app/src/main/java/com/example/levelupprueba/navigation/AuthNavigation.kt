@@ -89,7 +89,7 @@ fun AuthNavigation(
         }
 
         composable("login"){
-            LoginScreen(loginViewModel, navController)
+            LoginScreen(loginViewModel, navController, mainViewModel)
         }
     }
 }
