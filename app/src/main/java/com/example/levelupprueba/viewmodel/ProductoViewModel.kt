@@ -10,7 +10,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-//el valor provado de repository sera un objeto de la clase ProductoRepository y lo seteamos vacio
+//el valor privado de repository sera un objeto de la clase ProductoRepository
+//por ahora sin reviewDao para no romper el codigo existente, despues lo agregamos en el factory TODO
 class ProductoViewModel(private val repository: ProductoRepository = ProductoRepository()) : ViewModel() {
 
     private val _estado = MutableStateFlow(ProductoUiState())//se crea un estado mutable para que el productoUiState se actualice en tiempo real

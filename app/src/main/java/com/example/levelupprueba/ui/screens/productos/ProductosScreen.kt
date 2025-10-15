@@ -23,7 +23,8 @@ import com.example.levelupprueba.viewmodel.ProductoViewModel
 
 @Composable
 fun ProductosScreen(
-    viewModel: ProductoViewModel
+    viewModel: ProductoViewModel,
+    onProductoClick: (String) -> Unit = {}
 ) {
     val estado by viewModel.estado.collectAsState()
 
@@ -93,7 +94,7 @@ fun ProductosScreen(
                             ProductoCard(
                                 producto = producto,
                                 onClick = {
-                                    // TODO: Navegar a detalle del producto
+                                    onProductoClick(producto.id)
                                 }
                             )
                         }

@@ -22,7 +22,8 @@ import com.example.levelupprueba.viewmodel.ProductoViewModel
 @Composable
 fun HomeScreenProductos(
     viewModel: ProductoViewModel,
-    onVerMasClick: () -> Unit = {}//esto es para que se pueda navegar a la pantalla de productos
+    onVerMasClick: () -> Unit = {},
+    onProductoClick: (String) -> Unit = {}
 ) {
     val estado by viewModel.estado.collectAsState()
     val imagenesCarrusel by viewModel.imagenesCarrusel.collectAsState()
@@ -72,7 +73,7 @@ fun HomeScreenProductos(
                     ProductoCard(
                         producto = producto,
                         onClick = {
-                            // TODO: Navegar a detalle del producto
+                            onProductoClick(producto.id)
                         }
                     )
                 }

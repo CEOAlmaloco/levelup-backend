@@ -22,6 +22,8 @@ import com.example.levelupprueba.viewmodel.LoginViewModel
 import com.example.levelupprueba.viewmodel.LoginViewModelFactory
 import com.example.levelupprueba.viewmodel.MainViewModel
 import com.example.levelupprueba.viewmodel.ProductoViewModel
+import com.example.levelupprueba.viewmodel.ProductoDetalleViewModel
+import com.example.levelupprueba.viewmodel.ProductoDetalleViewModelFactory
 import com.example.levelupprueba.viewmodel.UsuarioViewModel
 import com.example.levelupprueba.viewmodel.UsuarioViewModelFactory
 
@@ -41,18 +43,22 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
 
             val context = LocalContext.current
-            val usuarioDao = AppDatabase.getInstance(context).usuarioDao()
+            val database = AppDatabase.getInstance(context) //traemos la instancia de la bd completa
+            val usuarioDao = database.usuarioDao() //obtenemos el dao de usuarios
+            val reviewDao = database.reviewDao() //obtenemos el dao de reviews para los productos
             val usuarioRepository = UsuarioRepository(usuarioDao)
 
-            // Factories
+            // Factories - las fabricas para crear viewmodels con parametros personalizados
             val usuarioViewModelFactory = UsuarioViewModelFactory(usuarioRepository)
             val loginViewModelFactory = LoginViewModelFactory(usuarioRepository)
+            val productoDetalleViewModelFactory = ProductoDetalleViewModelFactory(reviewDao) //factory con el reviewDao
 
-            // ViewModels
+            // ViewModels - aca creamos los viewmodels, algunos con factory y otros sin factory
             val usuarioViewModel: UsuarioViewModel = viewModel(factory = usuarioViewModelFactory)
             val loginViewModel: LoginViewModel = viewModel(factory = loginViewModelFactory)
-            val blogViewModel: BlogViewModel = viewModel() // si no requiere parámetros
-            val productoViewModel: ProductoViewModel = viewModel() // si no requiere parámetros
+            val blogViewModel: BlogViewModel = viewModel()
+            val productoViewModel: ProductoViewModel = viewModel()
+            val productoDetalleViewModel: ProductoDetalleViewModel = viewModel(factory = productoDetalleViewModelFactory) //ahora usa SQLite
             val eventoViewModel: EventoViewModel = viewModel()
 
             LaunchedEffect(Unit) {
@@ -83,7 +89,8 @@ class MainActivity : ComponentActivity() {
                     loginViewModel = loginViewModel,
                     blogViewModel = blogViewModel,
                     productoViewModel = productoViewModel,
-                    eventoViewModel = eventoViewModel
+                    eventoViewModel = eventoViewModel,
+                    productoDetalleViewModel = productoDetalleViewModel
                 )
             }
         }
