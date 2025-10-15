@@ -58,7 +58,16 @@ data class Dimens(
     val progressBarHeight: Dp,
     val chipHeight: Dp,
     val chipCornerRadius: Dp,
-    val dropdownMenuMaxHeight: Dp
+    val dropdownMenuMaxHeight: Dp,
+
+    // Badges
+
+    // BADGE
+    val badgeHeight: Dp,
+    val badgeCornerRadius: Dp,
+    val badgeHorizontalPadding: Dp,
+    val badgeVerticalPadding: Dp,
+    val badgeTextSize: TextUnit
 )
 
 // Set de dimensiones para pantallas compactas (móviles pequeños)
@@ -98,7 +107,12 @@ val compactDimens = Dimens(
     progressBarHeight = 8.dp,
     chipHeight = 32.dp,
     chipCornerRadius = 16.dp,
-    dropdownMenuMaxHeight = 240.dp
+    dropdownMenuMaxHeight = 240.dp,
+    badgeHeight = 24.dp,
+    badgeCornerRadius = 12.dp,
+    badgeHorizontalPadding = 12.dp,
+    badgeVerticalPadding = 4.dp,
+    badgeTextSize = 12.sp
 )
 
 // Set de dimensiones para pantallas medianas (móviles normales, tablets pequeñas)
@@ -138,7 +152,12 @@ val mediumDimens = Dimens(
     progressBarHeight = 10.dp,
     chipHeight = 36.dp,
     chipCornerRadius = 18.dp,
-    dropdownMenuMaxHeight = 285.dp
+    dropdownMenuMaxHeight = 285.dp,
+    badgeHeight = 28.dp,
+    badgeCornerRadius = 14.dp,
+    badgeHorizontalPadding = 16.dp,
+    badgeVerticalPadding = 6.dp,
+    badgeTextSize = 14.sp
 )
 
 // Set de dimensiones para pantallas expandidas (tablets grandes, escritorio)
@@ -178,5 +197,10 @@ val expandedDimens = Dimens(
     progressBarHeight = 12.dp,
     chipHeight = 44.dp,
     chipCornerRadius = 22.dp,
-    dropdownMenuMaxHeight = 340.dp
+    dropdownMenuMaxHeight = 340.dp,
+    badgeHeight = 32.dp,
+    badgeCornerRadius = 16.dp,
+    badgeHorizontalPadding = 20.dp,
+    badgeVerticalPadding = 8.dp,
+    badgeTextSize = 16.sp
 )

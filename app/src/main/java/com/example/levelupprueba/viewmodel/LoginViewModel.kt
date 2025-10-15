@@ -75,7 +75,12 @@ class LoginViewModel(
         return !hayErrores
     }
 
-    fun loginUsuario(context: Context, emailOrName: String, password: String){
+    fun loginUsuario(
+        context: Context,
+        emailOrName: String,
+        password: String,
+        mainViewModel: MainViewModel
+    ){
         viewModelScope.launch {
             _loginEstado.value = LoginStatus.Loading
             delay(2000)
@@ -99,6 +104,7 @@ class LoginViewModel(
                         role = usuario.role
                     )
                     saveUserSession(context, session)
+                    mainViewModel.setUserSession(session)
                 } else {
                     _loginEstado.value = LoginStatus.Error("Credenciales inválidas")
                 }
@@ -129,9 +135,10 @@ class LoginViewModel(
         _loginEstado.value = LoginStatus.Idle
     }
 
-    fun logout(context: Context){
+    fun logout(context: Context, mainViewModel: MainViewModel){
         viewModelScope.launch {
             clearUserSession(context)
+            mainViewModel.setUserSession(null)
         }
     }
 }

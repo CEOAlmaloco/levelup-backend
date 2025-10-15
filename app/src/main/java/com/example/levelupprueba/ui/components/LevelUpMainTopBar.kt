@@ -1,20 +1,12 @@
 package com.example.levelupprueba.ui.components
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.animation.with
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
@@ -22,29 +14,30 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import com.example.levelupprueba.ui.components.inputs.levelUpOutlinedTextFieldColors
 import com.example.levelupprueba.ui.components.topbars.LevelUpTopBar
 import com.example.levelupprueba.ui.theme.LocalDimens
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun LevelUpMainTopBar(
+    avatar: String?,
     isLoggedIn: Boolean,
     nombre: String?,
     title: String = "Inicio",
     onMenuClick: () -> Unit,
     onCartClick: () -> Unit,
     onProfileClick: () -> Unit,
-    onSearchClick: (String) -> Unit
+    onSearchClick: (String) -> Unit,
+    showMenu: Boolean = true,
+    showCart: Boolean = true,
+    showProfile: Boolean = true,
+    showSearch: Boolean = true,
+    showBackArrow: Boolean = false,
+    onBackClick: (() -> Unit)? = null
 ) {
     val dimens = LocalDimens.current
     var search by remember { mutableStateOf("") }
@@ -65,7 +58,7 @@ fun LevelUpMainTopBar(
                 fadeIn().togetherWith(fadeOut())
             }
         ) { searching ->
-            if (searching) {
+            if (searching && showSearch) {
                 // Modo búsqueda: TopBar muestra solo el SearchBar expandido
                 LaunchedEffect(isSearching) {
                     if (isSearching) {
@@ -96,11 +89,14 @@ fun LevelUpMainTopBar(
                             )
                         },
                         actions = {
-                            LevelUpProfileIconButton(
-                                isLoggedIn = isLoggedIn,
-                                nombre = nombre,
-                                onClick = onProfileClick
-                            )
+                            if (showProfile) {
+                                LevelUpProfileAvatarButton(
+                                    isLoggedIn = isLoggedIn,
+                                    nombre = nombre,
+                                    onClick = onProfileClick,
+                                    avatar = avatar
+                                )
+                            }
                         }
                     )
                     Spacer(modifier = Modifier.height(dimens.smallSpacing))
@@ -109,50 +105,55 @@ fun LevelUpMainTopBar(
                 // TopBar normal
                 Column {
                     LevelUpTopBar(
-                        showNavigationIcon = true,
-
+                        showNavigationIcon = showMenu || showBackArrow,
                         navigationIcon = {
-                            LevelUpIconButton(
-                                onClick = onMenuClick,
-                                imageVector = Icons.Default.Menu,
-                                contentDescription = "Menu"
-                            )
+                            when {
+                                showBackArrow && onBackClick != null -> {
+                                    LevelUpIconButton(
+                                        onClick = onBackClick,
+                                        imageVector = Icons.Default.ArrowBack,
+                                        contentDescription = "Atrás"
+                                    )
+                                }
+                                showMenu -> {
+                                    LevelUpIconButton(
+                                        onClick = onMenuClick,
+                                        imageVector = Icons.Default.Menu,
+                                        contentDescription = "Menu"
+                                    )
+                                }
+                            }
                         },
                         actions = {
-                            LevelUpIconButton(
-                                onClick = onCartClick,
-                                imageVector = Icons.Default.ShoppingCart,
-                                contentDescription = "Carrito"
-                            )
-                            LevelUpProfileIconButton(
-                                isLoggedIn = isLoggedIn,
-                                nombre = nombre,
-                                onClick = onProfileClick
-                            )
+                            if (showSearch) {
+                                LevelUpIconButton(
+                                    onClick = { isSearching = true },
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = "Buscar"
+                                )
+                            }
+                            if (showCart) {
+                                LevelUpIconButton(
+                                    onClick = onCartClick,
+                                    imageVector = Icons.Default.ShoppingCart,
+                                    contentDescription = "Carrito"
+                                )
+                            }
+                            if (showProfile) {
+                                LevelUpProfileAvatarButton(
+                                    isLoggedIn = isLoggedIn,
+                                    nombre = nombre,
+                                    onClick = onProfileClick,
+                                    avatar = avatar
+                                )
+                            }
                         },
-
                         titleText = title,
                         shadowElevation = 0.dp,
                         backgroundColor = Color.Transparent
-                    )
-
-                    LevelUpSearchBar(
-                        value = search,
-                        onValueChange = { search = it },
-                        onSearch = { query -> onSearchClick(query) },
-                        modifier = Modifier
-                            .padding(
-                                start = dimens.screenPadding,
-                                end = dimens.screenPadding,
-                                bottom = dimens.mediumSpacing
-                            ),
-                        onFocusChanged = { focused ->
-                            if (focused) isSearching = true
-                        }
                     )
                 }
             }
         }
     }
 }
-

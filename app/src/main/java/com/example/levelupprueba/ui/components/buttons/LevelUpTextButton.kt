@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.levelupprueba.ui.theme.Dimens
+import com.example.levelupprueba.ui.theme.LocalDimens
 
 
 @Composable
@@ -18,7 +19,7 @@ fun LevelUpTextButton(
     icon: ImageVector?,
     textColor: Color = MaterialTheme.colorScheme.onSurface,
     modifier: Modifier = Modifier,
-    dimens: Dimens
+    dimens: Dimens = LocalDimens.current
 ) {
     TextButton(
         onClick = onClick,

@@ -18,29 +18,26 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.LevelUpPrueba">
         <activity
-            android:name=".AuthActivity"
+            android:name=".SplashActivity"
             android:exported="true"
-            android:label="Autenticación"
-            android:theme="@style/Theme.LevelUpPrueba">
-            <!-- ⚠️ LAUNCHER TEMPORALMENTE DESHABILITADO PARA TESTING DE EVENTOS -->
-            <!--
+            android:theme="@style/Theme.LevelUpPrueba"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            -->
+        </activity>
+
+        <activity
+            android:name=".AuthActivity"
+            android:exported="true"
+            android:theme="@style/Theme.LevelUpPrueba">
         </activity>
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.LevelUpPrueba">
-            <!-- ⚠️ LAUNCHER TEMPORAL PARA TESTING DE EVENTOS - Volver a AuthActivity después -->
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
     </application>
 

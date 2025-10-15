@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.levelupprueba.ui.components.animatedTapScale
 import com.example.levelupprueba.ui.theme.ButtonColors
 import com.example.levelupprueba.ui.theme.Dimens
+import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.ui.theme.TextDisabled
 
 /**
@@ -44,7 +45,7 @@ fun LevelUpButton(
     textTint: Color = MaterialTheme.colorScheme.onPrimary, // Color del texto del botón
     modifier: Modifier = Modifier, // Permite modificar el botón desde afuera
     onClick: () -> Unit, // Función que se ejecuta al hacer clic en el botón
-    dimens: Dimens, // Dimensiones personalizadas para el botón
+    dimens: Dimens = LocalDimens.current, // Dimensiones personalizadas para el botón
     icon: ImageVector? = null, // Opcional: icono a mostrar junto al texto (si es null no se muestra)
     iconTint: Color = MaterialTheme.colorScheme.onPrimary, // Color del icono, por defecto el color del tema
     enabled: Boolean = true, // Si está en false, el botón aparece deshabilitado y no responde al tap

@@ -8,6 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.example.levelupprueba.ui.theme.Dimens
+import com.example.levelupprueba.ui.theme.LocalDimens
 
 /**
  * Text Field personalizado estándar para formularios
@@ -46,7 +47,7 @@ fun LevelUpOutlinedTextField(
     modifier: Modifier = Modifier,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
-    dimens: Dimens
+    dimens: Dimens = LocalDimens.current
 ) {
     OutlinedTextField(
         value = value,

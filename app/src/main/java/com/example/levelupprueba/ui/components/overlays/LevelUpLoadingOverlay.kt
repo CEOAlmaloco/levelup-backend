@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 
 @Composable
 fun LevelUpLoadingOverlay(
@@ -33,7 +34,8 @@ fun LevelUpLoadingOverlay(
         Box(
             modifier = modifier
                 .fillMaxSize()
-                .background(scrimColor),
+                .background(scrimColor)
+                .pointerInput(Unit){},
             contentAlignment = contentAlignment
         ) {
             indicator()
