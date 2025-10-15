@@ -1,6 +1,11 @@
 package com.example.levelupprueba.model.producto
 
-class ProductoRepository {
+import com.example.levelupprueba.data.local.ReviewDao
+
+//ahora el repository recibe el ReviewDao para acceder a la bd
+class ProductoRepository(
+    private val reviewDao: ReviewDao? = null //lo hacemos nullable para no romper el codigo existente q no lo usa
+) {
 
     fun obtenerImagenesCarrusel(): List<ImagenCarrusel> {
         return listOf(
@@ -290,6 +295,81 @@ class ProductoRepository {
     fun obtenerProductosDestacados(): List<Producto> {
         return obtenerProductos().filter { it.destacado }
     }
-    //funcion simple para filtrar por si tiene destacado
+    
+    fun obtenerProductoPorId(id: String): Producto? { 
+        return obtenerProductos().find { it.id == id }
+    } //esta funcion sirve para detalle producto para buscar el producto por id al darle click 
+    //ojala no sea dificil implementarlo con postman luego 
+    
+    fun obtenerProductosRelacionados(producto: Producto): List<Producto> {
+        return obtenerProductos()//filtrar de la lista de producto y retornamos
+        //de lafuncion obtener productos y filtramos por id y categoria
+            .filter { it.id != producto.id && it.categoria == producto.categoria }//filter segun los parametros que le pasamos
+            .shuffled()//shuffle es para mezclar la lista y q no se repitan los productos
+            .take(4)//take es para tomar los primeros 4 productos y no sobrecargar 
+    }
+    
+    //ahora las reviews se traen de SQLite en vez de estar hardcodeadas
+    suspend fun obtenerReviews(productoId: String): List<Review> { //ahora es suspend pq es una operacion asincrona
+        return reviewDao?.getReviewsByProductoId(productoId) ?: listOf( //si el dao no es null, traemos las reviews de la bd
+            //si es null (modo compatibilidad), retornamos datos mock como antes
+            Review(
+                id = "1",
+                productoId = productoId, //ahora agregamos el productoId
+                usuarioNombre = "Juan Pérez",
+                rating = 5f,
+                comentario = "Excelente producto, llegó en perfectas condiciones y funciona perfecto.",
+                fecha = "2024-10-10"
+            ),
+            Review(
+                id = "2",
+                productoId = productoId,
+                usuarioNombre = "María González",
+                rating = 4f,
+                comentario = "Muy buena calidad, aunque el envío tardó un poco más de lo esperado.",
+                fecha = "2024-10-08"
+            ),
+            Review(
+                id = "3",
+                productoId = productoId,
+                usuarioNombre = "Carlos Ramírez",
+                rating = 5f,
+                comentario = "Increíble! Superó mis expectativas. Totalmente recomendado.",
+                fecha = "2024-10-05"
+            )
+        )
+    }
+    
+    //ahora guardamos la review en SQLite
+    suspend fun agregarReview(productoId: String, review: Review): Boolean { //ahora es suspend
+        return try {
+            reviewDao?.insertReview(review) //insertamos en la bd con el DAO
+            true //si todo sale bien retornamos true
+        } catch (e: Exception) {
+            e.printStackTrace() //si hay error lo imprimimos en el log
+            false //retornamos false si falla
+        }
+    }
+    
+    //funcion extra para borrar una review si el usuario quiere
+    suspend fun borrarReview(review: Review): Boolean {
+        return try {
+            reviewDao?.deleteReview(review) //borramos de la bd
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+    
+    //funcion para obtener el rating promedio desde la bd
+    suspend fun obtenerRatingPromedio(productoId: String): Float {
+        return reviewDao?.getAverageRating(productoId) ?: 0f //si no hay reviews retorna 0
+    }
+    
+    //funcion para contar cuantas reviews tiene un producto
+    suspend fun contarReviews(productoId: String): Int {
+        return reviewDao?.getReviewCount(productoId) ?: 0 //si no hay reviews retorna 0
+    }
 }
 

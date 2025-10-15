@@ -37,7 +37,10 @@ import com.example.levelupprueba.ui.screens.blog.BlogListScreen
 import com.example.levelupprueba.ui.screens.eventos.EventoScreen
 import com.example.levelupprueba.ui.screens.home.HomeScreenProductos
 import com.example.levelupprueba.ui.screens.productos.ProductosScreen
+import com.example.levelupprueba.ui.screens.productos.ProductoDetalleScreen
 import com.example.levelupprueba.viewmodel.*
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
 import kotlinx.coroutines.launch
 
 // Definición de rutas de navegación
@@ -59,7 +62,8 @@ fun MainScreen(
     loginViewModel: LoginViewModel,
     blogViewModel: BlogViewModel,
     productoViewModel: ProductoViewModel,
-    eventoViewModel: EventoViewModel
+    eventoViewModel: EventoViewModel,
+    productoDetalleViewModel: ProductoDetalleViewModel
 ) {
 
     // Estado de login
@@ -235,13 +239,39 @@ fun MainScreen(
                             viewModel = productoViewModel,
                             onVerMasClick = {
                                 navController.navigate(Screen.Productos.route)
+                            },
+                            onProductoClick = { productoId ->
+                                navController.navigate("producto_detalle/$productoId")
                             }
                         )
                     }
 
                     // Productos
                     composable(Screen.Productos.route) {
-                        ProductosScreen(viewModel = productoViewModel)
+                        ProductosScreen(
+                            viewModel = productoViewModel,
+                            onProductoClick = { productoId ->
+                                navController.navigate("producto_detalle/$productoId")
+                            }
+                        )
+                    }
+
+                    // Detalle de Producto
+                    composable(
+                        route = "producto_detalle/{productoId}",
+                        arguments = listOf(navArgument("productoId") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        val productoId = backStackEntry.arguments?.getString("productoId") ?: ""
+                        ProductoDetalleScreen(
+                            productoId = productoId,
+                            viewModel = productoDetalleViewModel,
+                            onProductoClick = { id ->
+                                navController.navigate("producto_detalle/$id")
+                            },
+                            onNavigateBack = {
+                                navController.popBackStack()
+                            }
+                        )
                     }
 
                     // Blog
