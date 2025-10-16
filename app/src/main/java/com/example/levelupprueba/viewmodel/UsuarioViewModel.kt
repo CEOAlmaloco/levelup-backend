@@ -19,7 +19,8 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 
 class UsuarioViewModel(
-    private val usuarioRepository: UsuarioRepository
+    private val usuarioRepository: UsuarioRepository,
+    private val eventoViewModel: EventoViewModel? = null
 ): ViewModel() {
 
     // Estado interno mutable
@@ -147,6 +148,15 @@ class UsuarioViewModel(
         )
     }
 
+    // Actualiza el campo codigo de referido 
+    fun onCodigoReferidoChange(valor: String) = actualizarCampo {
+        it.copy(
+            codigoReferido = it.codigoReferido.copy(
+                valor = valor.uppercase().trim()
+            )
+        )
+    }
+
 
     // Actualiza el campo términos y valida en tiempo real
     fun onTerminosChange(valor: Boolean) = actualizarCampo {
@@ -241,6 +251,18 @@ class UsuarioViewModel(
                     _registroEstado.value = RegisterStatus.Error("El email ya está registrado")
                     return@launch // Detener aquí, NO guardar usuario
                 }
+                
+                // Validar codigo de referido si se ingreso
+                var referrerUser: Usuario? = null
+                val codigoReferido = _estado.value.codigoReferido.valor.trim().uppercase()
+                if (codigoReferido.isNotEmpty()) {
+                    referrerUser = usuarioRepository.getUsuarioByReferralCode(codigoReferido) //obtener usuario por codigo de referido
+                    if (referrerUser == null) {
+                        _registroEstado.value = RegisterStatus.Error("El código de referido no existe")
+                        return@launch //detener la corrutina
+                    }
+                }
+                
                 val usuario = Usuario(
                     id = "",
                     nombre = _estado.value.nombre.valor,
@@ -254,10 +276,26 @@ class UsuarioViewModel(
                     direccion = _estado.value.direccion.valor,
                     referralCode = usuarioRepository.generateReferralCode(_estado.value.nombre.valor),
                     points = 0,
+                    referredBy = referrerUser?.id,
                     role = "cliente",
                     avatar = null
                 )
+                
+                // Guardar el nuevo usuario
                 usuarioRepository.saveUsuario(usuario)
+                
+                // Asignar puntos al referente si corresponde
+                if (referrerUser != null) {
+                    val REFERRAL_POINTS = 50 // Puntos por referido TODO se me olvido cuantos puntos era por persona 
+                    val usuarioReferenteActualizado = referrerUser.copy(
+                        points = referrerUser.points + REFERRAL_POINTS
+                    )
+                    usuarioRepository.saveUsuario(usuarioReferenteActualizado)
+                    
+                    // Actualizar puntos en EventoViewModel si está disponible
+                    eventoViewModel?.actualizarPuntosUsuario()
+                }
+                
                 _registroEstado.value = RegisterStatus.Success
             } catch (e: Exception) {
                 _registroEstado.value = RegisterStatus.Error("Ocurrió un error: ${e.message}")

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.levelupprueba.data.local.UserDataStore
 import com.example.levelupprueba.data.local.getUserSessionFlow
+import com.example.levelupprueba.data.repository.UsuarioRepository
 import com.example.levelupprueba.model.evento.Evento
 import com.example.levelupprueba.model.evento.EventoRepository
 import com.example.levelupprueba.model.evento.EventoUiState
@@ -20,7 +21,8 @@ import kotlinx.coroutines.launch
 /* Este viewmodel se encarga de la logica de la pantalla de eventos  UI 
 */
 class EventoViewModel(//creamo la instancia del repositorio 
-    private val repository: EventoRepository = EventoRepository()// creamos la variable para acceder a evento repository
+    private val repository: EventoRepository = EventoRepository(),// creamos la variable para acceder a evento repository
+    private val usuarioRepository: UsuarioRepository? = null
 ) : ViewModel() {
 
     private val _estado = MutableStateFlow(EventoUiState())//creamos el estado mutable para que se actualice en tiempo real
@@ -90,32 +92,43 @@ class EventoViewModel(//creamo la instancia del repositorio
     }
 
     /**
-     * Obtiene el usuario actual desde DataStore usando la sesión.
+     * Obtiene el usuario actual desde la base de datos SQLite o DataStore usando la sesión.
      * lo usamos para tener la validacion de usuario logueado y tener seguridad
      * creo q igual lo podemos globalizar esta funcion en el viewmodel principal
      */
     private suspend fun obtenerUsuarioActual(): Usuario? {
         val ctx = context ?: return null
-        val dataStore = userDataStore ?: return null
         
         val session = getUserSessionFlow(ctx).first()
         if (session.userId.isEmpty()) return null
-        //los 2 val son si no existe returna null basicamente
         
-        val usuarios = dataStore.getUsuarios()
-        return usuarios.find { it.id == session.userId } //find es para buscar el usuario en la lista de usuarios
+        // Priorizar base de datos SQLite si esta disponible
+        return if (usuarioRepository != null) {
+            usuarioRepository.getUsuarioById(session.userId)
+        } else {
+            // Fallback a DataStore si no hay repository
+            val dataStore = userDataStore ?: return null
+            val usuarios = dataStore.getUsuarios()
+            usuarios.find { it.id == session.userId }
+        }
     }
 
     /* cuando cajeamos codigo o recompensa actualizamos el usuario en la base de datos */
     private suspend fun actualizarUsuario(usuarioActualizado: Usuario) {
-        val dataStore = userDataStore ?: return
-        
-        val usuarios = dataStore.getUsuarios().toMutableList()//ya q era inmutable la lista lo convertimos a mutable
-        val idx = usuarios.indexOfFirst { it.id == usuarioActualizado.id }//buscamos el primer indice del usuario por la id pero el actualizado no el antiguo 
-        
-        if (idx != -1) {//creo q era string LUEGO REVISAR 
-            usuarios[idx] = usuarioActualizado
-            dataStore.saveUsuarios(usuarios)
+        // Priorizar base de datos SQLite si está disponible
+        if (usuarioRepository != null) {
+            usuarioRepository.updateUsuario(usuarioActualizado)
+        } else {
+            // Fallback a DataStore si no hay repository
+            val dataStore = userDataStore ?: return
+            
+            val usuarios = dataStore.getUsuarios().toMutableList()//ya q era inmutable la lista lo convertimos a mutable
+            val idx = usuarios.indexOfFirst { it.id == usuarioActualizado.id }//buscamos el primer indice del usuario por la id pero el actualizado no el antiguo 
+            
+            if (idx != -1) {//creo q era string LUEGO REVISAR 
+                usuarios[idx] = usuarioActualizado
+                dataStore.saveUsuarios(usuarios)
+            }
         }
     }
 
@@ -252,6 +265,11 @@ class EventoViewModel(//creamo la instancia del repositorio
     /* cuando le damos click en refrescar eventos se actualiza el estado para que se muestre el mensaje de eventos refrescados */
     fun refrescarEventos() {
         cargarDatosIniciales()
+        cargarPuntosUsuario()
+    }
+
+    /* funcion publica para actualizar los puntos desde otras pantallas */
+    fun actualizarPuntosUsuario() {
         cargarPuntosUsuario()
     }
 }
