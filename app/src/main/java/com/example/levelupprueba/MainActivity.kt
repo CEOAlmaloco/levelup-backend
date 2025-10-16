@@ -1,5 +1,6 @@
 package com.example.levelupprueba
 
+import android.content.pm.ActivityInfo
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -37,6 +38,16 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Detecta si es tablet usando smallestScreenWidthDp
+        val isTablet = resources.configuration.smallestScreenWidthDp >= 600
+
+        // Si NO es tablet, fuerza portrait
+        if (!isTablet) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        } else {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        }
 
         enableEdgeToEdge()
         setContent {

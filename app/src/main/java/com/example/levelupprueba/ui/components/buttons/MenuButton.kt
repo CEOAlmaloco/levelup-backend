@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.example.levelupprueba.ui.components.animatedTapScale
+import com.example.levelupprueba.ui.components.animations.animatedTapScale
 import com.example.levelupprueba.ui.theme.ButtonColors
 import com.example.levelupprueba.ui.theme.Dimens
 import com.example.levelupprueba.ui.theme.LocalDimens

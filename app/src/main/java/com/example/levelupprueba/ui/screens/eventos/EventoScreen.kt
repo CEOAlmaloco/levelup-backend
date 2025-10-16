@@ -48,7 +48,8 @@ al menos esta vez si importe los componentes reutilizables y colores etc
  */
 @Composable
 fun EventoScreen(
-    viewModel: EventoViewModel
+    viewModel: EventoViewModel,
+    contentPadding: PaddingValues
 ) {
     val estado by viewModel.estado.collectAsState() //el by sirve como un for , recorre el estado y te dice el estado actual
     val dimens = LocalDimens.current //el current es para obtener el valor actual de las dimensiones
@@ -75,7 +76,8 @@ fun EventoScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(scrollState) // Usamos el estado de scroll controlado
-            .padding(dimens.screenPadding),
+            .padding(contentPadding)
+            .padding(horizontal = dimens.screenPadding, vertical = dimens.screenPadding),
         verticalArrangement = Arrangement.spacedBy(dimens.fieldSpacing)
     ) {
         // Hero Section ,  el hero es la cabecera por si no recuerdan igual creoq aca vamos a colocar la topbar 

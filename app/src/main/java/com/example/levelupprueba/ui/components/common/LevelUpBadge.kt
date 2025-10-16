@@ -1,4 +1,4 @@
-package com.example.levelupprueba.ui.components
+package com.example.levelupprueba.ui.components.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
@@ -11,7 +11,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import com.example.levelupprueba.ui.theme.Dimens
 import com.example.levelupprueba.ui.theme.LocalDimens
-import org.w3c.dom.Text
 
 @Composable
 fun LevelUpBadge(

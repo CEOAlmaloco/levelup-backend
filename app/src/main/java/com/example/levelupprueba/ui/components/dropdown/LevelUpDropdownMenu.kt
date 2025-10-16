@@ -8,9 +8,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import com.example.levelupprueba.ui.components.inputs.LevelUpOutlinedTextField
 import com.example.levelupprueba.ui.theme.Dimens
+import com.example.levelupprueba.ui.theme.LocalDimens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,7 +29,8 @@ fun LevelUpDropdownMenu(
     enabled: Boolean = true,
     placeholder: String? = null,
     modifier: Modifier = Modifier,
-    dimens: Dimens
+    focusRequester: FocusRequester? = null,
+    dimens: Dimens = LocalDimens.current
 ){
     var expanded by remember { mutableStateOf(false) }
 
@@ -58,6 +62,10 @@ fun LevelUpDropdownMenu(
                 )
             },
             modifier = Modifier
+                .then(
+                    if (focusRequester != null) Modifier.focusRequester(focusRequester)
+                    else Modifier
+                )
                 .menuAnchor(type = MenuAnchorType.SecondaryEditable, enabled),
             dimens = dimens
         )

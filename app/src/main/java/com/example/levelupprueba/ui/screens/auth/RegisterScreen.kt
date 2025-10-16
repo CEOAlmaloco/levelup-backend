@@ -1,6 +1,5 @@
 package com.example.levelupprueba.ui.screens.auth
 
-import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
@@ -8,26 +7,21 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.levelupprueba.data.repository.UsuarioRepository
 import com.example.levelupprueba.model.registro.RegisterStatus
-import com.example.levelupprueba.ui.components.LevelUpIconButton
+import com.example.levelupprueba.ui.components.inputs.LevelUpIconButton
 import com.example.levelupprueba.ui.components.cards.LevelUpCard
 import com.example.levelupprueba.ui.components.inputs.LevelUpClickableTextLink
 import com.example.levelupprueba.ui.components.forms.LevelUpRegisterForm
-import com.example.levelupprueba.ui.components.LevelUpSpacedColumn
+import com.example.levelupprueba.ui.components.common.LevelUpSpacedColumn
 import com.example.levelupprueba.ui.components.dialogs.LevelUpAlertDialog
 import com.example.levelupprueba.ui.components.buttons.LevelUpButton
 import com.example.levelupprueba.ui.components.overlays.LevelUpLoadingOverlay
@@ -35,7 +29,6 @@ import com.example.levelupprueba.ui.components.topbars.LevelUpTopBar
 import com.example.levelupprueba.viewmodel.UsuarioViewModel
 import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.ui.theme.SemanticColors
-import com.example.levelupprueba.ui.theme.compactDimens
 import com.example.levelupprueba.viewmodel.MainViewModel
 import com.example.levelupprueba.viewmodel.UbicacionViewModel
 import kotlinx.coroutines.launch

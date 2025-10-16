@@ -1,4 +1,4 @@
-package com.example.levelupprueba.ui.components
+package com.example.levelupprueba.ui.components.navigation
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItemColors
