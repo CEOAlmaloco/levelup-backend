@@ -1,8 +1,6 @@
-package com.example.levelupprueba.ui.components
+package com.example.levelupprueba.ui.components.navigation
 
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBarItemColors
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationDrawerItemColors
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.runtime.Composable

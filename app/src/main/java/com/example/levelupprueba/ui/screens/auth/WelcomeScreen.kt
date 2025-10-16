@@ -17,7 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import com.example.levelupprueba.ui.components.buttons.LevelUpAuthButtons
-import com.example.levelupprueba.ui.components.LevelUpSpacedColumn
+import com.example.levelupprueba.ui.components.common.LevelUpSpacedColumn
 import com.example.levelupprueba.ui.theme.LocalDimens
 
 @Composable

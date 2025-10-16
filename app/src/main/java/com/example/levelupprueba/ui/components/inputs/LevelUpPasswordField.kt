@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -61,6 +62,7 @@ fun LevelUpPasswordField(
                 fontSize = dimens.bodySize
             )
         },
+        textStyle = LocalTextStyle.current.copy(fontSize = dimens.bodySize),
         isError = isError,
         //Esto define como se muestra visualmente el texto escrito.
         //Si passwordvisible es true, el texto se muestra normal, si es false seran puntitos

@@ -1,4 +1,4 @@
-package com.example.levelupprueba.ui.components
+package com.example.levelupprueba.ui.components.navigation
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -18,6 +18,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.levelupprueba.ui.components.inputs.LevelUpIconButton
+import com.example.levelupprueba.ui.components.user.LevelUpProfileAvatarButton
+import com.example.levelupprueba.ui.components.inputs.LevelUpSearchBar
 import com.example.levelupprueba.ui.components.topbars.LevelUpTopBar
 import com.example.levelupprueba.ui.theme.LocalDimens
 

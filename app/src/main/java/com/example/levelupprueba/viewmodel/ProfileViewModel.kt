@@ -74,10 +74,6 @@ class ProfileViewModel(
                     valor = perfilEditable.apellidos,
                     error = UsuarioValidator.validarApellidos(perfilEditable.apellidos)
                 ),
-                email = it.email.copy(
-                    valor = perfilEditable.email,
-                    error = UsuarioValidator.validarEmail(perfilEditable.email)
-                ),
                 telefono = it.telefono.copy(
                     valor = perfilEditable.telefono,
                     error = UsuarioValidator.validarTelefono(perfilEditable.telefono)
@@ -103,13 +99,16 @@ class ProfileViewModel(
         }
     }
     @RequiresApi(Build.VERSION_CODES.O)
-    fun guardarPerfil(){
+    fun guardarPerfil(perfilEditable: PerfilEditable, mainViewModel: MainViewModel){
         viewModelScope.launch {
             _estado.update {
                 it.copy(
                     profileStatus = ProfileStatus.Saving
                 )
             }
+
+            actualizarPerfil(perfilEditable)
+            actualizarAvatarGlobal(perfilEditable.avatar ?: "", mainViewModel)
 
             delay(2000)
 
