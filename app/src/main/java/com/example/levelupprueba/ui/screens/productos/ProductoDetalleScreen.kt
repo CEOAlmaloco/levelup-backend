@@ -1,6 +1,7 @@
 package com.example.levelupprueba.ui.screens.productos
 
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -420,46 +421,6 @@ private fun SeccionAcciones(
 }
 //FIN SECCION ACCIONES - esta es la parte q conecta con el carrito, despues hay q hacer el carrito completo TODO
 
-//SECCION COMPARTIR - PARA COMPARTIR EL PRODUCTO EN REDES SOCIALES
-@Composable //esto era del js q tenias, aca lo implementamos con el intent de android
-private fun SeccionCompartir(
-    context: android.content.Context, //necesitamos el contexto para lanzar el intent
-    producto: Producto, //el producto para compartir el nombre
-    dimens: com.example.levelupprueba.ui.theme.Dimens //dimensiones del tema
-) {
-    LevelUpSpacedColumn( //columna con espaciado automatico
-        spacing = dimens.mediumSpacing,
-        horizontalAlignment = Alignment.Start
-    ) {
-        Text( //titulo de la seccion
-            text = "Compartir:",
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold
-        )
-
-        Row( //los botones de compartir, por ahora solo tenemos uno
-            horizontalArrangement = Arrangement.spacedBy(dimens.mediumSpacing)
-        ) {
-            IconButton( //boton de compartir nativo de android
-                onClick = {
-                    val shareIntent = Intent(Intent.ACTION_SEND).apply { //creamos un intent de compartir
-                        type = "text/plain" //tipo texto plano
-                        putExtra(Intent.EXTRA_TEXT, "Mira este producto: ${producto.nombre}") //el texto a compartir
-                    } //esto abre el menu de compartir de android con todas las apps q el usuario tiene
-                    context.startActivity(Intent.createChooser(shareIntent, "Compartir")) //mostramos el chooser
-                } //TODO: agregar mas botones para whatsapp, facebook, twitter, etc como en el js
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Share, //icono de compartir
-                    contentDescription = "Compartir",
-                    tint = MaterialTheme.colorScheme.primary, //con el color primary
-                    modifier = Modifier.size(dimens.iconSize) //tamaño de icono desde el tema
-                )
-            }
-        }
-    }
-}
-//FIN SECCION COMPARTIR - falta agregar mas opciones como teniamos en el js pero por ahora funciona
 
 //SECCION RELACIONADOS - CARRUSEL HORIZONTAL DE PRODUCTOS SIMILARES
 @Composable //esta seccion muestra productos relacionados para q el usuario siga comprando jaja
@@ -662,6 +623,84 @@ private fun ReviewCard(
     }
 }
 //FIN REVIEW CARD - cada review se ve asi, simple y claro
+
+//SECCION COMPARTIR - botones para compartir y contactar soporte
+@Composable
+private fun SeccionCompartir(
+    context: android.content.Context,
+    producto: Producto,
+    dimens: com.example.levelupprueba.ui.theme.Dimens
+) {
+    LevelUpCard(
+        paddingValues = PaddingValues(dimens.mediumSpacing)
+    ) {
+        LevelUpSpacedColumn(
+            spacing = dimens.smallSpacing,
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(
+                text = "Soporte y Compartir",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            
+            Text(
+                text = "¿Necesitas ayuda con este producto?",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(dimens.mediumSpacing)
+            ) {
+                // Botón WhatsApp para soporte
+                OutlinedButton(
+                    onClick = {
+                        val mensaje = "Hola, necesito ayuda con el producto: ${producto.nombre}. ¿Podrían asistirme?"
+                        val numeroWhatsApp = "+56912345678" // Número de soporte (cambiar por el real)
+                        val url = "https://wa.me/$numeroWhatsApp?text=${Uri.encode(mensaje)}"
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        context.startActivity(intent)
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Message,
+                        contentDescription = "Contactar por WhatsApp",
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("WhatsApp")
+                }
+                
+                // Botón para compartir producto
+                OutlinedButton(
+                    onClick = {
+                        val mensaje = "¡Mira este producto increíble: ${producto.nombre}! ${producto.descripcion}"
+                        val intent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            putExtra(Intent.EXTRA_TEXT, mensaje)
+                            type = "text/plain"
+                        }
+                        context.startActivity(Intent.createChooser(intent, "Compartir producto"))
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Share,
+                        contentDescription = "Compartir producto",
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Compartir")
+                }
+            }
+        }
+    }
+}
+//FIN SECCION COMPARTIR
+
 //Y ACA TERMINA TODO EL ARCHIVO, SON COMO 600 LINEAS PERO AHORA ESTA TODO COMENTADO
 //ESPERO Q SE ENTIENDA MEJOR AHORA, ES BASICAMENTE COMO EL HTML PERO EN KOTLIN CON MAS COMPLICACIONES JAJA
 

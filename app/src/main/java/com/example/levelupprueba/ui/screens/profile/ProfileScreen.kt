@@ -11,6 +11,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,6 +26,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Lock
@@ -47,6 +49,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.widget.Toast
 import com.example.levelupprueba.MainActivity
 import com.example.levelupprueba.model.auth.LoginStatus
 import com.example.levelupprueba.model.profile.ProfileStatus
@@ -209,6 +214,81 @@ fun ProfileScreen(
                         textColor = MaterialTheme.colorScheme.onSurface.copy(0.50f),
                         backgroundColor = MaterialTheme.colorScheme.surface.copy(0.50f),
                     )
+                    //NUEVO AGREGADO DE SCREEN EN PERFIL
+                    // Codigo de referido y puntos
+                    LevelUpCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = dimens.screenPadding)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(dimens.mediumSpacing),
+                            verticalArrangement = Arrangement.spacedBy(dimens.smallSpacing)
+                        ) {
+                            Text(
+                                text = "Mi Código de Referido",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacing),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                LevelUpBadge(
+                                    text = estado.referralCode.ifEmpty { "Generando..." },
+                                    textColor = MaterialTheme.colorScheme.onBackground,
+                                    backgroundColor = MaterialTheme.colorScheme.surface.copy(0.8f),
+                                    modifier = Modifier.weight(1f)
+                                )
+                                
+                                if (estado.referralCode.isNotEmpty()) {
+                                    androidx.compose.material3.IconButton(
+                                        onClick = {
+                                            val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                            val clip = ClipData.newPlainText("Código de Referido", estado.referralCode)
+                                            clipboard.setPrimaryClip(clip)
+                                            Toast.makeText(context, "Código copiado al portapapeles", Toast.LENGTH_SHORT).show()
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.ContentCopy,
+                                            contentDescription = "Copiar código",
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
+                            }
+                            
+                            Text(
+                                text = "Comparte este código con tus amigos para obtener 50 puntos cuando se registren",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(0.7f),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            
+                            Spacer(modifier = Modifier.height(dimens.smallSpacing))
+                            
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Puntos actuales:",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                LevelUpBadge(
+                                    text = "${estado.points} pts",
+                                    textColor = MaterialTheme.colorScheme.secondary,
+                                    backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(0.3f)
+                                )
+                            }
+                        }
+                    }//FIN DE NUEVO AGREGADO EN SCREEN DEL PERFIL 
                 }
             }
 

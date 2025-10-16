@@ -55,13 +55,17 @@ class UsuarioRepository(private val usuarioDao: UsuarioDao) {
 
     fun generateReferralCode(nombre: String): String {
         val raw = nombre.replace("\\s+".toRegex(), "").uppercase()
-        val rand = (1..4).map { ('a'..'z').random() }.joinToString("")
+        val rand = (1..4).map { ('A'..'Z').random() }.joinToString("")
         val namepart = raw.take(6)
         return namepart + rand
     }
 
     suspend fun emailExists(email: String): Boolean {
         return usuarioDao.getUsuarioByEmail(email) != null
+    }
+
+    suspend fun getUsuarioByReferralCode(referralCode: String): Usuario? {
+        return usuarioDao.getUsuarioByReferralCode(referralCode)
     }
 
 }

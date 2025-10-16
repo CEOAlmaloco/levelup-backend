@@ -12,5 +12,6 @@ data class UsuarioUiState(
     val region: UsuarioCampo = UsuarioCampo(),
     val comuna: UsuarioCampo = UsuarioCampo(),
     val direccion: UsuarioCampo = UsuarioCampo(),
+    val codigoReferido: UsuarioCampo = UsuarioCampo(), // Campo para codigo de referido //agregado
     val terminos: UsuarioCampo = UsuarioCampo()
 )

@@ -12,6 +12,8 @@ data class ProfileUiState(
     val comuna: UsuarioCampo = UsuarioCampo(),
     val direccion: UsuarioCampo = UsuarioCampo(),
     val avatar: String? = null,
+    val referralCode: String = "", // Codigo de referido del usuario
+    val points: Int = 0, // Puntos del usuario
     val isEditing: Boolean = false,
     val isLoading: Boolean = false,
     val errors: Map<String, String> = emptyMap(),

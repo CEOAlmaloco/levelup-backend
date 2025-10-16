@@ -17,7 +17,8 @@ data class Usuario(
     val direccion: String?,
     val referralCode: String,
     val points: Int = 0,
-    val redeemedCodes: List<String> = emptyList(),//kitian te agrege esto adicional para el canje de puntos
+    val redeemedCodes: List<String> = emptyList(),//agregado
+    val referredBy: String? = null, // ID del usuario que refirio a este usuario //agregado
     val role: String,
     val avatar: String?
 )
