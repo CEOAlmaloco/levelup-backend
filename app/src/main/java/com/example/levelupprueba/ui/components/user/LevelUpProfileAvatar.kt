@@ -1,4 +1,4 @@
-package com.example.levelupprueba.ui.components
+package com.example.levelupprueba.ui.components.user
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.Dp

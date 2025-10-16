@@ -17,23 +17,27 @@ import androidx.compose.ui.unit.dp
 import com.example.levelupprueba.ui.components.cards.ProductoCard
 import com.example.levelupprueba.ui.components.carrusel.CarruselComponent
 import com.example.levelupprueba.ui.components.overlays.LevelUpLoadingOverlay
+import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.viewmodel.ProductoViewModel
 
 @Composable
 fun HomeScreenProductos(
     viewModel: ProductoViewModel,
-    onVerMasClick: () -> Unit = {}//esto es para que se pueda navegar a la pantalla de productos
+    onVerMasClick: () -> Unit = {},//esto es para que se pueda navegar a la pantalla de productos
+    contentPadding: PaddingValues
 ) {
     val estado by viewModel.estado.collectAsState()
     val imagenesCarrusel by viewModel.imagenesCarrusel.collectAsState()
     var mostrarTodosProductos by remember { mutableStateOf(false) }
+    val dimens = LocalDimens.current
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(contentPadding)
+                .padding(horizontal = dimens.screenPadding, vertical = dimens.screenPadding)
         ) {
             // Carrusel
             if (imagenesCarrusel.isNotEmpty()) {

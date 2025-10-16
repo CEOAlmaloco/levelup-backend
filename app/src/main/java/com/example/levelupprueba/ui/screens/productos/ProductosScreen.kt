@@ -19,14 +19,16 @@ import androidx.compose.ui.unit.dp
 import com.example.levelupprueba.ui.components.cards.ProductoCard
 import com.example.levelupprueba.ui.components.filtros.FiltrosComponent
 import com.example.levelupprueba.ui.components.overlays.LevelUpLoadingOverlay
+import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.viewmodel.ProductoViewModel
 
 @Composable
 fun ProductosScreen(
-    viewModel: ProductoViewModel
+    viewModel: ProductoViewModel,
+    contentPadding: PaddingValues
 ) {
     val estado by viewModel.estado.collectAsState()
-
+    val dimens = LocalDimens.current
     Box(modifier = Modifier.fillMaxSize()) {
         Row(modifier = Modifier.fillMaxSize()) {
             // filtros laterales (solo desktop/tablet)
@@ -40,7 +42,8 @@ fun ProductosScreen(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
-                    .padding(16.dp)
+                    .padding(contentPadding)
+                    .padding(horizontal = dimens.screenPadding, vertical = dimens.screenPadding)
             ) {
                 // header con boton de filtros
                 Row(

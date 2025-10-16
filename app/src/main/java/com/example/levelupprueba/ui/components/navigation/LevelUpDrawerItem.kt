@@ -1,4 +1,4 @@
-package com.example.levelupprueba.ui.components
+package com.example.levelupprueba.ui.components.navigation
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon

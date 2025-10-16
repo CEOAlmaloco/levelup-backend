@@ -1,4 +1,4 @@
-package com.example.levelupprueba.ui.components
+package com.example.levelupprueba.ui.components.navigation
 
 import androidx.compose.ui.graphics.vector.ImageVector
 

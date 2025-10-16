@@ -7,7 +7,6 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -16,24 +15,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.font.FontWeight
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import com.example.levelupprueba.AuthActivity
-import com.example.levelupprueba.data.local.clearUserSession
-import com.example.levelupprueba.data.local.getUserSessionFlow
 import com.example.levelupprueba.model.auth.UserSession
 import com.example.levelupprueba.model.profile.ProfileStatus
-import com.example.levelupprueba.ui.components.DrawerSection
-import com.example.levelupprueba.ui.components.LevelUpDrawer
-import com.example.levelupprueba.ui.components.LevelUpMainTopBar
-import com.example.levelupprueba.ui.components.LevelUpNavigationBar
+import com.example.levelupprueba.ui.components.navigation.DrawerSection
+import com.example.levelupprueba.ui.components.navigation.LevelUpDrawer
+import com.example.levelupprueba.ui.components.navigation.LevelUpMainTopBar
+import com.example.levelupprueba.ui.components.navigation.LevelUpNavigationBar
 import com.example.levelupprueba.ui.components.overlays.LevelUpLoadingOverlay
 import com.example.levelupprueba.ui.screens.auth.LoginScreen
 import com.example.levelupprueba.ui.screens.auth.RegisterScreen
@@ -135,6 +127,19 @@ fun MainScreen(
 
     val profileUiState by profileViewModel.estado.collectAsState()
 
+    LaunchedEffect(isLoggedIn, userSession?.userId) {
+        if (isLoggedIn && userSession?.userId != null) {
+            profileViewModel.cargarDatosUsuario(userSession.userId)
+        }
+    }
+
+    val updatedDisplayName = remember(profileUiState.nombre.valor, userSession?.displayName) {
+        profileUiState.nombre.valor.takeIf { it.isNotBlank() } ?: userSession?.displayName
+    }
+    val updatedAvatar = remember(profileUiState.avatar, avatar) {
+        profileUiState.avatar.takeIf { it?.isNotBlank() == true } ?: avatar
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -144,12 +149,12 @@ fun MainScreen(
     ) {
         ModalNavigationDrawer(
             drawerState = drawerState,
-            gesturesEnabled = true,
+            gesturesEnabled = currentRoute != Screen.Perfil.route,
             drawerContent = {
                 LevelUpDrawer(
                     isLoggedIn = isLoggedIn,
-                    userName = userSession?.displayName,
-                    avatar = avatar,
+                    userName = updatedDisplayName,
+                    avatar = updatedAvatar,
                     onBackClick = {
                         coroutineScope.launch {
                             drawerState.close()
@@ -191,8 +196,8 @@ fun MainScreen(
                         LevelUpMainTopBar(
                             title = "Perfil",
                             isLoggedIn = isLoggedIn,
-                            nombre = userSession?.displayName,
-                            avatar = avatar,
+                            nombre = updatedDisplayName,
+                            avatar = updatedAvatar,
                             showMenu = false,
                             showCart = false,
                             showProfile = false,
@@ -208,7 +213,7 @@ fun MainScreen(
                         LevelUpMainTopBar(
                             title = currentTitle,
                             isLoggedIn = isLoggedIn,
-                            nombre = userSession?.displayName,
+                            nombre = updatedDisplayName,
                             onMenuClick = {
                                 coroutineScope.launch {
                                     drawerState.open()
@@ -223,7 +228,7 @@ fun MainScreen(
                             onSearchClick = {
 
                             },
-                            avatar = avatar
+                            avatar = updatedAvatar
                         )
                     }
                 },
@@ -242,7 +247,6 @@ fun MainScreen(
                     navController = navController,
                     startDestination = Screen.Eventos.route, // ⛔⛔⛔⛔⛔⛔⛔ CAMBIADO TEMPORALMENTE A EVENTOS PARA TESTING⛔⛔⛔⛔⛔
                     // startDestination = Screen.Home.route, // ← Descomentar esto para volver al inicio normal
-                    modifier = Modifier.padding(innerPadding)
                 ) {
                     // Home
                     composable(Screen.Home.route) {
@@ -250,23 +254,33 @@ fun MainScreen(
                             viewModel = productoViewModel,
                             onVerMasClick = {
                                 navController.navigate(Screen.Productos.route)
-                            }
+                            },
+                            contentPadding = innerPadding
                         )
                     }
 
                     // Productos
                     composable(Screen.Productos.route) {
-                        ProductosScreen(viewModel = productoViewModel)
+                        ProductosScreen(
+                            viewModel = productoViewModel,
+                            contentPadding = innerPadding
+                        )
                     }
 
                     // Blog
                     composable(Screen.Blog.route) {
-                        BlogListScreen(blogViewModel)
+                        BlogListScreen(
+                            viewModel = blogViewModel,
+                            contentPadding = innerPadding
+                        )
                     }
 
                     // Eventos - Pantalla de eventos gaming y sistema LevelUp
                     composable(Screen.Eventos.route) {
-                        EventoScreen(viewModel = eventoViewModel)
+                        EventoScreen(
+                            viewModel = eventoViewModel,
+                            contentPadding = innerPadding
+                        )
                     }
 
                     // Login
@@ -295,6 +309,7 @@ fun MainScreen(
                                     isLoggedIn = isLoggedIn,
                                     userId = userSession?.userId ?: "",
                                     displayName = userSession?.displayName ?: "",
+                                    contentPadding = innerPadding
                                 )
                             }
                             else -> {

@@ -5,8 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
-import com.example.levelupprueba.ui.components.LevelUpSpacedColumn
-import com.example.levelupprueba.ui.theme.Dimens
+import com.example.levelupprueba.ui.components.common.LevelUpSpacedColumn
 import com.example.levelupprueba.ui.theme.LocalDimens
 
 @Composable

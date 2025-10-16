@@ -1,6 +1,5 @@
-package com.example.levelupprueba.ui.components
+package com.example.levelupprueba.ui.components.inputs
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -10,8 +9,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
-import com.example.levelupprueba.ui.theme.Dimens
-import com.example.levelupprueba.ui.theme.LocalDimens
 
 @Composable
 fun LevelUpIconButton(

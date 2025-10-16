@@ -3,10 +3,13 @@ package com.example.levelupprueba.ui.components.inputs
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import com.example.levelupprueba.ui.theme.Dimens
 import com.example.levelupprueba.ui.theme.LocalDimens
 
@@ -45,6 +48,7 @@ fun LevelUpOutlinedTextField(
     trailingIcon: @Composable (() -> Unit)? = null,
     placeholder: @Composable (() -> Unit)? = null,
     modifier: Modifier = Modifier,
+    focusRequester: FocusRequester? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     dimens: Dimens = LocalDimens.current
@@ -54,6 +58,7 @@ fun LevelUpOutlinedTextField(
         onValueChange = onValueChange,
         colors = levelUpOutlinedTextFieldColors(isSuccess = isSuccess),
         label = { Text(text = label, fontSize = dimens.bodySize) },
+        textStyle = LocalTextStyle.current.copy(fontSize = dimens.bodySize),
         enabled = enabled,
         isError = isError,
         supportingText = supportingText,
@@ -62,6 +67,10 @@ fun LevelUpOutlinedTextField(
         trailingIcon = trailingIcon,
         placeholder = placeholder,
         modifier = modifier
+            .then(
+                if (focusRequester != null) Modifier.focusRequester(focusRequester)
+                else Modifier
+            )
             .fillMaxWidth(),
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions

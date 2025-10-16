@@ -1,4 +1,4 @@
-package com.example.levelupprueba.ui.components
+package com.example.levelupprueba.ui.components.user
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size

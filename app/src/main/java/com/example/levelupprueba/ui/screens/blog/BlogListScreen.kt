@@ -27,7 +27,8 @@ import com.example.levelupprueba.viewmodel.BlogViewModel
 
 @Composable//al decir esto estamos diciendo que se puede reutilizar en otra pantalla
 fun BlogListScreen(//aca creamos la pantalla de blogs
-    viewModel: BlogViewModel//aca le pasamos el viewmodel para que se pueda usar en la pantalla
+    viewModel: BlogViewModel,//aca le pasamos el viewmodel para que se pueda usar en la pantalla
+    contentPadding: PaddingValues
 ) {
     val estado by viewModel.estado.collectAsState()//el by sirve como un for , recorre el estado y te dice el estado actual
     val dimens = LocalDimens.current//el current es para obtener el valor actual de las dimensiones
@@ -36,7 +37,8 @@ fun BlogListScreen(//aca creamos la pantalla de blogs
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(dimens.screenPadding)
+            .padding(contentPadding)
+            .padding(horizontal = dimens.screenPadding, vertical = dimens.screenPadding)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(dimens.fieldSpacing)
     ) {
