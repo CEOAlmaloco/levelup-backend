@@ -16,6 +16,9 @@ interface UsuarioDao {
     @Query("SELECT * FROM usuarios WHERE email = :email")
     suspend fun getUsuarioByEmail(email: String): Usuario?
 
+    @Query("SELECT * FROM usuarios WHERE referralCode = :referralCode")
+    suspend fun getUsuarioByReferralCode(referralCode: String): Usuario?
+
     @Query("SELECT * FROM usuarios")
     suspend fun getAllUsuarios(): List<Usuario>
 

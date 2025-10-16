@@ -20,6 +20,7 @@ import com.example.levelupprueba.navigation.MainScreen
 import com.example.levelupprueba.ui.theme.LevelUpPruebaTheme
 import com.example.levelupprueba.viewmodel.BlogViewModel
 import com.example.levelupprueba.viewmodel.EventoViewModel
+import com.example.levelupprueba.viewmodel.EventoViewModelFactory
 import com.example.levelupprueba.viewmodel.LoginViewModel
 import com.example.levelupprueba.viewmodel.LoginViewModelFactory
 import com.example.levelupprueba.viewmodel.MainViewModel
@@ -54,19 +55,21 @@ class MainActivity : ComponentActivity() {
 
             // Factories - las fabricas para crear viewmodels con parametros personalizados
             val mainViewModelFactory = MainViewModelFactory(context, usuarioRepository)
-            val usuarioViewModelFactory = UsuarioViewModelFactory(usuarioRepository)
+            val eventoViewModelFactory = EventoViewModelFactory(usuarioRepository)
             val loginViewModelFactory = LoginViewModelFactory(usuarioRepository)
             val productoDetalleViewModelFactory = ProductoDetalleViewModelFactory(reviewDao) //factory con el reviewDao
             val profileViewModelFactory = ProfileViewModelFactory(usuarioRepository)
 
             // ViewModels - aca creamos los viewmodels, algunos con factory y otros sin factory
+            val eventoViewModel: EventoViewModel = viewModel(factory = eventoViewModelFactory)
+            val usuarioViewModelFactory = UsuarioViewModelFactory(usuarioRepository, eventoViewModel)
+
             val usuarioViewModel: UsuarioViewModel = viewModel(factory = usuarioViewModelFactory)
             val mainViewModel: MainViewModel = viewModel(factory = mainViewModelFactory)
             val loginViewModel: LoginViewModel = viewModel(factory = loginViewModelFactory)
             val blogViewModel: BlogViewModel = viewModel()
             val productoViewModel: ProductoViewModel = viewModel()
             val productoDetalleViewModel: ProductoDetalleViewModel = viewModel(factory = productoDetalleViewModelFactory) //ahora usa SQLite
-            val eventoViewModel: EventoViewModel = viewModel()
             val profileViewModel: ProfileViewModel = viewModel(factory = profileViewModelFactory)
 
             val userSession by mainViewModel.userSessionFlow.collectAsState()
@@ -74,6 +77,9 @@ class MainActivity : ComponentActivity() {
             val avatar by mainViewModel.avatar.collectAsState()
 
             LaunchedEffect(Unit) {
+                // Inicializar ViewModels que necesitan contexto
+                eventoViewModel.inicializar(context)
+                
                 mainViewModel.navigationEvent.collect { event ->
                     when (event) {
                         is com.example.levelupprueba.navigation.NavigationEvents.NavigateTo -> {

@@ -45,6 +45,8 @@ class ProfileViewModel(
                         comuna = it.comuna.copy(valor = usuario?.comuna ?: ""),
                         direccion = it.direccion.copy(valor = usuario?.direccion ?: ""),
                         avatar = usuario?.avatar,
+                        referralCode = usuario?.referralCode ?: "",
+                        points = usuario?.points ?: 0,
                         isLoading = false,
                         profileStatus = ProfileStatus.Loaded
                     )
