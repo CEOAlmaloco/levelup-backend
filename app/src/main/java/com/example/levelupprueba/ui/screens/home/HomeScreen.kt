@@ -1,16 +1,17 @@
 package com.example.levelupprueba.ui.screens.home
 
-//odio esto
-//tengo q hacer el css html version kotlin 
-//TO-DO CORRECCIONAR CIERTAS COSAS 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -22,7 +23,7 @@ import com.example.levelupprueba.viewmodel.ProductoViewModel
 @Composable
 fun HomeScreenProductos(
     viewModel: ProductoViewModel,
-    onVerMasClick: () -> Unit = {}//esto es para que se pueda navegar a la pantalla de productos
+    onVerMasClick: () -> Unit = {}
 ) {
     val estado by viewModel.estado.collectAsState()
     val imagenesCarrusel by viewModel.imagenesCarrusel.collectAsState()
@@ -33,28 +34,50 @@ fun HomeScreenProductos(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(horizontal = 16.dp) // quedaria como 2 cuadros 
         ) {
             // Carrusel
             if (imagenesCarrusel.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(16.dp))
                 CarruselComponent(
                     imagenes = imagenesCarrusel,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(24.dp))
             }
 
-            // seccion de productos destacados
-            Text(
-                text = "Productos destacados",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            // Sección de productos destacados
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Productos destacados",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                
+                IconButton(
+                    onClick = onVerMasClick,
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            shape = MaterialTheme.shapes.medium
+                        )
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.ShoppingCart,
+                        contentDescription = "Ver todos los productos",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Grid de productos
+            // Grid de productos - 2 columnas
             val productosAMostrar = if (mostrarTodosProductos) {
                 estado.productosDestacados
             } else {
@@ -62,10 +85,10 @@ fun HomeScreenProductos(
             }
 
             LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 280.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                columns = GridCells.Fixed(2),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.height(((productosAMostrar.size / 2 + 1) * 340).dp),
+                modifier = Modifier.height(((productosAMostrar.size / 2 + 1) * 380).dp),
                 userScrollEnabled = false
             ) {
                 items(productosAMostrar) { producto ->
@@ -78,46 +101,45 @@ fun HomeScreenProductos(
                 }
             }
 
-            // boton "Mostrar mas"
-            if (!mostrarTodosProductos && estado.productosDestacados.size > 6) {
-                Spacer(modifier = Modifier.height(24.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
+            // Botones de mostrar más/menos
+            Spacer(modifier = Modifier.height(24.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                if (!mostrarTodosProductos && estado.productosDestacados.size > 6) {
                     OutlinedButton(
                         onClick = { mostrarTodosProductos = true },
                         modifier = Modifier.widthIn(min = 200.dp)
                     ) {
-                        Text("Mostrar más")
+                        Text(
+                            text = "Mostrar más",
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
-                }
-            }
-
-            // boton "Ver todos los productos"
-            if (mostrarTodosProductos) {
-                Spacer(modifier = Modifier.height(24.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Button(
-                        onClick = onVerMasClick,
+                } else if (mostrarTodosProductos && estado.productosDestacados.size > 6) {
+                    OutlinedButton(
+                        onClick = { mostrarTodosProductos = false },
                         modifier = Modifier.widthIn(min = 200.dp)
                     ) {
-                        Text("Ver todos los productos")
+                        Text(
+                            text = "Mostrar menos",
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             }
 
+            // Sección de impacto comunitario
             Spacer(modifier = Modifier.height(32.dp))
-
-            // seccion de impacto comunitario (similar al blog)
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer
-                )
+                ),
+                shape = MaterialTheme.shapes.large
             ) {
                 Column(
                     modifier = Modifier.padding(24.dp)
@@ -139,7 +161,7 @@ fun HomeScreenProductos(
             }
         }
 
-        // loading overlay
+        // Loading overlay
         if (estado.isLoading) {
             LevelUpLoadingOverlay()
         }
