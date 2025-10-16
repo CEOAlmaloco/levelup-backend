@@ -11,11 +11,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import com.example.levelupprueba.ui.theme.Dimens
+import com.example.levelupprueba.ui.theme.LocalDimens
 
 @Composable
 fun LevelUpFormSection(
     title: String,
-    dimens: Dimens,
+    dimens: Dimens = LocalDimens.current,
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {

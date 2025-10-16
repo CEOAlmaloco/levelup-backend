@@ -11,6 +11,7 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SelectableDates
@@ -23,7 +24,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import com.example.levelupprueba.ui.theme.Dimens
+import com.example.levelupprueba.ui.theme.LocalDimens
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -49,7 +53,8 @@ fun LevelUpFechaNacimientoField(
     isSuccess: Boolean = false,                 // Indica si el campo está en estado de éxito
     supportingText: (@Composable (() -> Unit))? = null, // Mensaje de ayuda o error debajo del campo
     modifier: Modifier = Modifier,                        // Modificador para personalizar el campo (por ej. ancho)
-    dimens: Dimens
+    focusRequester: FocusRequester? = null,
+    dimens: Dimens = LocalDimens.current
 ) {
     // Estado local para mostrar/ocultar el DatePicker
     var showDatePicker by remember { mutableStateOf(false) }
@@ -64,6 +69,7 @@ fun LevelUpFechaNacimientoField(
                 text = "Fecha de Nacimiento",
                 fontSize = dimens.bodySize)
             },
+        textStyle = LocalTextStyle.current.copy(fontSize = dimens.bodySize),
         isError = isError,                      // Marca el campo como error si corresponde
         readOnly = true,
         supportingText = supportingText,        // Muestra texto de ayuda/error debajo del campo         // El usuario no puede editar manualmente
@@ -82,6 +88,10 @@ fun LevelUpFechaNacimientoField(
             }
         },
         modifier = modifier
+            .then(
+                if (focusRequester != null) Modifier.focusRequester(focusRequester)
+                else Modifier
+            )
             .fillMaxWidth()
     )
 

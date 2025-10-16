@@ -1,7 +1,5 @@
-package com.example.levelupprueba.ui.components
+package com.example.levelupprueba.ui.components.lists
 
-import android.R
-import android.view.Surface
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
