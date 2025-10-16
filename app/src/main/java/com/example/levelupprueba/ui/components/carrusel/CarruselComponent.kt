@@ -112,14 +112,14 @@ fun CarruselComponent(
             )
         }
 
-        // indicadores de puntos
+        // indicadores de puntos - siempre 3 puntos
         Row(
             Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 16.dp),
             horizontalArrangement = Arrangement.Center
         ) {
-            repeat(imagenes.size) { iteration ->
+            repeat(3) { iteration ->
                 val color = if (pagerState.currentPage == iteration)
                     MaterialTheme.colorScheme.primary
                 else
