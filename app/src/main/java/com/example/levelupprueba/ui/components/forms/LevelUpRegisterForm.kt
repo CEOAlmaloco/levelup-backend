@@ -222,6 +222,33 @@ fun LevelUpRegisterForm(
 
         Spacer(modifier = Modifier.height(dimens.sectionSpacing))
 
+        LevelUpFormSection(title = "Código de Referido (Opcional)", dimens = dimens) {
+            LevelUpOutlinedTextField(// campo para codigo de referido
+                value = estado.codigoReferido.valor, //valor del campo
+                onValueChange = usuarioViewModel::onCodigoReferidoChange,
+                label = "Código de Referido", 
+                isError = estado.codigoReferido.error != null, 
+                isSuccess = estado.codigoReferido.isSuccess, 
+                supportingText = supportingTextOrError(//texto de ayuda o error
+                    error = estado.codigoReferido.error, 
+                    helperText = "Ingresa el código de un amigo para obtener puntos",
+                    isSuccess = estado.codigoReferido.isSuccess,
+                    fontSize = dimens.captionSize, //tamaño del texto
+                ),
+                modifier = Modifier.focusRequester(passwordFocus), //solicitar foco al campo
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text, //tipo de teclado
+                    imeAction = ImeAction.Next //accion al presionar enter
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { confirmPasswordFocus.requestFocus() } //solicitar foco al campo
+                ),
+                dimens = dimens //dimensiones del campo
+            )
+        }
+
+        Spacer(modifier = Modifier.height(dimens.sectionSpacing)) //espacio entre secciones
+
         LevelUpFormSection(title = "Seguridad", dimens = dimens) {
             LevelUpPasswordField(
                 value = estado.password.valor,
