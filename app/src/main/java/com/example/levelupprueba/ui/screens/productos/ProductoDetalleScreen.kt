@@ -1,0 +1,667 @@
+package com.example.levelupprueba.ui.screens.productos
+
+import android.content.Intent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.example.levelupprueba.model.producto.Producto
+import com.example.levelupprueba.model.producto.Review
+import com.example.levelupprueba.ui.components.ProductoRatingStars
+import com.example.levelupprueba.ui.components.LevelUpSpacedColumn
+import com.example.levelupprueba.ui.components.buttons.LevelUpButton
+import com.example.levelupprueba.ui.components.buttons.LevelUpOutlinedButton
+import com.example.levelupprueba.ui.components.cards.LevelUpCard
+import com.example.levelupprueba.ui.components.cards.ProductoCard
+import com.example.levelupprueba.ui.components.overlays.LevelUpLoadingOverlay
+import com.example.levelupprueba.ui.theme.LocalDimens
+import com.example.levelupprueba.ui.theme.SemanticColors
+import com.example.levelupprueba.viewmodel.ProductoDetalleViewModel
+import java.text.NumberFormat
+import java.util.*
+
+//ODIO  KOTLIN HERMANO COMO 35 LINEAS DE IMPORT ODIO KOTLIN SOBRETODO EL SCREEN DIOS MIO COMO 600 LINEAS AAA
+//Q DOLOR DE CABEZA DIOS MIO COMO 600 LINEAS AAA
+
+
+@Composable //esta es la funcion principal del detalle, es como el contenedor de todo
+fun ProductoDetalleScreen(
+    productoId: String, //el id del producto q viene de la navegacion cuando le damos click
+    viewModel: ProductoDetalleViewModel, //el viewmodel q maneja la logica de negocio
+    onProductoClick: (String) -> Unit = {}, //callback para cuando le damos click a un producto relacionado
+    onNavigateBack: () -> Unit = {} //callback para volver atras
+) {
+    val estado by viewModel.estado.collectAsState() //traemos el estado del viewmodel, el by es para q se actualice solo
+    val dimens = LocalDimens.current //traemos las dimensiones del tema para q sea responsive
+
+    LaunchedEffect(productoId) { //esto se ejecuta cuando cambia el productoId, es como el useEffect de react
+        viewModel.cargarProducto(productoId) //cargamos el producto con el id q nos llega
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) { //el box es como un div en html, lo usamos para apilar cosas
+        when { //el when es como el switch en java, aca manejamos los 3 estados posibles
+            estado.isLoading -> { //si esta cargando, mostramos el overlay de loading
+                LevelUpLoadingOverlay() //este es el componente q ya teniamos hecho para el loading
+            }
+            estado.error != null -> { //si hay un error, mostramos el mensaje de error
+                LevelUpSpacedColumn( //usamos LevelUpSpacedColumn para el espaciado automatico
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(dimens.screenPadding), //usamos screenPadding del tema
+                    spacing = dimens.mediumSpacing, //espaciado automatico entre elementos
+                    horizontalAlignment = Alignment.CenterHorizontally //centramos horizontalmente
+                ) {
+                    Text(
+                        text = estado.error ?: "Error desconocido", //mostramos el error o un mensaje por defecto
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = SemanticColors.Error //usamos el color de error del tema
+                    )
+                    Button(onClick = onNavigateBack) { //boton para volver atras
+                        Text("Volver")
+                    }
+                }
+            }
+            estado.producto != null -> { //si el producto no es null, mostramos el contenido
+                ProductoDetalleContent( //aca llamamos a la funcion q tiene todo el contenido del detalle
+                    producto = estado.producto!!, //le pasamos el producto, el !! es pq estamos seguros q no es null
+                    cantidadCarrito = estado.cantidadCarrito, //le pasamos la cantidad del carrito
+                    mostrarFormularioReview = estado.mostrarFormularioReview, //si mostramos el formulario de review o no
+                    imagenSeleccionada = estado.imagenSeleccionada, //la imagen seleccionada del carrusel (por si agregamos mas imagenes dsp)
+                    onAgregarCarrito = { viewModel.agregarAlCarrito() }, //callback para agregar al carrito
+                    onAumentarCantidad = { viewModel.aumentarCantidad() }, //callback para aumentar cantidad
+                    onDisminuirCantidad = { viewModel.disminuirCantidad() }, //callback para disminuir cantidad
+                    onToggleFormularioReview = { viewModel.toggleFormularioReview() }, //callback para mostrar/ocultar el formulario
+                    onAgregarReview = { rating, comentario, usuario -> //callback para agregar una review
+                        viewModel.agregarReview(rating, comentario, usuario) //le pasamos los parametros al viewmodel
+                    },
+                    onProductoRelacionadoClick = onProductoClick, //callback para cuando le dan click a un producto relacionado
+                    onNavigateBack = onNavigateBack //callback para volver atras
+                )
+            }
+        }
+    }
+}
+//hasta aca es la funcion principal, lo demas son las secciones q se muestran en el detalle
+
+@OptIn(ExperimentalMaterial3Api::class) //esto es pq usamos apis experimentales de material3, si no kotlin se enoja
+@Composable //aca empieza el contenido real del detalle, es como el body del html
+private fun ProductoDetalleContent( //esta funcion tiene TODO el contenido del detalle, por eso son 600 lineas jaja
+    producto: Producto, //el producto completo con toda la info
+    cantidadCarrito: Int, //cuantos productos hay en el carrito
+    mostrarFormularioReview: Boolean, //si mostramos el formulario de review
+    imagenSeleccionada: Int, //la imagen seleccionada (por si agregamos mas imagenes)
+    onAgregarCarrito: () -> Unit, //cuando le dan agregar al carrito
+    onAumentarCantidad: () -> Unit, //cuando le dan al + del carrito
+    onDisminuirCantidad: () -> Unit, //cuando le dan al - del carrito
+    onToggleFormularioReview: () -> Unit, //cuando le dan al boton de calificar
+    onAgregarReview: (Float, String, String) -> Unit, //cuando envian una review
+    onProductoRelacionadoClick: (String) -> Unit, //cuando le dan click a un producto relacionado
+    onNavigateBack: () -> Unit //cuando quieren volver atras
+) {
+    val dimens = LocalDimens.current //dimensiones del tema
+    val context = LocalContext.current //el contexto de android, lo necesitamos para compartir y eso
+
+    LazyColumn( //usamos LazyColumn q es como un scroll vertical q solo renderiza lo visible, es como el virtualizado en react
+        modifier = Modifier.fillMaxSize()
+    ) {
+        item { //cada item es una seccion del detalle
+            LevelUpSpacedColumn( //usamos LevelUpSpacedColumn para espaciado automatico entre todas las secciones
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(dimens.screenPadding), //padding de pantalla del tema
+                spacing = dimens.sectionSpacing, //espaciado automatico entre secciones
+                horizontalAlignment = Alignment.Start //alineamos todo a la izquierda
+            ) {
+                SeccionVisual( //la imagen grande del producto arriba de todo
+                    imagenUrl = producto.imagenUrl,
+                    nombre = producto.nombre,
+                    dimens = dimens
+                )
+
+                SeccionInformacion( //el titulo, precio, rating, descripcion, todo eso
+                    producto = producto,
+                    dimens = dimens
+                )
+
+                SeccionOrigen( //el fabricante y distribuidor, como pedia el caso
+                    fabricante = producto.fabricante ?: "-", //si es null ponemos "-"
+                    distribuidor = producto.distribuidor ?: "-",
+                    dimens = dimens
+                )
+
+                SeccionAcciones( //los botones de agregar al carrito y los + y -
+                    producto = producto,
+                    cantidadCarrito = cantidadCarrito,
+                    onAgregarCarrito = onAgregarCarrito,
+                    onAumentarCantidad = onAumentarCantidad,
+                    onDisminuirCantidad = onDisminuirCantidad,
+                    dimens = dimens
+                )
+
+                SeccionCompartir(context = context, producto = producto, dimens = dimens) //los botones para compartir en redes sociales
+            }
+        }
+
+        if (producto.productosRelacionados.isNotEmpty()) { //si hay productos relacionados, los mostramos
+            item {
+                SeccionRelacionados( //el carrusel horizontal de productos similares
+                    productos = producto.productosRelacionados,
+                    onProductoClick = onProductoRelacionadoClick,
+                    dimens = dimens
+                )
+                Spacer(modifier = Modifier.height(dimens.sectionSpacing)) //espaciado al final
+            }
+        }
+
+        item { //las reviews siempre se muestran, aunque no haya ninguna
+            SeccionReviews( //la seccion de reseñas y calificaciones
+                reviews = producto.reviews,
+                ratingPromedio = producto.ratingPromedio,
+                mostrarFormulario = mostrarFormularioReview,
+                onToggleFormulario = onToggleFormularioReview,
+                onAgregarReview = onAgregarReview,
+                dimens = dimens
+            )
+        }
+    }
+}
+//ACA TERMINAN LAS FUNCIONES PRINCIPALES, AHORA VIENEN LAS SECCIONES INDIVIDUALES
+
+//SECCION VISUAL - LA IMAGEN GRANDE DEL PRODUCTO
+@Composable //esta funcion muestra la imagen principal del producto en un card bonito
+private fun SeccionVisual(
+    imagenUrl: String, //el nombre de la imagen q esta en drawable
+    nombre: String, //el nombre del producto para accesibilidad
+    dimens: com.example.levelupprueba.ui.theme.Dimens //dimensiones del tema
+) {
+    val context = LocalContext.current
+    val imageResourceId = context.resources.getIdentifier( //buscamos la imagen en drawable
+        imagenUrl, //el nombre de la imagen sin extension
+        "drawable", //buscamos en la carpeta drawable
+        context.packageName //del package de la app
+    ) //esto es medio feo pq tenemos q tener las imagenes en drawable, despues lo cambiamos a urls remotas TODO
+
+    Card( //envolvemos la imagen en un card para q tenga sombra y bordes redondeados, usamos Card de material3 pq LevelUpCard tiene padding interno
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(dimens.imageHeight), //altura desde las dimensiones del tema
+        shape = RoundedCornerShape(dimens.imageCornerRadius), //bordes redondeados desde el tema
+        elevation = CardDefaults.cardElevation(defaultElevation = dimens.cardElevation) //sombra desde el tema
+    ) {
+        AsyncImage( //usamos coil para cargar las imagenes de forma asincrona
+            model = ImageRequest.Builder(context)
+                .data(imageResourceId) //le pasamos el id de la imagen
+                .crossfade(true) //animacion de fade cuando carga
+                .build(),
+            contentDescription = nombre, //para accesibilidad
+            contentScale = ContentScale.Crop, //recorta la imagen para q llene todo el espacio
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+}
+//FIN SECCION VISUAL
+
+//SECCION INFORMACION - NOMBRE, PRECIO, RATING, DESCRIPCION
+@Composable //aca mostramos toda la info principal del producto
+private fun SeccionInformacion(
+    producto: Producto, //el producto completo
+    dimens: com.example.levelupprueba.ui.theme.Dimens //dimensiones del tema
+) {
+
+    LevelUpSpacedColumn( //usamos LevelUpSpacedColumn para espaciado automatico
+        spacing = dimens.fieldSpacing, //espaciado entre campos
+        horizontalAlignment = Alignment.Start
+    ) {
+        Text( //el nombre del producto bien grande y bold
+            text = producto.nombre,
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Text( //el codigo del producto chiquitito
+            text = "Código: ${producto.id}",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant //un color mas clarito
+        )
+
+        Row( //el rating con las estrellas y el numero
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            ProductoRatingStars( //componente q hicimos para mostrar las estrellas
+                rating = producto.ratingPromedio, //el rating promedio calculado desde las reviews
+                starSize = dimens.smallIconSize //tamaño de icono pequeño del tema
+            )
+            Spacer(modifier = Modifier.width(dimens.smallSpacing))
+            Text( //el numero del rating al lado de las estrellas
+                text = String.format("%.1f", producto.ratingPromedio), //formateamos a 1 decimal
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        Row( //el precio y el descuento si hay
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text( //el precio formateado en CLP
+                text = NumberFormat.getCurrencyInstance(Locale("es", "CL"))
+                    .format(producto.precio), //esto formatea el precio con puntos y el simbolo $
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary, //color primary del tema
+                fontSize = 32.sp //bien grande para q se vea
+            )
+
+            producto.descuento?.let { descuento -> //si hay descuento lo mostramos
+                Spacer(modifier = Modifier.width(dimens.mediumSpacing))
+                Surface( //un badge rojito con el % de descuento
+                    color = SemanticColors.Error, //usamos el color de error semantico
+                    shape = RoundedCornerShape(dimens.chipCornerRadius) //radio de chip del tema
+                ) {
+                    Text(
+                        text = "-$descuento%", //mostramos el % de descuento
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onError, //texto blanco
+                        modifier = Modifier.padding(horizontal = dimens.smallSpacing, vertical = dimens.smallSpacing / 2)
+                    )
+                }
+            }
+        }
+
+        Text( //la descripcion del producto
+            text = producto.descripcion,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            lineHeight = 24.sp //espaciado entre lineas para q se lea mejor
+        )
+    }
+}
+//FIN SECCION INFORMACION
+
+//SECCION ORIGEN - FABRICANTE Y DISTRIBUIDOR
+@Composable //esta seccion la pidio el caso, muestra de donde viene el producto
+private fun SeccionOrigen(
+    fabricante: String, //el fabricante del producto
+    distribuidor: String, //el distribuidor del producto
+    dimens: com.example.levelupprueba.ui.theme.Dimens //dimensiones del tema
+) {
+    LevelUpCard( //usamos LevelUpCard que ya tiene los estilos del tema
+        paddingValues = PaddingValues(dimens.mediumSpacing) //padding interno del card
+    ) {
+        LevelUpSpacedColumn( //columna con espaciado automatico
+            spacing = dimens.fieldSpacing,
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text( //el titulo de la seccion
+                text = "Origen del producto",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Row { //fabricante en bold y el valor normal
+                Text(
+                    text = "Fabricante: ",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text( //el nombre del fabricante
+                    text = fabricante,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            Row { //distribuidor en bold y el valor normal
+                Text(
+                    text = "Distribuidor: ",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text( //el nombre del distribuidor
+                    text = distribuidor,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+    }
+}
+//FIN SECCION ORIGEN
+
+//SECCION ACCIONES - BOTON AGREGAR AL CARRITO Y CONTROLES DE CANTIDAD
+@Composable //esta es la parte mas importante, donde el usuario agrega productos al carrito
+private fun SeccionAcciones(
+    producto: Producto, //el producto para saber si esta disponible
+    cantidadCarrito: Int, //cuantos productos hay en el carrito
+    onAgregarCarrito: () -> Unit, //callback para agregar al carrito
+    onAumentarCantidad: () -> Unit, //callback para el boton +
+    onDisminuirCantidad: () -> Unit, //callback para el boton -
+    dimens: com.example.levelupprueba.ui.theme.Dimens //dimensiones del tema
+) {
+    Column {
+        if (cantidadCarrito == 0) { //si no hay nada en el carrito, mostramos el boton de agregar
+            LevelUpButton( //nuestro boton personalizado con el gradiente bonito
+                text = if (producto.disponible) "Agregar al carrito" else "AGOTADO", //si no esta disponible dice AGOTADO
+                onClick = onAgregarCarrito, //cuando le dan click agregamos 1 al carrito
+                dimens = dimens,
+                enabled = producto.disponible, //si no esta disponible el boton esta deshabilitado
+                modifier = Modifier.fillMaxWidth()
+            )
+        } else { //si ya hay algo en el carrito, mostramos los controles de cantidad
+            Row( //un row con boton -, cantidad, boton +
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(dimens.mediumSpacing), //espaciado desde el tema
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                FilledIconButton( //boton - para disminuir
+                    onClick = onDisminuirCantidad, //cuando le dan click disminuye la cantidad
+                    modifier = Modifier.size(dimens.buttonHeight), //tamaño del boton desde el tema
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primary //con el color primary del tema
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Remove, //icono de menos
+                        contentDescription = "Disminuir",
+                        modifier = Modifier.size(dimens.buttonIconSize) //tamaño del icono desde el tema
+                    )
+                }
+
+                Card( //el numero de la cantidad en el medio
+                    modifier = Modifier.weight(1f), //ocupa todo el espacio disponible
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                    shape = RoundedCornerShape(dimens.cardCornerRadius) //bordes redondeados del tema
+                ) {
+                    Text( //el numero de la cantidad bien grande
+                        text = cantidadCarrito.toString(),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = dimens.smallSpacing),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center //centrado
+                    )
+                }
+
+                FilledIconButton( //boton + para aumentar
+                    onClick = onAumentarCantidad, //cuando le dan click aumenta la cantidad
+                    modifier = Modifier.size(dimens.buttonHeight), //tamaño del boton desde el tema
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add, //icono de mas
+                        contentDescription = "Aumentar",
+                        modifier = Modifier.size(dimens.buttonIconSize) //tamaño del icono desde el tema
+                    )
+                }
+            }
+        }
+    }
+}
+//FIN SECCION ACCIONES - esta es la parte q conecta con el carrito, despues hay q hacer el carrito completo TODO
+
+//SECCION COMPARTIR - PARA COMPARTIR EL PRODUCTO EN REDES SOCIALES
+@Composable //esto era del js q tenias, aca lo implementamos con el intent de android
+private fun SeccionCompartir(
+    context: android.content.Context, //necesitamos el contexto para lanzar el intent
+    producto: Producto, //el producto para compartir el nombre
+    dimens: com.example.levelupprueba.ui.theme.Dimens //dimensiones del tema
+) {
+    LevelUpSpacedColumn( //columna con espaciado automatico
+        spacing = dimens.mediumSpacing,
+        horizontalAlignment = Alignment.Start
+    ) {
+        Text( //titulo de la seccion
+            text = "Compartir:",
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold
+        )
+
+        Row( //los botones de compartir, por ahora solo tenemos uno
+            horizontalArrangement = Arrangement.spacedBy(dimens.mediumSpacing)
+        ) {
+            IconButton( //boton de compartir nativo de android
+                onClick = {
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply { //creamos un intent de compartir
+                        type = "text/plain" //tipo texto plano
+                        putExtra(Intent.EXTRA_TEXT, "Mira este producto: ${producto.nombre}") //el texto a compartir
+                    } //esto abre el menu de compartir de android con todas las apps q el usuario tiene
+                    context.startActivity(Intent.createChooser(shareIntent, "Compartir")) //mostramos el chooser
+                } //TODO: agregar mas botones para whatsapp, facebook, twitter, etc como en el js
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Share, //icono de compartir
+                    contentDescription = "Compartir",
+                    tint = MaterialTheme.colorScheme.primary, //con el color primary
+                    modifier = Modifier.size(dimens.iconSize) //tamaño de icono desde el tema
+                )
+            }
+        }
+    }
+}
+//FIN SECCION COMPARTIR - falta agregar mas opciones como teniamos en el js pero por ahora funciona
+
+//SECCION RELACIONADOS - CARRUSEL HORIZONTAL DE PRODUCTOS SIMILARES
+@Composable //esta seccion muestra productos relacionados para q el usuario siga comprando jaja
+private fun SeccionRelacionados(
+    productos: List<Producto>, //la lista de productos relacionados
+    onProductoClick: (String) -> Unit, //callback para cuando le dan click a un producto
+    dimens: com.example.levelupprueba.ui.theme.Dimens //dimensiones del tema
+) {
+    LevelUpSpacedColumn( //columna con espaciado automatico
+        modifier = Modifier.padding(horizontal = dimens.screenPadding),
+        spacing = dimens.mediumSpacing,
+        horizontalAlignment = Alignment.Start
+    ) {
+        Text( //titulo de la seccion
+            text = "Productos relacionados",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold
+        )
+
+        LazyRow( //un scroll horizontal de productos, como un carrusel
+            horizontalArrangement = Arrangement.spacedBy(dimens.mediumSpacing) //espaciado entre productos desde el tema
+        ) {
+            items(productos) { producto -> //por cada producto relacionado
+                ProductoCard( //reutilizamos el ProductoCard q ya teniamos
+                    producto = producto,
+                    onClick = { onProductoClick(producto.id) }, //cuando le dan click navegamos al detalle de ese producto
+                    modifier = Modifier.width(250.dp) //ancho fijo para q se vean bien en el carrusel
+                ) //esto hace q cuando estes viendo un producto puedas ir a otro y asi infinitamente
+            }
+        }
+    }
+}
+//FIN SECCION RELACIONADOS - esto esta bueno para q el usuario compre mas cosas
+
+//SECCION REVIEWS - RESEÑAS Y CALIFICACIONES DE LOS USUARIOS
+@Composable //esta es la seccion mas compleja, tiene el form para agregar reviews y la lista de reviews
+private fun SeccionReviews(
+    reviews: List<Review>, //la lista de reviews del producto
+    ratingPromedio: Float, //el rating promedio calculado
+    mostrarFormulario: Boolean, //si mostramos el formulario de agregar review
+    onToggleFormulario: () -> Unit, //callback para mostrar/ocultar el formulario
+    onAgregarReview: (Float, String, String) -> Unit, //callback para agregar una review
+    dimens: com.example.levelupprueba.ui.theme.Dimens //dimensiones del tema
+) {
+    LevelUpSpacedColumn( //columna con espaciado automatico
+        modifier = Modifier.padding(horizontal = dimens.screenPadding),
+        spacing = dimens.sectionSpacing,
+        horizontalAlignment = Alignment.Start
+    ) {
+        Row( //header con el titulo, rating y boton de calificar
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween, //separamos el titulo del boton
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column { //titulo y rating
+                Text(
+                    text = "Reseñas y calificaciones",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(dimens.smallSpacing))
+                Row(verticalAlignment = Alignment.CenterVertically) { //estrellas y numero del rating
+                    ProductoRatingStars(rating = ratingPromedio, starSize = dimens.iconSize) //estrellas desde el tema
+                    Spacer(modifier = Modifier.width(dimens.smallSpacing))
+                    Text( //el numero del rating al lado
+                        text = String.format("%.1f", ratingPromedio),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            Button(onClick = onToggleFormulario) { //boton para mostrar el formulario
+                Text("Calificar producto")
+            }
+        }
+
+        if (mostrarFormulario) { //si el usuario le dio al boton, mostramos el formulario
+            FormularioReview(onAgregarReview = onAgregarReview, dimens = dimens) //el formulario para agregar una review
+        }
+
+        if (reviews.isEmpty()) { //si no hay reviews mostramos un mensaje
+            LevelUpCard( //usamos LevelUpCard con los estilos del tema
+                paddingValues = PaddingValues(dimens.mediumSpacing)
+            ) {
+                Text( //mensaje motivando a ser el primero en opinar
+                    text = "Sin reseñas aún. ¡Sé el primero en opinar!",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        } else { //si hay reviews las mostramos
+            reviews.reversed().forEach { review -> //las invertimos para mostrar las mas recientes primero
+                ReviewCard(review = review, dimens = dimens) //cada review en su propio card
+                Spacer(modifier = Modifier.height(dimens.mediumSpacing))
+            }
+        }
+    }
+}
+//FIN SECCION REVIEWS - esto esta bueno pq le da confianza a los usuarios q compren
+
+//FORMULARIO REVIEW - FORM PARA Q EL USUARIO AGREGUE SU OPINION
+@OptIn(ExperimentalMaterial3Api::class) //usamos apis experimentales
+@Composable //este es el formulario q aparece cuando le dan al boton de calificar
+private fun FormularioReview(
+    onAgregarReview: (Float, String, String) -> Unit, //callback para enviar la review
+    dimens: com.example.levelupprueba.ui.theme.Dimens //dimensiones del tema
+) {
+    var rating by remember { mutableStateOf(5f) } //estado local del rating, empieza en 5
+    var comentario by remember { mutableStateOf("") } //estado local del comentario
+    var usuario by remember { mutableStateOf("Usuario") } //nombre del usuario, despues esto viene de la sesion TODO
+
+    LevelUpCard( //usamos LevelUpCard con los estilos del tema
+        paddingValues = PaddingValues(dimens.mediumSpacing)
+    ) {
+        LevelUpSpacedColumn( //columna con espaciado automatico
+            spacing = dimens.fieldSpacing,
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text( //label del slider
+                text = "Tu calificación",
+                style = MaterialTheme.typography.labelMedium
+            )
+            
+            Slider( //slider para seleccionar el rating de 1 a 5
+                value = rating, //el valor actual
+                onValueChange = { rating = it }, //cuando cambia actualizamos el estado
+                valueRange = 1f..5f, //rango de 1 a 5
+                steps = 3 //4 pasos (1, 2, 3, 4, 5)
+            )
+            Text( //mostramos el valor seleccionado
+                text = "${rating.toInt()} estrellas",
+                style = MaterialTheme.typography.bodySmall
+            )
+
+            OutlinedTextField( //campo de texto para el comentario
+                value = comentario,
+                onValueChange = { comentario = it }, //cuando escriben actualizamos el estado
+                label = { Text("Tu reseña") },
+                placeholder = { Text("Cuéntanos tu experiencia") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3 //minimo 3 lineas de alto
+            )
+
+            Button( //boton para enviar la review
+                onClick = {
+                    if (comentario.isNotBlank()) { //validamos q no este vacio
+                        onAgregarReview(rating, comentario, usuario) //enviamos la review al viewmodel
+                        comentario = "" //limpiamos el form
+                        rating = 5f //volvemos al rating por defecto
+                    } //TODO: agregar validacion de q el usuario este logueado
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Enviar reseña")
+            }
+        }
+    }
+}
+//FIN FORMULARIO REVIEW - despues hay q conectar esto con el usuario logueado
+
+//REVIEW CARD - CARD INDIVIDUAL PARA CADA REVIEW
+@Composable //este componente muestra una review individual
+private fun ReviewCard(
+    review: Review, //recibe una review para mostrar
+    dimens: com.example.levelupprueba.ui.theme.Dimens //dimensiones del tema
+) {
+    LevelUpCard( //usamos LevelUpCard con los estilos del tema
+        paddingValues = PaddingValues(dimens.mediumSpacing)
+    ) {
+        LevelUpSpacedColumn( //columna con espaciado automatico
+            spacing = dimens.smallSpacing,
+            horizontalAlignment = Alignment.Start
+        ) {
+            Row( //header con las estrellas y la fecha
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween, //separamos las estrellas de la fecha
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ProductoRatingStars(rating = review.rating, starSize = dimens.smallIconSize) //las estrellas del rating
+                Text( //la fecha de la review
+                    text = review.fecha,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Text( //el nombre del usuario q hizo la review
+                text = review.usuarioNombre,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text( //el comentario de la review
+                text = review.comentario,
+                style = MaterialTheme.typography.bodyMedium,
+                lineHeight = 20.sp //espaciado entre lineas
+            )
+        }
+    }
+}
+//FIN REVIEW CARD - cada review se ve asi, simple y claro
+//Y ACA TERMINA TODO EL ARCHIVO, SON COMO 600 LINEAS PERO AHORA ESTA TODO COMENTADO
+//ESPERO Q SE ENTIENDA MEJOR AHORA, ES BASICAMENTE COMO EL HTML PERO EN KOTLIN CON MAS COMPLICACIONES JAJA
+
