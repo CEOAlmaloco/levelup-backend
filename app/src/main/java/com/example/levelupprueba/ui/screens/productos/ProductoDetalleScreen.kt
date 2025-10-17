@@ -2,8 +2,6 @@ package com.example.levelupprueba.ui.screens.productos
 
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,7 +14,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -27,11 +24,10 @@ import coil.request.ImageRequest
 import com.example.levelupprueba.model.producto.Producto
 import com.example.levelupprueba.model.producto.Review
 import com.example.levelupprueba.ui.components.ProductoRatingStars
-import com.example.levelupprueba.ui.components.LevelUpSpacedColumn
 import com.example.levelupprueba.ui.components.buttons.LevelUpButton
-import com.example.levelupprueba.ui.components.buttons.LevelUpOutlinedButton
 import com.example.levelupprueba.ui.components.cards.LevelUpCard
 import com.example.levelupprueba.ui.components.cards.ProductoCard
+import com.example.levelupprueba.ui.components.common.LevelUpSpacedColumn
 import com.example.levelupprueba.ui.components.overlays.LevelUpLoadingOverlay
 import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.ui.theme.SemanticColors

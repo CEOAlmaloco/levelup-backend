@@ -60,7 +60,6 @@ data class Dimens(
     val chipCornerRadius: Dp,
     val dropdownMenuMaxHeight: Dp,
 
-    // Badges
 
     // BADGE
     val badgeHeight: Dp,

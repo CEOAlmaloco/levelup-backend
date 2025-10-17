@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.widget.Toast
+import androidx.compose.material3.IconButton
 import com.example.levelupprueba.MainActivity
 import com.example.levelupprueba.model.auth.LoginStatus
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -218,7 +219,6 @@ fun ProfileScreen(
                     LevelUpCard(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = dimens.screenPadding)
                     ) {
                         Column(
                             modifier = Modifier.padding(dimens.mediumSpacing),
@@ -244,7 +244,7 @@ fun ProfileScreen(
                                 )
 
                                 if (estado.referralCode.isNotEmpty()) {
-                                    androidx.compose.material3.IconButton(
+                                    IconButton(
                                         onClick = {
                                             val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as ClipboardManager
                                             val clip = ClipData.newPlainText("Código de Referido", estado.referralCode)
