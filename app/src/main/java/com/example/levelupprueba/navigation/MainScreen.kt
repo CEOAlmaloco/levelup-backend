@@ -259,8 +259,7 @@ fun MainScreen(
                             onVerMasClick = {
                                 navController.navigate(Screen.Productos.route)
                             },
-                            contentPadding = innerPadding
-                            },
+                            contentPadding = innerPadding,
                             onProductoClick = { productoId ->
                                 navController.navigate("producto_detalle/$productoId")
                             }
