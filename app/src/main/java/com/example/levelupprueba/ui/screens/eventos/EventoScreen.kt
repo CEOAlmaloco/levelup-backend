@@ -150,12 +150,11 @@ fun EventoScreen(
     //este es por si no se pudo cargar los eventos o algo asi
     estado.error?.let { error ->
         LevelUpAlertDialog(
-            onDismissRequest = { },
+            onDismiss = { },
             title = "Error",
             text = error,
             confirmText = "Reintentar",
             onConfirm = { viewModel.refrescarEventos() },
-            dimens = dimens
         )
     }
 }
@@ -630,7 +629,7 @@ fun RecompensasSection(
 
     if (showDialog) {
         LevelUpAlertDialog(
-            onDismissRequest = { showDialog = false },
+            onDismiss = { showDialog = false },
             title = if (puntosUsuario >= (recompensaSeleccionada?.costo ?: 0)) 
                 "¡Éxito!" 
             else 
@@ -638,7 +637,6 @@ fun RecompensasSection(
             text = mensajeDialog,
             confirmText = "Aceptar",
             onConfirm = { showDialog = false },
-            dimens = dimens
         )
     }
 }

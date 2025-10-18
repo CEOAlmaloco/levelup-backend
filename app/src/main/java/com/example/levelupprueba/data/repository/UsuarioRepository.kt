@@ -53,6 +53,22 @@ class UsuarioRepository(private val usuarioDao: UsuarioDao) {
         }
     }
 
+    suspend fun changePasswordUsuario(
+        email: String,
+        currentPassword: String,
+        newPassword: String
+    ): Boolean{
+        val usuario = usuarioDao.getUsuarioByEmail(email)
+        if (usuario != null && usuario.password == currentPassword) {
+            val updatedUsuario = usuario.copy(password = newPassword)
+            usuarioDao.updateUsuario(updatedUsuario)
+            return true
+        }
+        return false
+    }
+
+
+
     fun generateReferralCode(nombre: String): String {
         val raw = nombre.replace("\\s+".toRegex(), "").uppercase()
         val rand = (1..4).map { ('A'..'Z').random() }.joinToString("")

@@ -7,7 +7,7 @@ import com.example.levelupprueba.data.local.UserDataStore
 import com.example.levelupprueba.data.local.getUserSessionFlow
 import com.example.levelupprueba.data.repository.UsuarioRepository
 import com.example.levelupprueba.model.evento.Evento
-import com.example.levelupprueba.model.evento.EventoRepository
+import com.example.levelupprueba.data.repository.EventoRepository
 import com.example.levelupprueba.model.evento.EventoUiState
 import com.example.levelupprueba.model.evento.RecompensaCanje
 import com.example.levelupprueba.model.usuario.Usuario

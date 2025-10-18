@@ -51,7 +51,6 @@ fun LevelUpNavigationBar(
                     onClick = {
                         coroutineScope.launch {
                             mainViewModel.navigateTo(screen.route)
-
                         }
                     },
                     colors = levelUpNavigationBarItemsColors()

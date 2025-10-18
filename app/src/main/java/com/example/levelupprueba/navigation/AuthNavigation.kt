@@ -10,7 +10,6 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -33,10 +32,9 @@ fun AuthNavigation(
     startDestination: String = "welcome"
 ){
 
-
+    val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    val coroutineScope = rememberCoroutineScope()
     NavHost(
         navController = navController,
         startDestination = startDestination,

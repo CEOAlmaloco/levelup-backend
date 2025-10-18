@@ -1,4 +1,6 @@
-package com.example.levelupprueba.model.blog
+package com.example.levelupprueba.data.repository
+
+import com.example.levelupprueba.model.blog.Blog
 
 class BlogRepository {
 
