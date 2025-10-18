@@ -1,6 +1,11 @@
-package com.example.levelupprueba.model.producto
+package com.example.levelupprueba.data.repository
 
 import com.example.levelupprueba.data.local.ReviewDao
+import com.example.levelupprueba.model.producto.Categoria
+import com.example.levelupprueba.model.producto.ImagenCarrusel
+import com.example.levelupprueba.model.producto.Producto
+import com.example.levelupprueba.model.producto.Review
+import com.example.levelupprueba.model.producto.Subcategoria
 
 //ahora el repository recibe el ReviewDao para acceder a la bd
 class ProductoRepository(
@@ -101,7 +106,7 @@ class ProductoRepository(
                 destacado = false,
                 stock = 0
             ),
-            
+
             // Periféricos
             Producto(
                 id = "PE001",
@@ -181,7 +186,7 @@ class ProductoRepository(
                 destacado = false,
                 stock = 15
             ),
-            
+
             // Ropa
             Producto(
                 id = "RO001",
@@ -261,7 +266,7 @@ class ProductoRepository(
                 destacado = false,
                 stock = 50
             ),
-            
+
             // Entretenimiento
             Producto(
                 id = "EN001",
@@ -295,20 +300,20 @@ class ProductoRepository(
     fun obtenerProductosDestacados(): List<Producto> {
         return obtenerProductos().filter { it.destacado }
     }
-    
-    fun obtenerProductoPorId(id: String): Producto? { 
+
+    fun obtenerProductoPorId(id: String): Producto? {
         return obtenerProductos().find { it.id == id }
-    } //esta funcion sirve para detalle producto para buscar el producto por id al darle click 
-    //ojala no sea dificil implementarlo con postman luego 
-    
+    } //esta funcion sirve para detalle producto para buscar el producto por id al darle click
+    //ojala no sea dificil implementarlo con postman luego
+
     fun obtenerProductosRelacionados(producto: Producto): List<Producto> {
         return obtenerProductos()//filtrar de la lista de producto y retornamos
         //de lafuncion obtener productos y filtramos por id y categoria
             .filter { it.id != producto.id && it.categoria == producto.categoria }//filter segun los parametros que le pasamos
             .shuffled()//shuffle es para mezclar la lista y q no se repitan los productos
-            .take(4)//take es para tomar los primeros 4 productos y no sobrecargar 
+            .take(4)//take es para tomar los primeros 4 productos y no sobrecargar
     }
-    
+
     //ahora las reviews se traen de SQLite en vez de estar hardcodeadas
     suspend fun obtenerReviews(productoId: String): List<Review> { //ahora es suspend pq es una operacion asincrona
         return reviewDao?.getReviewsByProductoId(productoId) ?: listOf( //si el dao no es null, traemos las reviews de la bd
@@ -339,7 +344,7 @@ class ProductoRepository(
             )
         )
     }
-    
+
     //ahora guardamos la review en SQLite
     suspend fun agregarReview(productoId: String, review: Review): Boolean { //ahora es suspend
         return try {
@@ -350,7 +355,7 @@ class ProductoRepository(
             false //retornamos false si falla
         }
     }
-    
+
     //funcion extra para borrar una review si el usuario quiere
     suspend fun borrarReview(review: Review): Boolean {
         return try {
@@ -361,15 +366,14 @@ class ProductoRepository(
             false
         }
     }
-    
+
     //funcion para obtener el rating promedio desde la bd
     suspend fun obtenerRatingPromedio(productoId: String): Float {
         return reviewDao?.getAverageRating(productoId) ?: 0f //si no hay reviews retorna 0
     }
-    
+
     //funcion para contar cuantas reviews tiene un producto
     suspend fun contarReviews(productoId: String): Int {
         return reviewDao?.getReviewCount(productoId) ?: 0 //si no hay reviews retorna 0
     }
 }
-

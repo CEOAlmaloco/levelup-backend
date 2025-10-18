@@ -1,8 +1,11 @@
 package com.example.levelupprueba.viewmodel
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.levelupprueba.AuthActivity
 import com.example.levelupprueba.data.local.UserDataStore
 import com.example.levelupprueba.data.local.clearUserSession
 import com.example.levelupprueba.data.local.saveUserSession
@@ -137,8 +140,16 @@ class LoginViewModel(
 
     fun logout(context: Context, mainViewModel: MainViewModel){
         viewModelScope.launch {
-            clearUserSession(context)
-            mainViewModel.setUserSession(null)
+            clearUserSession(context) // Borrar datos de usuario
+            mainViewModel.setUserSession(null) // Borrar datos de usuario en MainViewModel
+
+            // Iniciar la actividad de autenticación en WelcomeScreen
+            val intent = Intent(context, AuthActivity::class.java) // Cambiar a AuthActivity
+            intent.putExtra("startDestination", "welcome") // Establecer la pantalla de inicio
+            // Borrar todas las actividades de la pila
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            context.startActivity(intent) // Se inicia la actividad
+            (context as? Activity)?.finish() // Se finaliza la actividad de ahora (MainActivity)
         }
     }
 }

@@ -1,11 +1,16 @@
-package com.example.levelupprueba.model.evento
+package com.example.levelupprueba.data.repository
+
+import com.example.levelupprueba.model.evento.CodigoEvento
+import com.example.levelupprueba.model.evento.Evento
+import com.example.levelupprueba.model.evento.RecompensaCanje
+import com.example.levelupprueba.model.evento.TipoRecompensa
 
 //modelo evento luego IMPLEMENTAR CON SQL LITE
 class EventoRepository {
 
     // Copia exacta de eventosLevelUp del JS - COORDENADAS EXACTAS
     fun obtenerEventos(): List<Evento> {
-        //funcion obtener eventos sera una lista que contiene eventos 
+        //funcion obtener eventos sera una lista que contiene eventos
         return listOf(
             Evento(
                 id = "1",
@@ -104,7 +109,7 @@ class EventoRepository {
     /* adaptacion de las recompensas del js para el canje de puntos */
     fun obtenerRecompensas(): List<RecompensaCanje> {//funcion obtener recompensas sera una lista que contiene recompensas
         return listOf(
-            RecompensaCanje(//estos luego se procesaran con otra funcion para el canje de puntos en el viewmodel pero eso a futuro 
+            RecompensaCanje(//estos luego se procesaran con otra funcion para el canje de puntos en el viewmodel pero eso a futuro
                 id = "1",
                 titulo = "Descuento 5%",
                 descripcion = "5% de descuento en tu próxima compra",
@@ -139,7 +144,7 @@ class EventoRepository {
     fun validarCodigo(codigo: String): CodigoEvento? {// para validar el codigo necesitamos el string del codigo y la funcion devuelve un valor tipo codigoevento que puede ser null si no es valido
 
         val codigosValidos = mapOf(//mapa de codigos validos para el canje de puntos obviamente son simulaciones  no reales pero para tener algo
-            "LVUP-SANTIAGO-100" to 100,//otro copia pega de js 
+            "LVUP-SANTIAGO-100" to 100,//otro copia pega de js
             "LVUP-VINA-80" to 80,
             "LVUP-CONCE-70" to 70,
             "LVUP-SERENA-60" to 60,
@@ -149,11 +154,14 @@ class EventoRepository {
         )
 
         val puntos = codigosValidos[codigo.uppercase()]// el valor puntos sera el valor del codigo en el mapa de codigos validos y lo convertimos a mayusculas para que no haya problemas con la mayuscula o minuscula
-        return if (puntos != null) {//retornamos el codigo valido si es diferente a null 
-            CodigoEvento(codigo = codigo, puntos = puntos, usado = false)//entonces el codigoevento sera igual a codigo, puntos y usado con sus valores 
+        return if (puntos != null) {//retornamos el codigo valido si es diferente a null
+            CodigoEvento(
+                codigo = codigo,
+                puntos = puntos,
+                usado = false
+            )//entonces el codigoevento sera igual a codigo, puntos y usado con sus valores
         } else {
             null
         }
     }
 }
-

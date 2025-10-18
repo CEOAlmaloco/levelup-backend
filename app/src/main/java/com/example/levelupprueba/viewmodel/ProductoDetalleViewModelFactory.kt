@@ -3,7 +3,7 @@ package com.example.levelupprueba.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.levelupprueba.data.local.ReviewDao
-import com.example.levelupprueba.model.producto.ProductoRepository
+import com.example.levelupprueba.data.repository.ProductoRepository
 
 //el factory es como una fabrica q crea viewmodels con parametros personalizados
 //pq por defecto los viewmodels no pueden recibir parametros en el constructor

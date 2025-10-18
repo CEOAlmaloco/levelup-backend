@@ -19,9 +19,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import com.example.levelupprueba.ui.theme.Dimens
+import com.example.levelupprueba.ui.theme.LocalDimens
 
 /**
  * Funcion que permite reutilizar el campo de texto para la contraseña
@@ -46,9 +49,10 @@ fun LevelUpPasswordField(
     supportingText: (@Composable (() -> Unit))? = null,
     singleLine: Boolean = true,
     modifier: Modifier = Modifier,
+    focusRequester: FocusRequester? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
-    dimens: Dimens
+    dimens: Dimens = LocalDimens.current
 ) {
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
@@ -96,6 +100,10 @@ fun LevelUpPasswordField(
         supportingText = supportingText,
         singleLine = singleLine,
         modifier = modifier
+            .then(
+                if (focusRequester != null) Modifier.focusRequester(focusRequester)
+                else Modifier
+            )
             .fillMaxWidth(),
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions

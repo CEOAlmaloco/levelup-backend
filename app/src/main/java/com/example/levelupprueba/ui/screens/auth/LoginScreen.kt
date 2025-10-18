@@ -41,7 +41,6 @@ import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.ui.theme.SemanticColors
 import com.example.levelupprueba.viewmodel.LoginViewModel
 import com.example.levelupprueba.viewmodel.MainViewModel
-import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
@@ -56,8 +55,6 @@ fun LoginScreen(
     val estado by viewModel.estado.collectAsState()
 
     val loginEstado by viewModel.loginEstado.collectAsState()
-
-    val coroutineScope = rememberCoroutineScope()
 
     // Contexto para el inicio de sesión
     val context = LocalContext.current
@@ -74,12 +71,10 @@ fun LoginScreen(
                     navigationIcon = {
                         LevelUpIconButton(
                             onClick = {
-                                coroutineScope.launch {
-                                    val canGoBack = navController.popBackStack()
-                                    if (!canGoBack) {
-                                        context.startActivity(Intent(context, MainActivity::class.java))
-                                        (context as? ComponentActivity)?.finish()
-                                    }
+                                val canGoBack = navController.popBackStack()
+                                if (!canGoBack) {
+                                    context.startActivity(Intent(context, MainActivity::class.java))
+                                    (context as? ComponentActivity)?.finish()
                                 }
                             },
                             imageVector = Icons.Default.ArrowBack,
@@ -176,9 +171,7 @@ fun LoginScreen(
                             enabled = viewModel.puedeIniciarSesion() && loginEstado != LoginStatus.Loading,
                             onClick = {
                                 if (viewModel.validarLogin()) {
-                                    coroutineScope.launch {
-                                        viewModel.loginUsuario(context, estado.emailOrName.valor, estado.password.valor, mainViewModel)
-                                    }
+                                    viewModel.loginUsuario(context, estado.emailOrName.valor, estado.password.valor, mainViewModel)
                                 }
                             },
                             modifier = Modifier
@@ -215,29 +208,17 @@ fun LoginScreen(
                     // Scrim con Loading
                     when (loginEstado){
                         is LoginStatus.Success -> {
-                            // Popup de éxito (AlertDialog)
-                            LevelUpAlertDialog(
-                                onDismissRequest = {
-                                    viewModel.resetLoginEstado()
-                                },
-                                title = "¡Inicio de sesion exitoso!",
-                                text = "Has iniciado sesión correctamente.",
-                                confirmText = "Aceptar",
-                                onConfirm = {
-                                    viewModel.resetLoginEstado()
-                                    // Navega a MainActivity
-                                    context.startActivity(Intent(context, MainActivity::class.java))
-                                    // Opcional: Cierra AuthActivity para que no vuelva atrás
-                                    (context as? ComponentActivity)?.finish()
-                                },
-                                dimens = dimens
-                            )
+                            viewModel.resetLoginEstado()
+                            // Navega a MainActivity
+                            context.startActivity(Intent(context, MainActivity::class.java))
+                            // Opcional: Cierra AuthActivity para que no vuelva atrás
+                            (context as? ComponentActivity)?.finish()
                         }
                         is LoginStatus.Error -> {
                             // Popup de error (AlertDialog)
                             val mensajeError = (loginEstado as LoginStatus.Error).mensajeError
                             LevelUpAlertDialog(
-                                onDismissRequest = {
+                                onDismiss = {
                                     viewModel.resetLoginEstado()
                                 },
                                 title = "Error",
@@ -245,8 +226,7 @@ fun LoginScreen(
                                 confirmText = "Cerrar",
                                 onConfirm = {
                                     viewModel.resetLoginEstado()
-                                },
-                                dimens = dimens
+                                }
                             )
                         }
 

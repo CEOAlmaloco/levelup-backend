@@ -4,30 +4,24 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.with
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -41,34 +35,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.unit.dp
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.widget.Toast
-import androidx.compose.material3.IconButton
-import com.example.levelupprueba.MainActivity
-import com.example.levelupprueba.model.auth.LoginStatus
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.levelupprueba.model.profile.ProfileStatus
-import com.example.levelupprueba.ui.components.common.LevelUpBadge
-import com.example.levelupprueba.ui.components.lists.LevelUpListItem
-import com.example.levelupprueba.ui.components.user.LevelUpProfileAvatar
-import com.example.levelupprueba.ui.components.buttons.MenuButton
-import com.example.levelupprueba.ui.components.cards.LevelUpCard
-import com.example.levelupprueba.ui.components.forms.LevelUpSectionDivider
-import com.example.levelupprueba.ui.components.forms.ProfileEditForm
+import com.example.levelupprueba.ui.components.forms.LevelUpChangePasswordForm
+import com.example.levelupprueba.ui.components.forms.LevelUpProfileEditForm
+import com.example.levelupprueba.ui.components.user.LevelUpProfileContent
+import com.example.levelupprueba.ui.components.user.LevelUpProfileHeader
 import com.example.levelupprueba.ui.theme.LocalDimens
-import com.example.levelupprueba.ui.theme.SemanticColors
 import com.example.levelupprueba.utils.ImageUtils
-import com.example.levelupprueba.utils.debouncedClickable
 import com.example.levelupprueba.viewmodel.MainViewModel
+import com.example.levelupprueba.viewmodel.ChangePasswordViewModel
 import com.example.levelupprueba.viewmodel.ProfileViewModel
 import com.example.levelupprueba.viewmodel.UbicacionViewModel
 
+@OptIn(ExperimentalAnimationApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel,
+    changePasswordViewModel: ChangePasswordViewModel,
     mainViewModel: MainViewModel,
     isLoggedIn: Boolean,
     userId: String,
@@ -77,18 +62,15 @@ fun ProfileScreen(
 ) {
     val dimens = LocalDimens.current
     val estado by viewModel.estado.collectAsState()
-    var isEditing by rememberSaveable { mutableStateOf(false) }
-
+    var currentMode by rememberSaveable { mutableStateOf(ProfileMode.VIEW) }
+    var showConfirmDeleteDialog by remember {mutableStateOf(false)}
     var perfilEditable by remember { mutableStateOf(PerfilEditable()) }
     val ubicacionViewModel: UbicacionViewModel = viewModel()
-
     val isSaveEnabled = perfilEditable.esValido()
 
     val focusManager = LocalFocusManager.current
     val focusRequesters = remember { List(4) { FocusRequester() } }
-
     val context = LocalContext.current
-
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
         onResult = { uri ->
@@ -114,13 +96,15 @@ fun ProfileScreen(
                 if (perfilEditable.region.isNotBlank()) {
                     ubicacionViewModel.selectRegion(perfilEditable.region)
                 }
-                isEditing = true
+                currentMode = ProfileMode.EDIT
             }
         ),
         Option(
             label = "Cambiar contraseña",
             icon = Icons.Default.Lock,
-            onClick = { }
+            onClick = {
+                currentMode = ProfileMode.CHANGE_PASSWORD
+            }
         )
     )
 
@@ -154,206 +138,74 @@ fun ProfileScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(dimens.mediumSpacing)
         ) {
-
-            item{
-                Spacer(modifier = Modifier.height(dimens.mediumSpacing))
-            }
-
+            item { Spacer(modifier = Modifier.height(dimens.mediumSpacing)) }
             item {
-                Column(
-                    modifier = Modifier.padding(horizontal = dimens.screenPadding),
-                    verticalArrangement = Arrangement.spacedBy(dimens.mediumSpacing),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    if (isEditing) {
-                        Box(
-                            modifier = Modifier
-                                .size(120.dp)
-                                .debouncedClickable { launcher.launch("image/*") },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            LevelUpProfileAvatar(
-                                avatar = perfilEditable.avatar,
-                                nombre = displayName,
-                                isLoggedIn = isLoggedIn,
-                                iconSize = 120.dp
-                            )
-                            Icon(
-                                imageVector = Icons.Default.CameraAlt,
-                                contentDescription = "Editar avatar",
-                                tint = MaterialTheme.colorScheme.onBackground,
-                                modifier = Modifier
-                                    .align(Alignment.BottomEnd)
-                                    .size(dimens.iconSize)
-                            )
-                        }
-                        LevelUpBadge(
-                            text = "Cambiar avatar",
-                            textColor = MaterialTheme.colorScheme.onBackground.copy(0.87f),
-                            backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(
-                                0.50f
-                            ),
-                        )
-                    } else {
-                        LevelUpProfileAvatar(
-                            avatar = estado.avatar,
-                            nombre = displayName,
-                            isLoggedIn = isLoggedIn,
-                            iconSize = 120.dp
-                        )
-                    }
-
-                    Text(
-                        text = "${estado.nombre.valor} ${estado.apellidos.valor}",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-
-                    LevelUpBadge(
-                        text = "ID No: $userId",
-                        textColor = MaterialTheme.colorScheme.onSurface.copy(0.50f),
-                        backgroundColor = MaterialTheme.colorScheme.surface.copy(0.50f),
-                    )
-                    //NUEVO AGREGADO DE SCREEN EN PERFIL
-                    // Codigo de referido y puntos
-                    LevelUpCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(dimens.mediumSpacing),
-                            verticalArrangement = Arrangement.spacedBy(dimens.smallSpacing)
-                        ) {
-                            Text(
-                                text = "Mi Código de Referido",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacing),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                LevelUpBadge(
-                                    text = estado.referralCode.ifEmpty { "Generando..." },
-                                    textColor = MaterialTheme.colorScheme.onBackground,
-                                    backgroundColor = MaterialTheme.colorScheme.surface.copy(0.8f),
-                                    modifier = Modifier.weight(1f)
-                                )
-
-                                if (estado.referralCode.isNotEmpty()) {
-                                    IconButton(
-                                        onClick = {
-                                            val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                            val clip = ClipData.newPlainText("Código de Referido", estado.referralCode)
-                                            clipboard.setPrimaryClip(clip)
-                                            Toast.makeText(context, "Código copiado al portapapeles", Toast.LENGTH_SHORT).show()
-                                        }
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Filled.ContentCopy,
-                                            contentDescription = "Copiar código",
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-                                }
-                            }
-
-                            Text(
-                                text = "Comparte este código con tus amigos para obtener 50 puntos cuando se registren",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(0.7f),
-                                modifier = Modifier.fillMaxWidth()
-                            )
-
-                            Spacer(modifier = Modifier.height(dimens.smallSpacing))
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "Puntos actuales:",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                LevelUpBadge(
-                                    text = "${estado.points} pts",
-                                    textColor = MaterialTheme.colorScheme.secondary,
-                                    backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(0.3f)
-                                )
-                            }
-                        }
-                    }//FIN DE NUEVO AGREGADO EN SCREEN DEL PERFIL
-                }
+                LevelUpProfileHeader(
+                    isEditing = currentMode == ProfileMode.EDIT,
+                    perfilEditable = perfilEditable,
+                    estado = estado,
+                    displayName = displayName,
+                    isLoggedIn = isLoggedIn,
+                    launcher = launcher,
+                    dimens = dimens,
+                    userId = userId
+                )
             }
 
             when (estado.profileStatus) {
-                is ProfileStatus.Saved -> {
-
-                }
-                is ProfileStatus.Error -> {
-
-                }
+                is ProfileStatus.Saved -> { /* Puedes mostrar feedback aquí si lo necesitas */ }
+                is ProfileStatus.Error -> { /* Puedes mostrar feedback aquí si lo necesitas */ }
                 is ProfileStatus.ValidationError -> {
 
                 }
                 else -> {}
             }
-
             item {
-                if (isEditing) {
-                    ProfileEditForm(
-                        perfilEditable = perfilEditable,
-                        onPerfilChange = { perfilEditable = it },
-                        ubicacionViewModel = ubicacionViewModel,
-                        isSaveEnabled = isSaveEnabled,
-                        profileStatus = estado.profileStatus,
-                        onSaveClick = {
-                            viewModel.guardarPerfil(perfilEditable, mainViewModel)
-                        },
-                        onCancelClick = { isEditing = false },
-                        focusRequesters = focusRequesters,
-                        focusManager = focusManager
-                    )
-                } else {
-                    LevelUpCard(
-                        modifier = Modifier
-                            .padding(horizontal = dimens.screenPadding)
-                    ) {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(dimens.smallSpacing)
-                        ) {
-                            options.forEachIndexed { index, option ->
-                                LevelUpListItem(
-                                    icon = option.icon,
-                                    label = option.label,
-                                    onClick = option.onClick
-                                )
-                                if (index != options.lastIndex) {
-                                    LevelUpSectionDivider()
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(dimens.mediumSpacing))
-
-                            MenuButton(
-                                text = "Eliminar cuenta",
-                                icon = Icons.Default.Delete,
-                                containerColor = SemanticColors.AccentRed,
-                                contentColor = MaterialTheme.colorScheme.onBackground,
-                                shape = MaterialTheme.shapes.extraSmall,
-                                modifier = Modifier
-                                    .fillMaxWidth(),
-                                onClick = { }
-                            )
-                        }
+                AnimatedContent(
+                    targetState = currentMode,
+                    transitionSpec = {
+                        fadeIn() with fadeOut()
+                    }
+                ) { mode ->
+                    when (mode) {
+                        ProfileMode.EDIT -> LevelUpProfileEditForm(
+                            perfilEditable = perfilEditable,
+                            onPerfilChange = { perfilEditable = it },
+                            ubicacionViewModel = ubicacionViewModel,
+                            isSaveEnabled = isSaveEnabled,
+                            profileStatus = estado.profileStatus,
+                            onSaveClick = {
+                                viewModel.guardarPerfil(perfilEditable, mainViewModel)
+                            },
+                            onCancelClick = { currentMode = ProfileMode.VIEW },
+                            focusRequesters = focusRequesters,
+                            focusManager = focusManager
+                        )
+                        ProfileMode.VIEW -> LevelUpProfileContent(
+                            estado = estado,
+                            options = options,
+                            showConfirmDeleteDialog = showConfirmDeleteDialog,
+                            onDeleteClick = { showConfirmDeleteDialog = true },
+                            onDeleteConfirm = {
+                                showConfirmDeleteDialog = false
+                                viewModel.eliminarUsuario(userId)
+                            },
+                            onDeleteDismiss = { showConfirmDeleteDialog = false },
+                            context = context,
+                            dimens = dimens
+                        )
+                        ProfileMode.CHANGE_PASSWORD -> LevelUpChangePasswordForm(
+                            email = estado.email.valor,
+                            viewModel = changePasswordViewModel,
+                            onCancelClick = {
+                                currentMode = ProfileMode.VIEW
+                            },
+                            focusManager = focusManager
+                        )
                     }
                 }
             }
         }
     }
 }
+

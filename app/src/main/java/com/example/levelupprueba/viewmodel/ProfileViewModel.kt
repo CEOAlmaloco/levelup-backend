@@ -98,6 +98,7 @@ class ProfileViewModel(
             )
         }
     }
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun guardarPerfil(perfilEditable: PerfilEditable, mainViewModel: MainViewModel){
         viewModelScope.launch {
@@ -176,5 +177,29 @@ class ProfileViewModel(
             }
 
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun eliminarUsuario(userId: String){
+        viewModelScope.launch {
+            _estado.update { it.copy(profileStatus = ProfileStatus.Deleting) }
+            delay(2000)
+
+            try {
+                val usuario = usuarioRepository.getUsuarioById(userId)
+                if (usuario != null){
+                    usuarioRepository.deleteUsuario(usuario)
+                    _estado.update { it.copy(profileStatus = ProfileStatus.Deleted) }
+                } else {
+                    _estado.update { it.copy(profileStatus = ProfileStatus.Error("Usuario no encontrado")) }
+                }
+            } catch (e: Exception){
+                _estado.update { it.copy(profileStatus = ProfileStatus.Error("Error al eliminar usuario: ${e.message}")) }
+            }
+        }
+    }
+
+    fun resetProfileStatus(){
+        _estado.update { it.copy(profileStatus = ProfileStatus.Idle) }
     }
 }

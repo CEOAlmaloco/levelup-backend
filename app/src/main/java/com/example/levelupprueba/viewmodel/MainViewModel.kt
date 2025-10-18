@@ -8,6 +8,7 @@ import com.example.levelupprueba.data.repository.UsuarioRepository
 import com.example.levelupprueba.model.auth.UserSession
 import kotlinx.coroutines.flow.StateFlow
 import com.example.levelupprueba.navigation.NavigationEvents
+import com.example.levelupprueba.ui.components.GlobalSnackbarState
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -28,6 +29,9 @@ class MainViewModel(
 
     private val _avatar = MutableStateFlow<String?>(null)
     val avatar: StateFlow<String?> get() = _avatar.asStateFlow()
+
+    private val _globalSnackbarState = MutableStateFlow<GlobalSnackbarState>(GlobalSnackbarState.Idle)
+    val globalSnackbarState: StateFlow<GlobalSnackbarState> = _globalSnackbarState
 
     init {
         viewModelScope.launch {
@@ -62,5 +66,20 @@ class MainViewModel(
 
     suspend fun navigateUp() {
         _navigationEvent.emit(NavigationEvents.NavigateUp)
+    }
+
+    fun showSuccessSnackbar(message: String) {
+        _globalSnackbarState.value = GlobalSnackbarState.Success(message)
+    }
+
+    fun showErrorSnackbar(message: String) {
+        _globalSnackbarState.value = GlobalSnackbarState.Error(message)
+    }
+
+    fun showInfoSnackbar(message: String) {
+        _globalSnackbarState.value = GlobalSnackbarState.Info(message)
+    }
+    fun clearSnackbar() {
+        _globalSnackbarState.value = GlobalSnackbarState.Idle
     }
 }

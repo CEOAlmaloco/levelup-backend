@@ -17,7 +17,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.levelupprueba.data.local.AppDatabase
 import com.example.levelupprueba.data.repository.UsuarioRepository
-import com.example.levelupprueba.navigation.MainScreen
+import com.example.levelupprueba.ui.screens.main.MainScreen
 import com.example.levelupprueba.ui.theme.LevelUpPruebaTheme
 import com.example.levelupprueba.viewmodel.BlogViewModel
 import com.example.levelupprueba.viewmodel.EventoViewModel
@@ -26,6 +26,8 @@ import com.example.levelupprueba.viewmodel.LoginViewModel
 import com.example.levelupprueba.viewmodel.LoginViewModelFactory
 import com.example.levelupprueba.viewmodel.MainViewModel
 import com.example.levelupprueba.viewmodel.MainViewModelFactory
+import com.example.levelupprueba.viewmodel.ChangePasswordViewModel
+import com.example.levelupprueba.viewmodel.ChangePasswordViewModelFactory
 import com.example.levelupprueba.viewmodel.ProductoViewModel
 import com.example.levelupprueba.viewmodel.ProductoDetalleViewModel
 import com.example.levelupprueba.viewmodel.ProductoDetalleViewModelFactory
@@ -70,6 +72,7 @@ class MainActivity : ComponentActivity() {
             val loginViewModelFactory = LoginViewModelFactory(usuarioRepository)
             val productoDetalleViewModelFactory = ProductoDetalleViewModelFactory(reviewDao) //factory con el reviewDao
             val profileViewModelFactory = ProfileViewModelFactory(usuarioRepository)
+            val changePasswordViewModelFactory = ChangePasswordViewModelFactory(usuarioRepository)
 
             // ViewModels - aca creamos los viewmodels, algunos con factory y otros sin factory
             val eventoViewModel: EventoViewModel = viewModel(factory = eventoViewModelFactory)
@@ -82,6 +85,8 @@ class MainActivity : ComponentActivity() {
             val productoViewModel: ProductoViewModel = viewModel()
             val productoDetalleViewModel: ProductoDetalleViewModel = viewModel(factory = productoDetalleViewModelFactory) //ahora usa SQLite
             val profileViewModel: ProfileViewModel = viewModel(factory = profileViewModelFactory)
+            val changePasswordViewModel: ChangePasswordViewModel = viewModel(factory = changePasswordViewModelFactory)
+
 
             val userSession by mainViewModel.userSessionFlow.collectAsState()
             val isLoading by mainViewModel.isLoading.collectAsState()
@@ -90,7 +95,7 @@ class MainActivity : ComponentActivity() {
             LaunchedEffect(Unit) {
                 // Inicializar ViewModels que necesitan contexto
                 eventoViewModel.inicializar(context)
-                
+
                 mainViewModel.navigationEvent.collect { event ->
                     when (event) {
                         is com.example.levelupprueba.navigation.NavigationEvents.NavigateTo -> {
@@ -106,6 +111,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+
             // Pasa la clase al tema
             LevelUpPruebaTheme (
                 dynamicColor = false,
@@ -123,7 +129,8 @@ class MainActivity : ComponentActivity() {
                     productoViewModel = productoViewModel,
                     eventoViewModel = eventoViewModel,
                     productoDetalleViewModel = productoDetalleViewModel,
-                    profileViewModel = profileViewModel
+                    profileViewModel = profileViewModel,
+                    changePasswordViewModel = changePasswordViewModel
                 )
             }
         }

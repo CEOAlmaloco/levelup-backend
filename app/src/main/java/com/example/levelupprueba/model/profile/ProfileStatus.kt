@@ -7,6 +7,10 @@ sealed class ProfileStatus {
     object Editing: ProfileStatus()
     object Saving: ProfileStatus()
     object Saved: ProfileStatus()
+    object Deleting: ProfileStatus()
+    object Deleted: ProfileStatus()
+
     data class Error(val errorMessage: String): ProfileStatus()
     data class ValidationError(val fields: List<String>, val errorMessage: String) : ProfileStatus()
+    data class DeleteError(val errorMessage: String) : ProfileStatus()
 }

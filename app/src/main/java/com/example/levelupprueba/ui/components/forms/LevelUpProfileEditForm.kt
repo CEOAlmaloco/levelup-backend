@@ -30,7 +30,7 @@ import com.example.levelupprueba.viewmodel.UbicacionViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ProfileEditForm(
+fun LevelUpProfileEditForm(
     perfilEditable: PerfilEditable,
     onPerfilChange: (PerfilEditable) -> Unit,
     ubicacionViewModel: UbicacionViewModel,

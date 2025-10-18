@@ -180,15 +180,12 @@ fun RegisterScreen(
                         }
                     }
                 }
-                LevelUpLoadingOverlay(
-                    visible = registroEstado is RegisterStatus.Loading
-                )
                 // Scrim con Loading
                 when (registroEstado){
                     is RegisterStatus.Success -> {
                         // Popup de éxito (AlertDialog)
                         LevelUpAlertDialog(
-                            onDismissRequest = {
+                            onDismiss = {
                                 viewModel.resetRegistroEstado()
                             },
                             title = "¡Registro exitoso!",
@@ -199,15 +196,14 @@ fun RegisterScreen(
                                 coroutineScope.launch {
                                     mainViewModel.navigateTo("login")
                                 }
-                            },
-                            dimens = dimens
+                            }
                         )
                     }
                     is RegisterStatus.Error -> {
                         // Popup de error (AlertDialog)
                         val mensajeError = (registroEstado as RegisterStatus.Error).mensajeError
                         LevelUpAlertDialog(
-                            onDismissRequest = {
+                            onDismiss = {
                                 viewModel.resetRegistroEstado()
                             },
                             title = "Error",
@@ -215,8 +211,7 @@ fun RegisterScreen(
                             confirmText = "Cerrar",
                             onConfirm = {
                                 viewModel.resetRegistroEstado()
-                            },
-                            dimens = dimens
+                            }
                         )
                     }
 
@@ -224,5 +219,8 @@ fun RegisterScreen(
                 }
             }
         }
+    )
+    LevelUpLoadingOverlay(
+        visible = registroEstado is RegisterStatus.Loading
     )
 }

@@ -6,7 +6,7 @@ package com.example.levelupprueba.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.levelupprueba.model.blog.Blog
-import com.example.levelupprueba.model.blog.BlogRepository
+import com.example.levelupprueba.data.repository.BlogRepository
 import com.example.levelupprueba.model.blog.BlogUiState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
