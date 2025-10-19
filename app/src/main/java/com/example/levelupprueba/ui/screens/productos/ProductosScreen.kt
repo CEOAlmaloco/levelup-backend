@@ -1,13 +1,14 @@
 package com.example.levelupprueba.ui.screens.productos
 
 
-//TO-DO TERMINAR ESTO MAÑANA O OTRO DIA ME TIENE CHATO SOLO Q FUNCIONE TA BIEN 
+//TO-DO TERMINAR ESTO MAÑANA O OTRO DIA ME TIENE CHATO SOLO Q FUNCIONE TA BIEN
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.*
@@ -15,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.levelupprueba.ui.components.cards.ProductoCard
 import com.example.levelupprueba.ui.components.filtros.FiltrosComponent
@@ -22,6 +24,9 @@ import com.example.levelupprueba.ui.components.inputs.LevelUpIconButton
 import com.example.levelupprueba.ui.components.overlays.LevelUpLoadingOverlay
 import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.viewmodel.ProductoViewModel
+import com.example.levelupprueba.ui.components.buttons.AddToCartButton
+import kotlinx.coroutines.launch
+
 
 @Composable
 fun ProductosScreen(
