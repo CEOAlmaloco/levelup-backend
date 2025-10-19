@@ -43,6 +43,7 @@ fun MainScreen(
     avatar: String?,
     mainViewModel: MainViewModel,
     navController: NavHostController,
+    carritoViewModel: CarritoViewModel,
     usuarioViewModel: UsuarioViewModel,
     loginViewModel: LoginViewModel,
     blogViewModel: BlogViewModel,
@@ -54,26 +55,63 @@ fun MainScreen(
     // opcional: permite cambiar startDestination sin tocar el código
     startOnEventosForTesting: Boolean = false
 ) {
-
+    // -- Esencial para Compose y Context --
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
-    val isLoggedIn = userSession?.userId?.isNotBlank() == true
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val snackbarHostState = remember { SnackbarHostState() }
 
+    // -- Relacionado al usuario --
+    val isLoggedIn = userSession?.userId?.isNotBlank() == true
+
+    // -- Navegacion --
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val topBarTitle = getTopBarTitle(currentRoute, navBackStackEntry)
-
     val bottomNavItems = listOf(Screen.Home, Screen.Productos, Screen.Blog, Screen.Eventos)
     val showBottomBar = currentRoute in bottomNavItems.map { it.route }
 
+    // -- Drawer y secciones --
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val drawerSections = listOf(
         DrawerSection(icon = Icons.Default.Home, label = "Inicio"),
         DrawerSection(icon = Icons.Default.ShoppingCart, label = "Productos"),
         DrawerSection(icon = Icons.Default.Article, label = "Blog"),
         DrawerSection(icon = Icons.Default.Event, label = "Eventos")
     )
+
+    // -- Profile UI State --
+
+    val profileUiState by profileViewModel.estado.collectAsState()
+    var showOverlayAfterDelete by remember { mutableStateOf(false) }
+
+    // -- DisplayName y Avatar
+
+    val updatedDisplayName = remember(profileUiState.nombre.valor, userSession?.displayName) {
+        profileUiState.nombre.valor.takeIf { it.isNotBlank() } ?: userSession?.displayName
+    }
+    val updatedAvatar = remember(profileUiState.avatar, avatar) {
+        profileUiState.avatar.takeIf { it?.isNotBlank() == true } ?: avatar
+    }
+
+    // -- Snackbar/Status
+    val globalSnackbarState by mainViewModel.globalSnackbarState.collectAsState()
+
+    val passwordStatus by changePasswordViewModel.status.collectAsState()
+
+    // -- Carrito --
+
+    val cantidadCarrito by carritoViewModel.cantidadCarrito.collectAsState()
+
+    // -- Efects --
+
+    LaunchedEffect(isLoggedIn, userSession?.userId) {
+        if (isLoggedIn && userSession?.userId != null) {
+            profileViewModel.cargarDatosUsuario(userSession.userId)
+        }
+    }
+
+    // -- Navegacion de Perfil
 
     fun handleProfileNavigation() {
         if (!isLoggedIn) {
@@ -88,29 +126,6 @@ fun MainScreen(
             }
         }
     }
-
-    val profileUiState by profileViewModel.estado.collectAsState()
-    var showOverlayAfterDelete by remember { mutableStateOf(false) }
-
-    LaunchedEffect(isLoggedIn, userSession?.userId) {
-        if (isLoggedIn && userSession?.userId != null) {
-            profileViewModel.cargarDatosUsuario(userSession.userId)
-        }
-    }
-
-    val updatedDisplayName = remember(profileUiState.nombre.valor, userSession?.displayName) {
-        profileUiState.nombre.valor.takeIf { it.isNotBlank() } ?: userSession?.displayName
-    }
-    val updatedAvatar = remember(profileUiState.avatar, avatar) {
-        profileUiState.avatar.takeIf { it?.isNotBlank() == true } ?: avatar
-    }
-
-    val snackbarHostState = remember { SnackbarHostState() }
-
-    val globalSnackbarState by mainViewModel.globalSnackbarState.collectAsState()
-
-    val passwordStatus by changePasswordViewModel.status.collectAsState()
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -146,16 +161,23 @@ fun MainScreen(
                         isLoggedIn = isLoggedIn,
                         nombre = updatedDisplayName,
                         avatar = updatedAvatar,
-                        showMenu = currentRoute != Screen.Perfil.route && currentRoute != Screen.ProductoDetalle.route ,
+                        showMenu =
+                            currentRoute != Screen.Perfil.route &&
+                            currentRoute != Screen.ProductoDetalle.route &&
+                            currentRoute != Screen.Carrito.route ,
                         showCart = currentRoute != Screen.Perfil.route,
                         showProfile = currentRoute != Screen.Perfil.route,
                         showSearch = currentRoute != Screen.Perfil.route,
-                        showBackArrow = currentRoute == Screen.Perfil.route || currentRoute == Screen.ProductoDetalle.route ,
+                        showBackArrow =
+                            currentRoute == Screen.Perfil.route ||
+                            currentRoute == Screen.ProductoDetalle.route ||
+                            currentRoute == Screen.Carrito.route ,
                         onBackClick = { coroutineScope.launch { mainViewModel.navigateBack() } },
                         onMenuClick = { coroutineScope.launch { drawerState.open() } },
-                        onCartClick = { /* TODO */ },
+                        onCartClick = { coroutineScope.launch { mainViewModel.navigateTo(Screen.Carrito.route)}},
                         onProfileClick = { handleProfileNavigation() },
-                        onSearchClick = { /* TODO */ }
+                        onSearchClick = { /* TODO */ },
+                        cantidadCarrito = cantidadCarrito
                     )
                 },
                 bottomBar = {
@@ -191,6 +213,7 @@ fun MainScreen(
                     loginViewModel = loginViewModel,
                     blogViewModel = blogViewModel,
                     productoViewModel = productoViewModel,
+                    carritoViewModel = carritoViewModel,
                     eventoViewModel = eventoViewModel,
                     productoDetalleViewModel = productoDetalleViewModel,
                     profileViewModel = profileViewModel,

@@ -10,7 +10,9 @@ import com.example.levelupprueba.model.errors.FieldErrors
  * Funcion reutilizable que permite mostrar un mensaje de error debajo de un field
  *
  * @param error Error que se mostrara debajo del campo
+ * @param fontSize Tamaño de la fuente del mensaje de error
  *
+ * @author Christian Mesa
  */
 @Composable
 fun errorSupportingText(

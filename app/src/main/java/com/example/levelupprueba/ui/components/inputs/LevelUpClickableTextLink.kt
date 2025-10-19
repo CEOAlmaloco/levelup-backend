@@ -10,6 +10,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import com.example.levelupprueba.ui.theme.Dimens
 
+/**
+ * Texto clickable para la aplicación LevelUp
+ *
+ * @param text Texto a mostrar
+ * @param onClick Función a ejecutar al hacer click en el texto
+ * @param modifier Modificador para personalizar el comportamiento del texto
+ * @param color Color del texto
+ * @param underline Booleano para mostrar o no la línea subrayada del texto
+ * @param fontWeight Peso de la fuente del texto
+ * @param dimens Dimensiones para personalizar el comportamiento del texto
+ *
+ * @author Christian Mesa
+ * */
 @Composable
 fun LevelUpClickableTextLink(
     text: String,

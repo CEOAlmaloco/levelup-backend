@@ -6,8 +6,11 @@ import com.example.levelupprueba.data.repository.CarritoRepository
 import com.example.levelupprueba.model.carrito.Carrito
 import com.example.levelupprueba.model.producto.Producto
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
@@ -34,6 +37,14 @@ class CarritoViewModel(
 
     // Carga inicial
     init { loadCarrito() }
+
+    val cantidadCarrito = carrito
+        .map { it.items.sumOf { item -> item.cantidad } }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 0
+    )
 
     /** Carga/recarga el carrito desde el repositorio. */
     fun loadCarrito() = viewModelScope.launch {

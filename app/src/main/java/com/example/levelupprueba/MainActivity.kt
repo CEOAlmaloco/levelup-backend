@@ -16,10 +16,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.levelupprueba.data.local.AppDatabase
+import com.example.levelupprueba.data.local.room.CarritoDatabase
+import com.example.levelupprueba.data.repository.CarritoRepositoryRoom
 import com.example.levelupprueba.data.repository.UsuarioRepository
 import com.example.levelupprueba.ui.screens.main.MainScreen
 import com.example.levelupprueba.ui.theme.LevelUpPruebaTheme
 import com.example.levelupprueba.viewmodel.BlogViewModel
+import com.example.levelupprueba.viewmodel.CarritoViewModel
+import com.example.levelupprueba.viewmodel.CarritoViewModelFactory
 import com.example.levelupprueba.viewmodel.EventoViewModel
 import com.example.levelupprueba.viewmodel.EventoViewModelFactory
 import com.example.levelupprueba.viewmodel.LoginViewModel
@@ -64,6 +68,8 @@ class MainActivity : ComponentActivity() {
             val database = AppDatabase.getInstance(context) //traemos la instancia de la bd completa
             val usuarioDao = database.usuarioDao() //obtenemos el dao de usuarios
             val reviewDao = database.reviewDao() //obtenemos el dao de reviews para los productos
+            val carritoDao = CarritoDatabase.get(context).carritoDao()
+            val carritoRepo = CarritoRepositoryRoom(carritoDao)
             val usuarioRepository = UsuarioRepository(usuarioDao)
 
             // Factories - las fabricas para crear viewmodels con parametros personalizados
@@ -71,18 +77,19 @@ class MainActivity : ComponentActivity() {
             val eventoViewModelFactory = EventoViewModelFactory(usuarioRepository)
             val loginViewModelFactory = LoginViewModelFactory(usuarioRepository)
             val productoDetalleViewModelFactory = ProductoDetalleViewModelFactory(reviewDao) //factory con el reviewDao
+            val carritoViewModelFactory = CarritoViewModelFactory(carritoRepo)
             val profileViewModelFactory = ProfileViewModelFactory(usuarioRepository)
             val changePasswordViewModelFactory = ChangePasswordViewModelFactory(usuarioRepository)
 
             // ViewModels - aca creamos los viewmodels, algunos con factory y otros sin factory
             val eventoViewModel: EventoViewModel = viewModel(factory = eventoViewModelFactory)
             val usuarioViewModelFactory = UsuarioViewModelFactory(usuarioRepository, eventoViewModel)
-
             val usuarioViewModel: UsuarioViewModel = viewModel(factory = usuarioViewModelFactory)
             val mainViewModel: MainViewModel = viewModel(factory = mainViewModelFactory)
             val loginViewModel: LoginViewModel = viewModel(factory = loginViewModelFactory)
             val blogViewModel: BlogViewModel = viewModel()
             val productoViewModel: ProductoViewModel = viewModel()
+            val carritoViewModel: CarritoViewModel = viewModel(factory = carritoViewModelFactory)
             val productoDetalleViewModel: ProductoDetalleViewModel = viewModel(factory = productoDetalleViewModelFactory) //ahora usa SQLite
             val profileViewModel: ProfileViewModel = viewModel(factory = profileViewModelFactory)
             val changePasswordViewModel: ChangePasswordViewModel = viewModel(factory = changePasswordViewModelFactory)
@@ -130,7 +137,8 @@ class MainActivity : ComponentActivity() {
                     eventoViewModel = eventoViewModel,
                     productoDetalleViewModel = productoDetalleViewModel,
                     profileViewModel = profileViewModel,
-                    changePasswordViewModel = changePasswordViewModel
+                    changePasswordViewModel = changePasswordViewModel,
+                    carritoViewModel = carritoViewModel
                 )
             }
         }
