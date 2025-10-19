@@ -151,12 +151,29 @@ fun LevelUpMainTopBar(
                                 )
                             }
                         },
+
                         titleText = title,
                         shadowElevation = 0.dp,
                         backgroundColor = Color.Transparent
+                    )
+
+                    LevelUpSearchBar(
+                        value = search,
+                        onValueChange = { search = it },
+                        onSearch = { query -> onSearchClick(query) },
+                        modifier = Modifier
+                            .padding(
+                                start = dimens.screenPadding,
+                                end = dimens.screenPadding,
+                                bottom = dimens.mediumSpacing
+                            ),
+                        onFocusChanged = { focused ->
+                            if (focused) isSearching = true
+                        }
                     )
                 }
             }
         }
     }
 }
+
