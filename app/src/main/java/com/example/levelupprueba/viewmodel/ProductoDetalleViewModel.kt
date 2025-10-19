@@ -34,8 +34,8 @@ class ProductoDetalleViewModel(
                     // Creamos el producto completo con toda la información de detalle
                     val productoCompleto = productoBase.copy(//copiamos el producto base y le agregamos la informacion de detalle
                         imagenesUrls = listOf(productoBase.imagenUrl),//agregamos la imagen principal
-                        fabricante = obtenerFabricante(productoBase),
-                        distribuidor = obtenerDistribuidor(productoBase),
+                        fabricante = productoBase.fabricante,
+                        distribuidor = productoBase.distribuidor,
                         reviews = reviews, 
                         productosRelacionados = relacionados//agregamos los productos relacionados
                     )
@@ -61,47 +61,6 @@ class ProductoDetalleViewModel(
                         error = "Error al cargar el producto: ${e.message}"
                     )
                 }
-            }
-        }
-    }
-
-    private fun obtenerFabricante(producto: Producto): String { // obtenemos el fabricante segun la categoria, no tiene mucho sentido pq deberia ser por producto y no por categoria
-        return when (producto.categoria) { //pero creo q me equivoque luego lo arreglo XD TODO todo 
-            Categoria.CONSOLA -> "Sony / Microsoft / Nintendo"
-            Categoria.PERIFERICOS -> "Logitech / HyperX / Razer"
-            Categoria.ROPA -> "LevelUp Apparel"
-            Categoria.ENTRETENIMIENTO -> "Asmodee / Devir" //retornamos cuando el producto en categoria sea categoria.categoria  igual a el nombre de la categoria para ser especificos en la asignacion de comparacion para devolver el valor real
-            else -> "LevelUp Partners"
-        }
-    }
-
-    private fun obtenerDistribuidor(producto: Producto): String {
-        return producto.subcategoria?.name?.let { // retornamos el producto cuando la subcategoria y el nombre no sean null y con el let accedemos a el.  
-            "$it LATAM Distribución"  //con esto concatenamos el nombre de la subcategoria y el texto LATAM Distribución, asi siempre tiene un distribuidor , igual pensaba en cambiarlo a una bd con el distribuidor para no hacer tanta chachara
-        } ?: "Distribuidor autorizado LATAM" //si el producto es null, retornamos el texto Distribuidor autorizado LATAM
-    }
-
-    fun agregarAlCarrito() {
-        _estado.update { //actualizamos el estado para que se muestre la cantidad de carrito
-            it.copy(cantidadCarrito = 1)
-        }
-    }
-
-    fun aumentarCantidad() { // la suma del carrito
-        _estado.update {
-            it.copy(cantidadCarrito = it.cantidadCarrito + 1)
-        }
-    }
-
-    fun disminuirCantidad() { // la resta del carrito
-        val cantidadActual = _estado.value.cantidadCarrito
-        if (cantidadActual > 1) {
-            _estado.update {//validacion de q siempre sea mayor a 1 para q no se pueda restar mas de 1
-                it.copy(cantidadCarrito = cantidadActual - 1)
-            }
-        } else {
-            _estado.update {//si es 1, seteamos el carrito a 0
-                it.copy(cantidadCarrito = 0)    
             }
         }
     }

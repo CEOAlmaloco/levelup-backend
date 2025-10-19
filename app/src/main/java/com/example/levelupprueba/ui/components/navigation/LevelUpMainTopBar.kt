@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
@@ -24,6 +25,26 @@ import com.example.levelupprueba.ui.components.inputs.LevelUpSearchBar
 import com.example.levelupprueba.ui.components.topbars.LevelUpTopBar
 import com.example.levelupprueba.ui.theme.LocalDimens
 
+/**
+ * TopBar Principal de la app LevelUp.
+ *
+ * @param avatar Avatar del usuario.
+ * @param isLoggedIn Indica si el usuario está logueado.
+ * @param nombre Nombre del usuario.
+ * @param title Título de la pantalla.
+ * @param onMenuClick Función a ejecutar al hacer click en el icono de menú.
+ * @param onCartClick Función a ejecutar al hacer click en el icono del carrito.
+ * @param onProfileClick Función a ejecutar al hacer click en el icono del perfil.
+ * @param onSearchClick Función a ejecutar al hacer click en el icono de búsqueda.
+ * @param showMenu Indica si se debe mostrar el icono de menú.
+ * @param showCart Indica si se debe mostrar el icono del carrito.
+ * @param showProfile Indica si se debe mostrar el icono del perfil.
+ * @param showSearch Indica si se debe mostrar el icono de búsqueda.
+ * @param showBackArrow Indica si se debe mostrar el icono de flecha hacia atrás.
+ * @param onBackClick Función a ejecutar al hacer click en el icono de flecha hacia atrás.
+ *
+ * @author Christian Mesa
+ * */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun LevelUpMainTopBar(
@@ -40,7 +61,8 @@ fun LevelUpMainTopBar(
     showProfile: Boolean = true,
     showSearch: Boolean = true,
     showBackArrow: Boolean = false,
-    onBackClick: (() -> Unit)? = null
+    onBackClick: (() -> Unit)? = null,
+    cantidadCarrito: Int = 0
 ) {
     val dimens = LocalDimens.current
     var search by remember { mutableStateOf("") }
@@ -136,11 +158,25 @@ fun LevelUpMainTopBar(
                                 )
                             }
                             if (showCart) {
-                                LevelUpIconButton(
-                                    onClick = onCartClick,
-                                    imageVector = Icons.Default.ShoppingCart,
-                                    contentDescription = "Carrito"
-                                )
+                                Box {
+                                    LevelUpIconButton(
+                                        onClick = onCartClick,
+                                        imageVector = Icons.Default.ShoppingCart,
+                                        contentDescription = "Carrito"
+                                    )
+                                    if (cantidadCarrito > 0) {
+                                        Badge(
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                        ) {
+                                            Text(
+                                                text = cantidadCarrito.toString(),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onBackground
+                                            )
+                                        }
+                                    }
+                                }
                             }
                             if (showProfile) {
                                 LevelUpProfileAvatarButton(
@@ -151,25 +187,9 @@ fun LevelUpMainTopBar(
                                 )
                             }
                         },
-
                         titleText = title,
                         shadowElevation = 0.dp,
                         backgroundColor = Color.Transparent
-                    )
-
-                    LevelUpSearchBar(
-                        value = search,
-                        onValueChange = { search = it },
-                        onSearch = { query -> onSearchClick(query) },
-                        modifier = Modifier
-                            .padding(
-                                start = dimens.screenPadding,
-                                end = dimens.screenPadding,
-                                bottom = dimens.mediumSpacing
-                            ),
-                        onFocusChanged = { focused ->
-                            if (focused) isSearching = true
-                        }
                     )
                 }
             }

@@ -42,6 +42,10 @@ import java.time.format.DateTimeFormatter
  * @param isSuccess Muestra un indicador de exito en el campo
  * @param supportingText Mensaje de ayuda o error debajo del campo
  * @param modifier Modificador para personalizar el campo
+ * @param focusRequester Solicitador de foco para el campo
+ * @param dimens Dimensiones del campo
+ *
+ * @author Christian Mesa
  */
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)

@@ -1,5 +1,7 @@
 package com.example.levelupprueba.ui.components.carrusel
 
+import androidx.compose.animation.core.EaseInOutCubic
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
@@ -41,18 +43,26 @@ fun CarruselComponent(
     val scope = rememberCoroutineScope()
 
     // Auto-play
-    LaunchedEffect(pagerState.currentPage) {
+    LaunchedEffect(autoPlay) {
         if (autoPlay) {
-            delay(autoPlayDelay)
-            val nextPage = (pagerState.currentPage + 1) % imagenes.size
-            pagerState.animateScrollToPage(nextPage)
+            while (true) {
+                delay(autoPlayDelay)
+                val nextPage = (pagerState.currentPage + 1) % imagenes.size
+                pagerState.animateScrollToPage(
+                    page = nextPage,
+                    animationSpec = tween(
+                        durationMillis = 800,
+                        easing = EaseInOutCubic
+                    )
+                )
+            }
         }
     }
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(400.dp)
+            .height(300.dp)
     ) {
         HorizontalPager(
             state = pagerState,
@@ -112,7 +122,7 @@ fun CarruselComponent(
             )
         }
 
-        // indicadores de puntos - siempre 3 puntos
+        // indicadores de puntos
         Row(
             Modifier
                 .align(Alignment.BottomCenter)

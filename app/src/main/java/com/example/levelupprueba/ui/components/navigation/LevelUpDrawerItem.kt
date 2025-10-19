@@ -11,6 +11,16 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.levelupprueba.ui.theme.Dimens
 import com.example.levelupprueba.ui.theme.LocalDimens
 
+/**
+ * Item del drawer de navegación de la aplicación LevelUp
+ * @param imageVector Icono del item
+ * @param contentDescription Descripción del icono
+ * @param text Texto del item
+ * @param onClick Función a ejecutar al hacer click en el item
+ * @param dimens Dimensiones de la aplicación
+ *
+ * @author Christian Mesa
+ * */
 @Composable
 fun LevelUpDrawerItem(
     imageVector: ImageVector,
