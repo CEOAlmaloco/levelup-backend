@@ -27,7 +27,11 @@ import com.example.levelupprueba.ui.theme.TextMedium
 import com.example.levelupprueba.utils.formatCLP
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.text.style.TextDecoration
+import com.example.levelupprueba.ui.components.cards.LevelUpCard
 import com.example.levelupprueba.ui.theme.BrandSuccess
+import com.example.levelupprueba.ui.theme.Dimens
+import com.example.levelupprueba.ui.theme.LocalDimens
 
 // Dibuja una fila de ítem de carrito con nombre, precio, cantidad y acciones +, -, eliminar
 @Composable
@@ -36,96 +40,128 @@ fun CarritoItemRow(
     onIncrement: (itemId: String) -> Unit,
     onDecrement: (itemId: String) -> Unit,
     onRemove: (itemId: String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    dimens: Dimens = LocalDimens.current
 ) {
     val cs = MaterialTheme.colorScheme
 
-    Column(modifier.padding(vertical = 12.dp)) {
+    LevelUpCard{
+        Column(modifier.padding(vertical = dimens.fieldSpacing)) {
 
-        // Título + eliminar
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = item.producto.nombre,
-                style = MaterialTheme.typography.titleMedium,
-                color = TextHigh,                              // ← como Eventos
-                modifier = Modifier.weight(1f)
-            )
-
-            // Botón eliminar (acción destructiva)
-            Spacer(modifier = Modifier.weight(1f)) // empuja el icono a la derecha
-
-            IconButton(
-                onClick = { onRemove(item.id) },
-                colors = IconButtonDefaults.iconButtonColors(
-                    contentColor = BrandSuccess   // verde LevelUp
-                )
+            // Título + eliminar
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.Delete, // o ShoppingCart
-                    contentDescription = "Eliminar"
+                Text(
+                    text = item.producto.nombre,
+                    style = MaterialTheme.typography.titleMedium.copy(fontSize = dimens.titleSize),
+                    color = TextHigh,                              // ← como Eventos
+                    modifier = Modifier.weight(1f)
                 )
-            }
-        }
 
-        // Secundarios (precio / total línea)
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = "Precio c/u: ${formatCLP(item.producto.precio)}",
-            style = MaterialTheme.typography.bodySmall,
-            color = TextMedium                                // ← texto secundario
-        )
-        // Muestra "Total línea" solo si hay más de 1 unidad
-        if (item.cantidad > 1) {
-            Text(
-                text = "Total: ${formatCLP(item.producto.precio * item.cantidad)}",
-                style = MaterialTheme.typography.bodySmall,
-                color = TextMedium
-            )
-        }
+                // Botón eliminar (acción destructiva)
+                Spacer(modifier = Modifier.weight(1f)) // empuja el icono a la derecha
 
-        // Controles cantidad con contraste
-        Spacer(Modifier.height(8.dp))
-        val cs = MaterialTheme.colorScheme
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // — (decrementar)
-            FilledTonalIconButton(
-                onClick = { onDecrement(item.id) },
-                modifier = Modifier.size(30.dp),                  // cuadrado
-                shape = RoundedCornerShape(10.dp),               // esquinas suaves
-                colors = IconButtonDefaults.filledTonalIconButtonColors(
-                    containerColor = cs.secondaryContainer,
-                    contentColor   = cs.onSecondaryContainer
-                )
-            ) {
-                Icon(Icons.Default.Remove, contentDescription = "Disminuir", modifier = Modifier.size(18.dp))
+                IconButton(
+                    onClick = { onRemove(item.id) },
+                    colors = IconButtonDefaults.iconButtonColors(
+                        contentColor = BrandSuccess   // verde LevelUp
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete, // o ShoppingCart
+                        contentDescription = "Eliminar",
+                        modifier = Modifier.size(dimens.buttonIconSize)
+                    )
+                }
             }
 
-            Spacer(Modifier.width(12.dp))
-
-            Text(
-                text  = item.cantidad.toString(),
-                style = MaterialTheme.typography.titleMedium,
-                color = TextHigh
-            )
-
-            Spacer(Modifier.width(12.dp))
-
-            // + (incrementar)
-            FilledTonalIconButton(
-                onClick = { onIncrement(item.id) },
-                modifier = Modifier.size(30.dp),                  // ← cuadrado
-                shape = RoundedCornerShape(10.dp),
-                colors = IconButtonDefaults.filledTonalIconButtonColors(
-                    containerColor = cs.secondaryContainer,
-                    contentColor   = cs.onSecondaryContainer
+            // Secundarios (precio / total línea)
+            Spacer(Modifier.height(dimens.smallSpacing))
+            if (item.producto.descuento != null && item.producto.descuento > 0) {
+                Text(
+                    text = "Precio c/u: ${formatCLP(item.producto.precioConDescuento!!)}",
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = dimens.bodySize),
+                    color = TextMedium
                 )
+                Text(
+                    text = "Antes: ${formatCLP(item.producto.precio)}",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        textDecoration = TextDecoration.LineThrough,
+                        fontSize = dimens.bodySize
+                    ),
+                    color = TextMedium
+                )
+            } else {
+                Text(
+                    text = "Precio c/u: ${formatCLP(item.producto.precio)}",
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = dimens.bodySize),
+                    color = TextMedium
+                )
+            }
+            // Muestra "Total línea" solo si hay más de 1 unidad
+            if (item.cantidad > 1) {
+                Text(
+                    text = "Total: ${formatCLP(item.totalLinea)}",
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = dimens.bodySize),
+                    color = TextMedium
+                )
+            }
+
+            // Controles cantidad con contraste
+            Spacer(Modifier.height(dimens.fieldSpacing))
+            val cs = MaterialTheme.colorScheme
+            Row(
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Aumentar", modifier = Modifier.size(18.dp))
+                // — (decrementar)
+                FilledTonalIconButton(
+                    onClick = { onDecrement(item.id) },
+                    modifier = Modifier
+                        .size(dimens.buttonHeight),                  // cuadrado
+                    shape = MaterialTheme.shapes.small,               // esquinas suaves
+                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                        containerColor = cs.secondaryContainer,
+                        contentColor = cs.onSecondaryContainer
+                    )
+                ) {
+                    Icon(
+                        Icons.Default.Remove,
+                        contentDescription = "Disminuir",
+                        modifier = Modifier
+                            .size(dimens.buttonIconSize)
+                    )
+                }
+
+                Spacer(Modifier.width(dimens.mediumSpacing))
+
+                Text(
+                    text = item.cantidad.toString(),
+                    style = MaterialTheme.typography.titleMedium.copy(fontSize = dimens.titleSize),
+                    color = TextHigh
+                )
+
+                Spacer(Modifier.width(dimens.mediumSpacing))
+
+                // + (incrementar)
+                FilledTonalIconButton(
+                    onClick = { onIncrement(item.id) },
+                    modifier = Modifier
+                        .size(dimens.buttonHeight),                  // ← cuadrado
+                    shape = MaterialTheme.shapes.small,
+                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                        containerColor = cs.secondaryContainer,
+                        contentColor = cs.onSecondaryContainer
+                    )
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = "Aumentar",
+                        modifier = Modifier
+                            .size(dimens.buttonIconSize)
+                    )
+                }
             }
         }
     }

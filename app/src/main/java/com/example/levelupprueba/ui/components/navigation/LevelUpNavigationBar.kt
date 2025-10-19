@@ -20,6 +20,18 @@ import com.example.levelupprueba.viewmodel.MainViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+/**
+ * Barra de navegación inferior de la app LevelUp
+ *
+ * @param navController Controlador de navegación de la app
+ * @param mainViewModel ViewModel de la app
+ * @param bottomNavItems Lista de pantallas que se mostrarán en la barra de navegación inferior
+ * @param coroutineScope Alcance de la corrutina
+ * @param modifier Modificador para personalizar la apariencia de la barra de navegación inferior
+ * @param dimens Dimensiones de la app
+ *
+ * @author Christian Mesa
+ * */
 @Composable
 fun LevelUpNavigationBar(
     navController: NavHostController,

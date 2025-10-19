@@ -5,6 +5,11 @@ import androidx.compose.material3.NavigationDrawerItemColors
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.runtime.Composable
 
+/**
+ * Colores para el item del drawer de navegacion.
+ *
+ * @author Christian Mesa
+ * */
 @Composable
 fun levelUpDrawerItemColors(): NavigationDrawerItemColors = NavigationDrawerItemDefaults.colors(
     selectedIconColor = MaterialTheme.colorScheme.onBackground,

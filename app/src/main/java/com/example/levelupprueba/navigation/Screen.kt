@@ -15,7 +15,9 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
         fun createRoute(productId: String) = "producto_detalle/$productId"
     }
 
+    object Carrito : Screen("carrito", "Carrito", Icons.Filled.ShoppingCart)
+
     object Screens {
-        val all = listOf(Home, Productos, Blog, Eventos, Perfil)
+        val all = listOf(Home, Productos, Blog, Eventos, Perfil, Carrito)
     }
 }

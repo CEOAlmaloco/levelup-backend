@@ -25,12 +25,14 @@ import com.example.levelupprueba.ui.components.overlays.LevelUpLoadingOverlay
 import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.viewmodel.ProductoViewModel
 import com.example.levelupprueba.ui.components.buttons.AddToCartButton
+import com.example.levelupprueba.viewmodel.CarritoViewModel
 import kotlinx.coroutines.launch
 
 
 @Composable
 fun ProductosScreen(
     viewModel: ProductoViewModel,
+    carritoViewModel: CarritoViewModel,
     contentPadding: PaddingValues,
     onProductoClick: (String) -> Unit = {}
 ) {
@@ -96,7 +98,8 @@ fun ProductosScreen(
                                 producto = producto,
                                 onClick = {
                                     onProductoClick(producto.id)
-                                }
+                                },
+                                onAgregarAlCarro = {carritoViewModel.onAgregar(it)}
                             )
                         }
                     }

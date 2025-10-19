@@ -1,7 +1,7 @@
 package com.example.levelupprueba.ui.components.navigation
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import com.example.levelupprueba.ui.components.navigation.DrawerSection
 import com.example.levelupprueba.ui.components.inputs.LevelUpIconButton
 import com.example.levelupprueba.ui.components.user.LevelUpProfileAvatarButton
@@ -30,6 +31,21 @@ import com.example.levelupprueba.ui.theme.Dimens
 import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.ui.theme.SemanticColors
 
+/**
+ * Drawer de la aplicacion LevelUp
+ *
+ * @param isLoggedIn Indica si el usuario esta logueado
+ * @param userName Nombre del usuario
+ * @param avatar Url de la imagen de perfil
+ * @param onBackClick Accion al hacer click en el boton de atras
+ * @param onProfileClick Accion al hacer click en el boton de perfil
+ * @param onLogoutClick Accion al hacer click en el boton de logout
+ * @param onSectionClick Accion al hacer click en una seccion
+ * @param sections Lista de secciones
+ * @param dimens Dimensiones de la aplicacion
+ *
+ * @author Christian Mesa
+ * */
 @Composable
 fun LevelUpDrawer(
     isLoggedIn: Boolean,
@@ -42,12 +58,13 @@ fun LevelUpDrawer(
     sections: List<DrawerSection>,
     dimens: Dimens = LocalDimens.current
 ){
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .padding(dimens.screenPadding),
-        contentAlignment = Alignment.Center
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
         LevelUpCard(
             modifier = Modifier
@@ -125,5 +142,12 @@ fun LevelUpDrawer(
                 }
             }
         }
+        Spacer(modifier = Modifier.height(dimens.mediumSpacing))
+        Text(
+            text = "©2025 LevelUp. Todos los derechos reservados.\nVersion 1.0.0",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(0.7f),
+            textAlign = TextAlign.Center
+        )
     }
 }

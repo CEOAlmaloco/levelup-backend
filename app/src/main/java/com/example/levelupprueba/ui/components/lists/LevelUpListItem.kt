@@ -18,6 +18,17 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.levelupprueba.ui.theme.Dimens
 import com.example.levelupprueba.ui.theme.LocalDimens
 
+/**
+ * Item de la lista personalizado.
+ *
+ * @param icon Icono a mostrar.
+ * @param label Texto a mostrar.
+ * @param onClick Función a ejecutar al hacer clic en el elemento.
+ * @param modifier Modificador para personalizar el diseño del elemento.
+ * @param dimens Dimens para personalizar el diseño del elemento.
+ *
+ * @author Christian Mesa
+ * */
 @Composable
 fun LevelUpListItem(
     icon: ImageVector,

@@ -6,6 +6,20 @@ import kotlinx.coroutines.launch
 import androidx.compose.material3.DrawerState
 import com.example.levelupprueba.navigation.Screen
 
+/**
+ * Contenido del Drawer de navegación para la app LevelUp
+ * @param drawerSections Lista de secciones del drawer
+ * @param isLoggedIn Indica si el usuario está logueado
+ * @param updatedDisplayName Nombre de usuario actualizado
+ * @param updatedAvatar Avatar actualizado
+ * @param drawerState Estado del drawer
+ * @param coroutineScope Alcance de la corrutina
+ * @param onNavigate Función para navegar a otra pantalla
+ * @param onLogout Función para cerrar sesión
+ * @param onProfileClick Función para navegar a la pantalla de perfil
+ *
+ * @author Christian Mesa
+ * */
 @Composable
 fun LevelUpDrawerContent(
     drawerSections: List<DrawerSection>,
