@@ -47,6 +47,7 @@ fun LevelUpOutlinedTextField(
     readOnly: Boolean = false,
     trailingIcon: @Composable (() -> Unit)? = null,
     placeholder: @Composable (() -> Unit)? = null,
+    minLines: Int = 1,
     modifier: Modifier = Modifier,
     focusRequester: FocusRequester? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -66,6 +67,7 @@ fun LevelUpOutlinedTextField(
         readOnly = readOnly,
         trailingIcon = trailingIcon,
         placeholder = placeholder,
+        minLines = minLines,
         modifier = modifier
             .then(
                 if (focusRequester != null) Modifier.focusRequester(focusRequester)

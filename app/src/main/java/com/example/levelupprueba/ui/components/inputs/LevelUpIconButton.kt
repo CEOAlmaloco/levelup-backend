@@ -22,7 +22,9 @@ fun LevelUpIconButton(
 ) {
     IconButton(
         onClick = onClick,
-        modifier = if (buttonSize != null) modifier.size(buttonSize) else modifier
+        modifier = if (buttonSize != null) modifier
+            .size(buttonSize)
+            else modifier
     ) {
         Icon(
             imageVector = imageVector,

@@ -25,11 +25,12 @@ import com.example.levelupprueba.ui.screens.profile.ProfileStatusHandler
 import com.example.levelupprueba.navigation.Screen
 import com.example.levelupprueba.ui.components.GlobalSnackbarHost
 import com.example.levelupprueba.ui.components.LevelUpCustomSnackbar
+import com.example.levelupprueba.ui.components.RememberLastValidSnackbarState
 import com.example.levelupprueba.ui.components.navigation.DrawerSection
 import com.example.levelupprueba.ui.components.navigation.LevelUpMainTopBar
 import com.example.levelupprueba.ui.components.navigation.LevelUpNavigationBar
-import com.example.levelupprueba.ui.components.rememberLastValidSnackbarState
 import com.example.levelupprueba.ui.screens.profile.PasswordStatusHandler
+import com.example.levelupprueba.utils.getTopBarTitle
 import com.example.levelupprueba.viewmodel.*
 import kotlinx.coroutines.launch
 
@@ -62,7 +63,7 @@ fun MainScreen(
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val currentTitle = Screen.Screens.all.find { it.route == currentRoute }?.title ?: "LevelUp"
+    val topBarTitle = getTopBarTitle(currentRoute, navBackStackEntry)
 
     val bottomNavItems = listOf(Screen.Home, Screen.Productos, Screen.Blog, Screen.Eventos)
     val showBottomBar = currentRoute in bottomNavItems.map { it.route }
@@ -140,39 +141,22 @@ fun MainScreen(
         ) {
             Scaffold(
                 topBar = {
-                    if (currentRoute == Screen.Perfil.route) {
-                        LevelUpMainTopBar(
-                            title = "Perfil",
-                            isLoggedIn = isLoggedIn,
-                            nombre = updatedDisplayName,
-                            avatar = updatedAvatar,
-                            showMenu = false,
-                            showCart = false,
-                            showProfile = false,
-                            showSearch = false,
-                            showBackArrow = true,
-                            onBackClick = {
-                                coroutineScope.launch {
-                                    mainViewModel.navigateBack()
-                                }
-                            },
-                            onMenuClick = {},
-                            onCartClick = {},
-                            onProfileClick = {},
-                            onSearchClick = {}
-                        )
-                    } else {
-                        LevelUpMainTopBar(
-                            title = currentTitle,
-                            isLoggedIn = isLoggedIn,
-                            nombre = updatedDisplayName,
-                            avatar = updatedAvatar,
-                            onMenuClick = { coroutineScope.launch { drawerState.open() } },
-                            onCartClick = { /* TODO: ir al carrito */ },
-                            onProfileClick = { handleProfileNavigation() },
-                            onSearchClick = { /* TODO */ }
-                        )
-                    }
+                    LevelUpMainTopBar(
+                        title = topBarTitle,
+                        isLoggedIn = isLoggedIn,
+                        nombre = updatedDisplayName,
+                        avatar = updatedAvatar,
+                        showMenu = currentRoute != Screen.Perfil.route && currentRoute != Screen.ProductoDetalle.route ,
+                        showCart = currentRoute != Screen.Perfil.route,
+                        showProfile = currentRoute != Screen.Perfil.route,
+                        showSearch = currentRoute != Screen.Perfil.route,
+                        showBackArrow = currentRoute == Screen.Perfil.route || currentRoute == Screen.ProductoDetalle.route ,
+                        onBackClick = { coroutineScope.launch { mainViewModel.navigateBack() } },
+                        onMenuClick = { coroutineScope.launch { drawerState.open() } },
+                        onCartClick = { /* TODO */ },
+                        onProfileClick = { handleProfileNavigation() },
+                        onSearchClick = { /* TODO */ }
+                    )
                 },
                 bottomBar = {
                     if (showBottomBar) {
@@ -190,7 +174,7 @@ fun MainScreen(
                         snackbar = { snackbarData ->
                             LevelUpCustomSnackbar(
                                 snackbarData = snackbarData,
-                                snackbarState = rememberLastValidSnackbarState(globalSnackbarState)
+                                snackbarState = RememberLastValidSnackbarState(globalSnackbarState)
                             )
                         }
                     )

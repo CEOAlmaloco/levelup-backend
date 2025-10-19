@@ -2,6 +2,7 @@ package com.example.levelupprueba.ui.components.forms
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -112,29 +113,24 @@ fun LevelUpChangePasswordForm(
                         onDone = { focusManager.clearFocus() }
                     )
                 )
-
-                when (status){
-                    is PasswordStatus.Error -> {
-                    }
-                    is PasswordStatus.Success -> {
-
-                    }
-                    else -> {}
-                }
-
-                LevelUpButton(
-                    text = if (status == PasswordStatus.Saving) "Guardando..." else "Guardar",
-                    icon = Icons.Default.Lock,
-                    onClick = { viewModel.cambiarPassword(email) },
-                    enabled = viewModel.puedeGuardar() && status != PasswordStatus.Saving
-                )
-
-                LevelUpOutlinedButton(
-                    text = "Cancelar",
-                    icon = Icons.Default.Cancel,
-                    onClick = onCancelClick
-                )
             }
+
+            LevelUpButton(
+                text = if (status == PasswordStatus.Saving) "Guardando..." else "Guardar",
+                icon = Icons.Default.Lock,
+                onClick = { viewModel.cambiarPassword(email) },
+                enabled = viewModel.puedeGuardar() && status != PasswordStatus.Saving,
+                modifier = Modifier
+                    .fillMaxWidth()
+            )
+
+            LevelUpOutlinedButton(
+                text = "Cancelar",
+                icon = Icons.Default.Cancel,
+                onClick = onCancelClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+            )
         }
     }
 

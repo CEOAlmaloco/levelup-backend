@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.levelupprueba.ui.components.cards.ProductoCard
 import com.example.levelupprueba.ui.components.filtros.FiltrosComponent
+import com.example.levelupprueba.ui.components.inputs.LevelUpIconButton
 import com.example.levelupprueba.ui.components.overlays.LevelUpLoadingOverlay
 import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.viewmodel.ProductoViewModel
@@ -58,19 +59,11 @@ fun ProductosScreen(
                         fontWeight = FontWeight.Bold
                     )
 
-                    Button(
+                    LevelUpIconButton(
                         onClick = { viewModel.toggleMostrarFiltros() },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.FilterList,
-                            contentDescription = "Filtros"
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Filtros")
-                    }
+                        imageVector = Icons.Default.FilterList,
+                        contentDescription = "Mostrar filtros"
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))

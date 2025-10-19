@@ -97,7 +97,8 @@ fun MainNavGraph(
                     coroutineScope.launch {
                         mainViewModel.navigateBack()
                     }
-                }
+                },
+                contentPadding = innerPadding
             )
         }
 
