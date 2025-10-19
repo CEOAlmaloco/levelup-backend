@@ -27,7 +27,9 @@ import java.util.*
 fun ProductoCard(
     producto: Producto,
     onClick: () -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    bottomContent: @Composable () -> Unit = {}
+
 ) {
     Card(
         onClick = onClick,
@@ -146,6 +148,8 @@ fun ProductoCard(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
+                Spacer(Modifier.height(8.dp))
+                bottomContent()
             }
         }
     }
