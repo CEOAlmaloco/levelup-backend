@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -133,7 +134,9 @@ fun ProfileScreen(
         contentAlignment = Alignment.Center
     ) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .navigationBarsPadding(),
             contentPadding = contentPadding,
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(dimens.mediumSpacing)
@@ -150,15 +153,6 @@ fun ProfileScreen(
                     dimens = dimens,
                     userId = userId
                 )
-            }
-
-            when (estado.profileStatus) {
-                is ProfileStatus.Saved -> { /* Puedes mostrar feedback aquí si lo necesitas */ }
-                is ProfileStatus.Error -> { /* Puedes mostrar feedback aquí si lo necesitas */ }
-                is ProfileStatus.ValidationError -> {
-
-                }
-                else -> {}
             }
             item {
                 AnimatedContent(

@@ -1,5 +1,6 @@
 package com.example.levelupprueba.ui.components.buttons
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -22,13 +23,17 @@ fun LevelUpAuthButtons(
         LevelUpButton(
             text = "Iniciar Sesión",
             onClick = onLoginClick,
-            modifier = Modifier.height(buttonHeight),
+            modifier = Modifier
+                .height(buttonHeight)
+                .fillMaxWidth(),
             dimens = dimens
         )
         LevelUpOutlinedButton(
             text = "Registrarse",
             onClick = onRegisterClick,
-            modifier = Modifier.height(buttonHeight),
+            modifier = Modifier
+                .height(buttonHeight)
+                .fillMaxWidth(),
             dimens = dimens
         )
         LevelUpTextButton(
@@ -36,7 +41,8 @@ fun LevelUpAuthButtons(
             onClick = onGuestClick,
             icon = null,
             textColor = textColor,
-            modifier = Modifier.height(buttonHeight),
+            modifier = Modifier
+                .height(buttonHeight),
             dimens = dimens
         )
     }

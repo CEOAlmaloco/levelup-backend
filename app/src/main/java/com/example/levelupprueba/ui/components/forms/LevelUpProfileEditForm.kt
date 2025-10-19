@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -195,13 +196,17 @@ fun LevelUpProfileEditForm(
                 text = if (profileStatus == ProfileStatus.Saving) "Guardando..." else "Guardar",
                 icon = Icons.Default.Edit,
                 onClick = onSaveClick,
-                enabled = isSaveEnabled && profileStatus != ProfileStatus.Saving
+                enabled = isSaveEnabled && profileStatus != ProfileStatus.Saving,
+                modifier = Modifier
+                    .fillMaxWidth()
             )
 
             LevelUpOutlinedButton(
                 text = "Cancelar",
                 icon = Icons.Default.Cancel,
-                onClick = onCancelClick
+                onClick = onCancelClick,
+                modifier = Modifier
+                    .fillMaxWidth()
             )
         }
     }

@@ -7,7 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 
 @Composable
-fun rememberLastValidSnackbarState(
+fun RememberLastValidSnackbarState(
     current: GlobalSnackbarState
 ): GlobalSnackbarState {
     var lastValidState by remember { mutableStateOf<GlobalSnackbarState>(GlobalSnackbarState.Idle) }

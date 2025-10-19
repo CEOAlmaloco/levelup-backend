@@ -53,7 +53,7 @@ fun LevelUpProfileContent(
         ) {
             Column(
                 modifier = Modifier
-                    .padding(dimens.mediumSpacing),
+                    .padding(dimens.smallSpacing),
                 verticalArrangement = Arrangement.spacedBy(dimens.smallSpacing)
             ) {
                 LevelUpSectionDivider(title = "Código de referido")

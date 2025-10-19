@@ -112,7 +112,7 @@ fun EventoScreen(
             LevelUpLoadingOverlay(visible = true)
         } else {
             Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(dimens.mediumSpacing)
             ) {
                 estado.eventos.forEach { evento ->
                     EventoCard(
@@ -122,28 +122,26 @@ fun EventoScreen(
                         dimens = dimens
                     )
                 }
+
+                // Canje de código
+                CanjeCodigoSection(
+                    codigoIngresado = estado.codigoIngresado,
+                    mensaje = estado.mensajeCodigo,
+                    onCodigoChange = { viewModel.onCodigoChange(it) },
+                    onCanjear = { viewModel.canjearCodigo() },
+                    dimens = dimens
+                )
             }
+            // Recompensas al final
+            RecompensasSection(
+                recompensas = estado.recompensas,
+                puntosUsuario = estado.puntosUsuario,
+                onCanjear = { recompensa ->
+                    val exito = viewModel.canjearRecompensa(recompensa)
+                },
+                dimens = dimens
+            )
         }
-
-        // Canje de código 
-        CanjeCodigoSection(
-            codigoIngresado = estado.codigoIngresado,
-            mensaje = estado.mensajeCodigo,
-            onCodigoChange = { viewModel.onCodigoChange(it) },
-            onCanjear = { viewModel.canjearCodigo() },
-            dimens = dimens
-        )
-
-        // Recompensas al final
-        RecompensasSection(
-            recompensas = estado.recompensas,
-            puntosUsuario = estado.puntosUsuario,
-            onCanjear = { recompensa ->
-                val exito = viewModel.canjearRecompensa(recompensa)
-            },
-            dimens = dimens
-        )
-
         Spacer(modifier = Modifier.height(32.dp))
     }
 
@@ -192,7 +190,7 @@ fun PuntosUsuarioCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -541,22 +539,22 @@ fun CanjeCodigoSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // TextField ocupa el espacio disponible
-                OutlinedTextField(
+                LevelUpOutlinedTextField(
                     value = codigoIngresado,
                     onValueChange = onCodigoChange,
-                    label = { Text("Código de evento", fontSize = dimens.bodySize) },
+                    label = "Código de evento",
                     placeholder = { Text("LVUP-SANTIAGO-100") },
                     modifier = Modifier.weight(1f), //  Toma espacio sobrante
                     singleLine = true
                 )
                 
                 // Usamos Button de Material3 (no LevelUp) porque LevelUpButton tiene fillMaxWidth() hardcodeado
-                Button(
+                LevelUpButton(
+                    text = "Canjear",
                     onClick = onCanjear,
-                    modifier = Modifier.wrapContentWidth() // Solo el ancho necesario
-                ) {
-                    Text("Canjear", fontSize = dimens.bodySize)
-                }
+                    modifier = Modifier
+                        .wrapContentWidth() // Solo el ancho necesario
+                )
             }
             
             if (mensaje.isNotEmpty()) {

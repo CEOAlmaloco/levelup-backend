@@ -93,6 +93,8 @@ fun LevelUpDrawer(
                     LevelUpOutlinedButton(
                         onClick = onProfileClick,
                         text = if (isLoggedIn) "Ver perfil" else "Iniciar sesión",
+                        modifier = Modifier
+                            .fillMaxWidth()
                     )
                 }
 

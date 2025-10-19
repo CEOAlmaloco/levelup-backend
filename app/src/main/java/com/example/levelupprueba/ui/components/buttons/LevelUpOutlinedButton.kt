@@ -73,7 +73,6 @@ fun LevelUpOutlinedButton(
             // Fondo semitransparente para contraste
             .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
             .height(dimens.buttonHeight)
-            .fillMaxWidth()
             .clickable(
                 enabled = enabled,
                 onClick = onClick,

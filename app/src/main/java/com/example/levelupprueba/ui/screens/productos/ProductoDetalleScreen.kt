@@ -25,10 +25,14 @@ import com.example.levelupprueba.model.producto.Producto
 import com.example.levelupprueba.model.producto.Review
 import com.example.levelupprueba.ui.components.ProductoRatingStars
 import com.example.levelupprueba.ui.components.buttons.LevelUpButton
+import com.example.levelupprueba.ui.components.buttons.LevelUpOutlinedButton
 import com.example.levelupprueba.ui.components.cards.LevelUpCard
 import com.example.levelupprueba.ui.components.cards.ProductoCard
 import com.example.levelupprueba.ui.components.common.LevelUpSpacedColumn
+import com.example.levelupprueba.ui.components.inputs.LevelUpIconButton
+import com.example.levelupprueba.ui.components.inputs.LevelUpOutlinedTextField
 import com.example.levelupprueba.ui.components.overlays.LevelUpLoadingOverlay
+import com.example.levelupprueba.ui.components.sliders.LevelUpCustomSlider
 import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.ui.theme.SemanticColors
 import com.example.levelupprueba.viewmodel.ProductoDetalleViewModel
@@ -44,7 +48,8 @@ fun ProductoDetalleScreen(
     productoId: String, //el id del producto q viene de la navegacion cuando le damos click
     viewModel: ProductoDetalleViewModel, //el viewmodel q maneja la logica de negocio
     onProductoClick: (String) -> Unit = {}, //callback para cuando le damos click a un producto relacionado
-    onNavigateBack: () -> Unit = {} //callback para volver atras
+    onNavigateBack: () -> Unit = {}, //callback para volver atras
+    contentPadding: PaddingValues
 ) {
     val estado by viewModel.estado.collectAsState() //traemos el estado del viewmodel, el by es para q se actualice solo
     val dimens = LocalDimens.current //traemos las dimensiones del tema para q sea responsive
@@ -53,7 +58,11 @@ fun ProductoDetalleScreen(
         viewModel.cargarProducto(productoId) //cargamos el producto con el id q nos llega
     }
 
-    Box(modifier = Modifier.fillMaxSize()) { //el box es como un div en html, lo usamos para apilar cosas
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(contentPadding)
+    ) { //el box es como un div en html, lo usamos para apilar cosas
         when { //el when es como el switch en java, aca manejamos los 3 estados posibles
             estado.isLoading -> { //si esta cargando, mostramos el overlay de loading
                 LevelUpLoadingOverlay() //este es el componente q ya teniamos hecho para el loading
@@ -61,8 +70,7 @@ fun ProductoDetalleScreen(
             estado.error != null -> { //si hay un error, mostramos el mensaje de error
                 LevelUpSpacedColumn( //usamos LevelUpSpacedColumn para el espaciado automatico
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(dimens.screenPadding), //usamos screenPadding del tema
+                        .fillMaxSize(),
                     spacing = dimens.mediumSpacing, //espaciado automatico entre elementos
                     horizontalAlignment = Alignment.CenterHorizontally //centramos horizontalmente
                 ) {
@@ -117,7 +125,8 @@ private fun ProductoDetalleContent( //esta funcion tiene TODO el contenido del d
     val context = LocalContext.current //el contexto de android, lo necesitamos para compartir y eso
 
     LazyColumn( //usamos LazyColumn q es como un scroll vertical q solo renderiza lo visible, es como el virtualizado en react
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
     ) {
         item { //cada item es una seccion del detalle
             LevelUpSpacedColumn( //usamos LevelUpSpacedColumn para espaciado automatico entre todas las secciones
@@ -245,7 +254,8 @@ private fun SeccionInformacion(
         ) {
             ProductoRatingStars( //componente q hicimos para mostrar las estrellas
                 rating = producto.ratingPromedio, //el rating promedio calculado desde las reviews
-                starSize = dimens.smallIconSize //tamaño de icono pequeño del tema
+                starSize = dimens.smallIconSize, //tamaño de icono pequeño del tema
+                tint = SemanticColors.AccentYellow
             )
             Spacer(modifier = Modifier.width(dimens.smallSpacing))
             Text( //el numero del rating al lado de las estrellas
@@ -263,20 +273,20 @@ private fun SeccionInformacion(
                     .format(producto.precio), //esto formatea el precio con puntos y el simbolo $
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary, //color primary del tema
+                color = MaterialTheme.colorScheme.onBackground, //color primary del tema
                 fontSize = 32.sp //bien grande para q se vea
             )
 
             producto.descuento?.let { descuento -> //si hay descuento lo mostramos
                 Spacer(modifier = Modifier.width(dimens.mediumSpacing))
                 Surface( //un badge rojito con el % de descuento
-                    color = SemanticColors.Error, //usamos el color de error semantico
+                    color = SemanticColors.AccentRed, //usamos el color de error semantico
                     shape = RoundedCornerShape(dimens.chipCornerRadius) //radio de chip del tema
                 ) {
                     Text(
                         text = "-$descuento%", //mostramos el % de descuento
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onError, //texto blanco
+                        color = MaterialTheme.colorScheme.onBackground, //texto blanco
                         modifier = Modifier.padding(horizontal = dimens.smallSpacing, vertical = dimens.smallSpacing / 2)
                     )
                 }
@@ -370,13 +380,14 @@ private fun SeccionAcciones(
                     onClick = onDisminuirCantidad, //cuando le dan click disminuye la cantidad
                     modifier = Modifier.size(dimens.buttonHeight), //tamaño del boton desde el tema
                     colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primary //con el color primary del tema
+                        containerColor = SemanticColors.AccentGreen //con el acento verde de LevelUp
                     )
                 ) {
                     Icon(
                         imageVector = Icons.Default.Remove, //icono de menos
                         contentDescription = "Disminuir",
-                        modifier = Modifier.size(dimens.buttonIconSize) //tamaño del icono desde el tema
+                        modifier = Modifier.size(dimens.buttonIconSize), //tamaño del icono desde el tema
+                        tint = MaterialTheme.colorScheme.onBackground
                     )
                 }
 
@@ -402,13 +413,14 @@ private fun SeccionAcciones(
                     onClick = onAumentarCantidad, //cuando le dan click aumenta la cantidad
                     modifier = Modifier.size(dimens.buttonHeight), //tamaño del boton desde el tema
                     colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
+                        containerColor = SemanticColors.AccentBlue
                     )
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add, //icono de mas
                         contentDescription = "Aumentar",
-                        modifier = Modifier.size(dimens.buttonIconSize) //tamaño del icono desde el tema
+                        modifier = Modifier.size(dimens.buttonIconSize), //tamaño del icono desde el tema
+                        tint = MaterialTheme.colorScheme.onBackground
                     )
                 }
             }
@@ -466,31 +478,39 @@ private fun SeccionReviews(
         spacing = dimens.sectionSpacing,
         horizontalAlignment = Alignment.Start
     ) {
-        Row( //header con el titulo, rating y boton de calificar
+        Column(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween, //separamos el titulo del boton
-            verticalAlignment = Alignment.CenterVertically
+            horizontalAlignment = Alignment.Start
         ) {
-            Column { //titulo y rating
+            Row( //header con el titulo, rating y boton de calificar
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween, //separamos el titulo del boton
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
                     text = "Reseñas y calificaciones",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(dimens.smallSpacing))
-                Row(verticalAlignment = Alignment.CenterVertically) { //estrellas y numero del rating
-                    ProductoRatingStars(rating = ratingPromedio, starSize = dimens.iconSize) //estrellas desde el tema
-                    Spacer(modifier = Modifier.width(dimens.smallSpacing))
-                    Text( //el numero del rating al lado
-                        text = String.format("%.1f", ratingPromedio),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
 
-            Button(onClick = onToggleFormulario) { //boton para mostrar el formulario
-                Text("Calificar producto")
+
+                LevelUpIconButton(
+                    contentDescription = "Calificar producto",
+                    onClick = onToggleFormulario,
+                    imageVector = Icons.Default.Add,
+                )
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) { //estrellas y numero del rating
+                ProductoRatingStars(
+                    rating = ratingPromedio,
+                    starSize = dimens.iconSize,
+                    tint = SemanticColors.AccentYellow) //estrellas desde el tema
+                Spacer(modifier = Modifier.width(dimens.smallSpacing))
+                Text( //el numero del rating al lado
+                    text = String.format("%.1f", ratingPromedio),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
 
@@ -533,35 +553,36 @@ private fun FormularioReview(
         paddingValues = PaddingValues(dimens.mediumSpacing)
     ) {
         LevelUpSpacedColumn( //columna con espaciado automatico
-            spacing = dimens.fieldSpacing,
+            spacing = dimens.sectionSpacing,
             horizontalAlignment = Alignment.Start
         ) {
             Text( //label del slider
                 text = "Tu calificación",
                 style = MaterialTheme.typography.labelMedium
             )
-            
-            Slider( //slider para seleccionar el rating de 1 a 5
+
+            LevelUpCustomSlider( //slider para seleccionar el rating de 1 a 5
                 value = rating, //el valor actual
                 onValueChange = { rating = it }, //cuando cambia actualizamos el estado
                 valueRange = 1f..5f, //rango de 1 a 5
-                steps = 3 //4 pasos (1, 2, 3, 4, 5)
+                steps = 3, //4 pasos (1, 2, 3, 4, 5),
+                showValue = false
             )
+
             Text( //mostramos el valor seleccionado
                 text = "${rating.toInt()} estrellas",
                 style = MaterialTheme.typography.bodySmall
             )
 
-            OutlinedTextField( //campo de texto para el comentario
+            LevelUpOutlinedTextField( //campo de texto para el comentario
                 value = comentario,
                 onValueChange = { comentario = it }, //cuando escriben actualizamos el estado
-                label = { Text("Tu reseña") },
+                label = "Tu reseña",
                 placeholder = { Text("Cuéntanos tu experiencia") },
-                modifier = Modifier.fillMaxWidth(),
                 minLines = 3 //minimo 3 lineas de alto
             )
 
-            Button( //boton para enviar la review
+            LevelUpButton( //boton para enviar la review
                 onClick = {
                     if (comentario.isNotBlank()) { //validamos q no este vacio
                         onAgregarReview(rating, comentario, usuario) //enviamos la review al viewmodel
@@ -569,10 +590,10 @@ private fun FormularioReview(
                         rating = 5f //volvemos al rating por defecto
                     } //TODO: agregar validacion de q el usuario este logueado
                 },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Enviar reseña")
-            }
+                text = "Enviar reseña",
+                modifier = Modifier
+                    .fillMaxWidth()
+            )
         }
     }
 }
@@ -596,7 +617,11 @@ private fun ReviewCard(
                 horizontalArrangement = Arrangement.SpaceBetween, //separamos las estrellas de la fecha
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ProductoRatingStars(rating = review.rating, starSize = dimens.smallIconSize) //las estrellas del rating
+                ProductoRatingStars(
+                    rating = review.rating,
+                    starSize = dimens.smallIconSize,
+                    tint = SemanticColors.AccentYellow
+                ) //las estrellas del rating
                 Text( //la fecha de la review
                     text = review.fecha,
                     style = MaterialTheme.typography.bodySmall,
@@ -651,7 +676,9 @@ private fun SeccionCompartir(
                 horizontalArrangement = Arrangement.spacedBy(dimens.mediumSpacing)
             ) {
                 // Botón WhatsApp para soporte
-                OutlinedButton(
+                LevelUpOutlinedButton(
+                    icon = Icons.Default.Message,
+                    text = "Whatsapp",
                     onClick = {
                         val mensaje = "Hola, necesito ayuda con el producto: ${producto.nombre}. ¿Podrían asistirme?"
                         val numeroWhatsApp = "+56912345678" // Número de soporte (cambiar por el real)
@@ -659,19 +686,12 @@ private fun SeccionCompartir(
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                         context.startActivity(intent)
                     },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Message,
-                        contentDescription = "Contactar por WhatsApp",
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("WhatsApp")
-                }
-                
+                    modifier = Modifier.weight(1f),
+                )
                 // Botón para compartir producto
-                OutlinedButton(
+                LevelUpOutlinedButton(
+                    icon = Icons.Default.Share,
+                    text = "Compartir",
                     onClick = {
                         val mensaje = "¡Mira este producto increíble: ${producto.nombre}! ${producto.descripcion}"
                         val intent = Intent().apply {
@@ -682,15 +702,7 @@ private fun SeccionCompartir(
                         context.startActivity(Intent.createChooser(intent, "Compartir producto"))
                     },
                     modifier = Modifier.weight(1f)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Share,
-                        contentDescription = "Compartir producto",
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Compartir")
-                }
+                )
             }
         }
     }
@@ -699,4 +711,3 @@ private fun SeccionCompartir(
 
 //Y ACA TERMINA TODO EL ARCHIVO, SON COMO 600 LINEAS PERO AHORA ESTA TODO COMENTADO
 //ESPERO Q SE ENTIENDA MEJOR AHORA, ES BASICAMENTE COMO EL HTML PERO EN KOTLIN CON MAS COMPLICACIONES JAJA
-

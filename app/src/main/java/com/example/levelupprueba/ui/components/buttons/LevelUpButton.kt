@@ -82,7 +82,6 @@ fun LevelUpButton(
                 )
             ) // Aplica el fondo gradiente
             .height(dimens.buttonHeight) // Altura estándar del botón
-            .fillMaxWidth() // Ocupa Stodo el ancho disponible
             // Si el botón está habilitado, permite el click; si no, no responde
             .clickable(
                 enabled = enabled,

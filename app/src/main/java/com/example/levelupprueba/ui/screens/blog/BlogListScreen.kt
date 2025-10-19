@@ -1,6 +1,7 @@
 package com.example.levelupprueba.ui.screens.blog
 
 // IMPORTAMOS LITERALMENTE TODO
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -22,7 +23,10 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.levelupprueba.model.blog.Blog
 import com.example.levelupprueba.model.blog.FiltroBlog
+import com.example.levelupprueba.ui.components.buttons.MenuButton
+import com.example.levelupprueba.ui.components.levelUpFilterChipColors
 import com.example.levelupprueba.ui.theme.LocalDimens
+import com.example.levelupprueba.ui.theme.SemanticColors
 import com.example.levelupprueba.viewmodel.BlogViewModel
 
 @Composable//al decir esto estamos diciendo que se puede reutilizar en otra pantalla
@@ -32,7 +36,6 @@ fun BlogListScreen(//aca creamos la pantalla de blogs
 ) {
     val estado by viewModel.estado.collectAsState()//el by sirve como un for , recorre el estado y te dice el estado actual
     val dimens = LocalDimens.current//el current es para obtener el valor actual de las dimensiones
-
 
     Column(
         modifier = Modifier
@@ -51,7 +54,7 @@ fun BlogListScreen(//aca creamos la pantalla de blogs
                 text = "Gaming hub",
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -71,7 +74,8 @@ fun BlogListScreen(//aca creamos la pantalla de blogs
                 FilterChip(
                     selected = estado.filtroActivo == filtro.valor,
                     onClick = { viewModel.cambiarFiltro(filtro.valor) },
-                    label = { Text(filtro.etiqueta) }
+                    label = { Text(filtro.etiqueta) },
+                    colors = levelUpFilterChipColors()
                 )
             }
         }
@@ -119,7 +123,10 @@ fun BlogCard(blog: Blog) {//aca creamos la funcion para el blog card
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)//el elevation es para que el card tenga una sombra
     ) {
-        Column {
+        Column(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.surface)
+        ) {
             // Imagen del blog
             Box(//dentro de la columna creamos un box para la imagen
                 modifier = Modifier
@@ -164,7 +171,8 @@ fun BlogCard(blog: Blog) {//aca creamos la funcion para el blog card
 
             // Contenido del blog
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier
+                    .padding(16.dp)
             ) {
                 // Metadatos (fecha y autor)
                 Row(//dentro de la columna en una fila se muestran los metadatos
@@ -232,12 +240,14 @@ fun BlogCard(blog: Blog) {//aca creamos la funcion para el blog card
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Botón "Leer más"
-                TextButton(
+                MenuButton(
+                    text = "Leer más",
+                    containerColor = SemanticColors.AccentBlue,
+                    contentColor = MaterialTheme.colorScheme.onBackground,
                     onClick = { /* TODO: Navegar a detalle del blog */ },//cuando le hacemos click le enviamos el enlace
-                    modifier = Modifier.fillMaxWidth()//hay q achicar este
-                ) {
-                    Text("Leer más")
-                }
+                    modifier = Modifier
+                        .fillMaxWidth()//hay q achicar este
+                )
             }
         }
     }
