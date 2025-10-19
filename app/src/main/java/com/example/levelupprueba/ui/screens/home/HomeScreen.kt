@@ -101,7 +101,7 @@ fun HomeScreenProductos(
                         producto = producto,
                         onClick = {
                             onProductoClick(producto.id)
-                        }
+                        },
                     )
                 }
             }

@@ -2,6 +2,12 @@ package com.example.levelupprueba.ui.screens.productos
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,7 +38,7 @@ import com.example.levelupprueba.ui.components.common.LevelUpSpacedColumn
 import com.example.levelupprueba.ui.components.inputs.LevelUpIconButton
 import com.example.levelupprueba.ui.components.inputs.LevelUpOutlinedTextField
 import com.example.levelupprueba.ui.components.overlays.LevelUpLoadingOverlay
-import com.example.levelupprueba.ui.components.sliders.LevelUpCustomSlider
+import com.example.levelupprueba.ui.components.sliders.LevelUpRatingSlider
 import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.ui.theme.SemanticColors
 import com.example.levelupprueba.viewmodel.ProductoDetalleViewModel
@@ -43,13 +49,16 @@ import java.util.*
 //Q DOLOR DE CABEZA DIOS MIO COMO 600 LINEAS AAA
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable //esta es la funcion principal del detalle, es como el contenedor de todo
 fun ProductoDetalleScreen(
     productoId: String, //el id del producto q viene de la navegacion cuando le damos click
     viewModel: ProductoDetalleViewModel, //el viewmodel q maneja la logica de negocio
     onProductoClick: (String) -> Unit = {}, //callback para cuando le damos click a un producto relacionado
     onNavigateBack: () -> Unit = {}, //callback para volver atras
-    contentPadding: PaddingValues
+    contentPadding: PaddingValues,
+    isLoggedIn: Boolean,
+    userDisplayName: String
 ) {
     val estado by viewModel.estado.collectAsState() //traemos el estado del viewmodel, el by es para q se actualice solo
     val dimens = LocalDimens.current //traemos las dimensiones del tema para q sea responsive
@@ -98,7 +107,9 @@ fun ProductoDetalleScreen(
                         viewModel.agregarReview(rating, comentario, usuario) //le pasamos los parametros al viewmodel
                     },
                     onProductoRelacionadoClick = onProductoClick, //callback para cuando le dan click a un producto relacionado
-                    onNavigateBack = onNavigateBack //callback para volver atras
+                    onNavigateBack = onNavigateBack, //callback para volver atras
+                    userDisplayName = userDisplayName,
+                    isLoggedIn = isLoggedIn
                 )
             }
         }
@@ -119,7 +130,9 @@ private fun ProductoDetalleContent( //esta funcion tiene TODO el contenido del d
     onToggleFormularioReview: () -> Unit, //cuando le dan al boton de calificar
     onAgregarReview: (Float, String, String) -> Unit, //cuando envian una review
     onProductoRelacionadoClick: (String) -> Unit, //cuando le dan click a un producto relacionado
-    onNavigateBack: () -> Unit //cuando quieren volver atras
+    onNavigateBack: () -> Unit, //cuando quieren volver atras
+    userDisplayName: String,
+    isLoggedIn: Boolean
 ) {
     val dimens = LocalDimens.current //dimensiones del tema
     val context = LocalContext.current //el contexto de android, lo necesitamos para compartir y eso
@@ -184,7 +197,9 @@ private fun ProductoDetalleContent( //esta funcion tiene TODO el contenido del d
                 mostrarFormulario = mostrarFormularioReview,
                 onToggleFormulario = onToggleFormularioReview,
                 onAgregarReview = onAgregarReview,
-                dimens = dimens
+                dimens = dimens,
+                usuarioNombre = userDisplayName,
+                isLoggedIn = isLoggedIn
             )
         }
     }
@@ -471,7 +486,9 @@ private fun SeccionReviews(
     mostrarFormulario: Boolean, //si mostramos el formulario de agregar review
     onToggleFormulario: () -> Unit, //callback para mostrar/ocultar el formulario
     onAgregarReview: (Float, String, String) -> Unit, //callback para agregar una review
-    dimens: com.example.levelupprueba.ui.theme.Dimens //dimensiones del tema
+    dimens: com.example.levelupprueba.ui.theme.Dimens, //dimensiones del tema
+    usuarioNombre: String,
+    isLoggedIn: Boolean
 ) {
     LevelUpSpacedColumn( //columna con espaciado automatico
         modifier = Modifier.padding(horizontal = dimens.screenPadding),
@@ -493,12 +510,15 @@ private fun SeccionReviews(
                     fontWeight = FontWeight.Bold
                 )
 
-
-                LevelUpIconButton(
-                    contentDescription = "Calificar producto",
-                    onClick = onToggleFormulario,
-                    imageVector = Icons.Default.Add,
-                )
+                Crossfade(
+                    targetState = mostrarFormulario, label = "AnimIcon"
+                ) { isOpen ->
+                    LevelUpIconButton(
+                        contentDescription = if (isOpen) "Cerrar formulario" else "Calificar producto",
+                        onClick = onToggleFormulario,
+                        imageVector = if (isOpen) Icons.Default.Close else Icons.Default.Add
+                    )
+                }
             }
             Row(verticalAlignment = Alignment.CenterVertically) { //estrellas y numero del rating
                 ProductoRatingStars(
@@ -514,8 +534,17 @@ private fun SeccionReviews(
             }
         }
 
-        if (mostrarFormulario) { //si el usuario le dio al boton, mostramos el formulario
-            FormularioReview(onAgregarReview = onAgregarReview, dimens = dimens) //el formulario para agregar una review
+        AnimatedVisibility(
+            visible = mostrarFormulario,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {  //si el usuario le dio al boton, mostramos el formulario con animacion
+            FormularioReview(
+                onAgregarReview = onAgregarReview,
+                dimens = dimens,
+                usuarioNombre = usuarioNombre,
+                isLoggedIn = isLoggedIn,
+            ) //el formulario para agregar una review
         }
 
         if (reviews.isEmpty()) { //si no hay reviews mostramos un mensaje
@@ -543,11 +572,12 @@ private fun SeccionReviews(
 @Composable //este es el formulario q aparece cuando le dan al boton de calificar
 private fun FormularioReview(
     onAgregarReview: (Float, String, String) -> Unit, //callback para enviar la review
+    usuarioNombre: String,
+    isLoggedIn: Boolean,
     dimens: com.example.levelupprueba.ui.theme.Dimens //dimensiones del tema
 ) {
     var rating by remember { mutableStateOf(5f) } //estado local del rating, empieza en 5
     var comentario by remember { mutableStateOf("") } //estado local del comentario
-    var usuario by remember { mutableStateOf("Usuario") } //nombre del usuario, despues esto viene de la sesion TODO
 
     LevelUpCard( //usamos LevelUpCard con los estilos del tema
         paddingValues = PaddingValues(dimens.mediumSpacing)
@@ -556,44 +586,47 @@ private fun FormularioReview(
             spacing = dimens.sectionSpacing,
             horizontalAlignment = Alignment.Start
         ) {
-            Text( //label del slider
-                text = "Tu calificación",
-                style = MaterialTheme.typography.labelMedium
-            )
+            if (isLoggedIn){
+                Text( //label del slider
+                    text = "Tu calificación",
+                    style = MaterialTheme.typography.labelMedium.copy(fontSize = dimens.bodySize)
+                )
 
-            LevelUpCustomSlider( //slider para seleccionar el rating de 1 a 5
-                value = rating, //el valor actual
-                onValueChange = { rating = it }, //cuando cambia actualizamos el estado
-                valueRange = 1f..5f, //rango de 1 a 5
-                steps = 3, //4 pasos (1, 2, 3, 4, 5),
-                showValue = false
-            )
+                LevelUpRatingSlider( //slider para seleccionar el rating de 1 a 5
+                    value = rating, //el valor actual
+                    onValueChange = { rating = it }, //cuando cambia actualizamos el estado
+                    valueRange = 1f..5f, //rango de 1 a 5
+                    steps = 3, //4 pasos (1, 2, 3, 4, 5),
+                )
 
-            Text( //mostramos el valor seleccionado
-                text = "${rating.toInt()} estrellas",
-                style = MaterialTheme.typography.bodySmall
-            )
+                LevelUpOutlinedTextField( //campo de texto para el comentario
+                    value = comentario,
+                    onValueChange = { comentario = it }, //cuando escriben actualizamos el estado
+                    label = "Tu reseña",
+                    placeholder = { Text("Cuéntanos tu experiencia") },
+                    minLines = 3 //minimo 3 lineas de alto
+                )
 
-            LevelUpOutlinedTextField( //campo de texto para el comentario
-                value = comentario,
-                onValueChange = { comentario = it }, //cuando escriben actualizamos el estado
-                label = "Tu reseña",
-                placeholder = { Text("Cuéntanos tu experiencia") },
-                minLines = 3 //minimo 3 lineas de alto
-            )
-
-            LevelUpButton( //boton para enviar la review
-                onClick = {
-                    if (comentario.isNotBlank()) { //validamos q no este vacio
-                        onAgregarReview(rating, comentario, usuario) //enviamos la review al viewmodel
-                        comentario = "" //limpiamos el form
-                        rating = 5f //volvemos al rating por defecto
-                    } //TODO: agregar validacion de q el usuario este logueado
-                },
-                text = "Enviar reseña",
-                modifier = Modifier
-                    .fillMaxWidth()
-            )
+                LevelUpButton( //boton para enviar la review
+                    onClick = {
+                        if (comentario.isNotBlank()) { //validamos q no este vacio
+                            onAgregarReview(rating, comentario, usuarioNombre) //enviamos la review al viewmodel
+                            comentario = "" //limpiamos el form
+                            rating = 5f //volvemos al rating por defecto
+                        } //TODO: agregar validacion de q el usuario este logueado
+                    },
+                    text = "Enviar reseña",
+                    enabled = comentario.isNotBlank(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                )
+            } else {
+                Text(
+                    text = "Debes iniciar sesión para reseñar",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = dimens.bodySize),
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
         }
     }
 }

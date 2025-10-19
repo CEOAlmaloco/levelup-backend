@@ -119,7 +119,7 @@ fun CarruselComponent(
                 .padding(bottom = 16.dp),
             horizontalArrangement = Arrangement.Center
         ) {
-            repeat(3) { iteration ->
+            repeat(imagenes.size) { iteration ->
                 val color = if (pagerState.currentPage == iteration)
                     MaterialTheme.colorScheme.primary
                 else

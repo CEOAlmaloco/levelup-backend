@@ -1,5 +1,7 @@
 package com.example.levelupprueba.viewmodel
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.levelupprueba.data.repository.ProductoRepository
@@ -116,6 +118,7 @@ class ProductoDetalleViewModel(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun agregarReview(rating: Float, comentario: String, usuarioNombre: String) {//le pasamos los parametros para agregar la review
         viewModelScope.launch { //lanzamos una corrutina para hacer la operacion asincrona
             try {
