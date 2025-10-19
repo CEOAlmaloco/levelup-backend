@@ -23,17 +23,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.levelupprueba.model.producto.Producto
 import com.example.levelupprueba.model.producto.Review
+import com.example.levelupprueba.ui.components.LevelUpProductBadge
 import com.example.levelupprueba.ui.components.ProductoRatingStars
 import com.example.levelupprueba.ui.components.buttons.LevelUpButton
 import com.example.levelupprueba.ui.components.buttons.LevelUpOutlinedButton
 import com.example.levelupprueba.ui.components.cards.LevelUpCard
 import com.example.levelupprueba.ui.components.cards.ProductoCard
+import com.example.levelupprueba.ui.components.common.LevelUpBadge
 import com.example.levelupprueba.ui.components.common.LevelUpSpacedColumn
 import com.example.levelupprueba.ui.components.inputs.LevelUpIconButton
 import com.example.levelupprueba.ui.components.inputs.LevelUpOutlinedTextField
@@ -41,6 +45,7 @@ import com.example.levelupprueba.ui.components.overlays.LevelUpLoadingOverlay
 import com.example.levelupprueba.ui.components.sliders.LevelUpRatingSlider
 import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.ui.theme.SemanticColors
+import com.example.levelupprueba.viewmodel.CarritoViewModel
 import com.example.levelupprueba.viewmodel.ProductoDetalleViewModel
 import java.text.NumberFormat
 import java.util.*
@@ -54,6 +59,7 @@ import java.util.*
 fun ProductoDetalleScreen(
     productoId: String, //el id del producto q viene de la navegacion cuando le damos click
     viewModel: ProductoDetalleViewModel, //el viewmodel q maneja la logica de negocio
+    carritoViewModel: CarritoViewModel,
     onProductoClick: (String) -> Unit = {}, //callback para cuando le damos click a un producto relacionado
     onNavigateBack: () -> Unit = {}, //callback para volver atras
     contentPadding: PaddingValues,
@@ -62,6 +68,7 @@ fun ProductoDetalleScreen(
 ) {
     val estado by viewModel.estado.collectAsState() //traemos el estado del viewmodel, el by es para q se actualice solo
     val dimens = LocalDimens.current //traemos las dimensiones del tema para q sea responsive
+    val carrito by carritoViewModel.carrito.collectAsState()
 
     LaunchedEffect(productoId) { //esto se ejecuta cuando cambia el productoId, es como el useEffect de react
         viewModel.cargarProducto(productoId) //cargamos el producto con el id q nos llega
@@ -94,20 +101,22 @@ fun ProductoDetalleScreen(
                 }
             }
             estado.producto != null -> { //si el producto no es null, mostramos el contenido
+                val producto = estado.producto!!
+                val itemEnCarrito = carrito.items.firstOrNull { it.producto.id == producto.id }
+                val cantidadEnCarrito = itemEnCarrito?.cantidad ?: 0
+                val itemId = itemEnCarrito?.id
                 ProductoDetalleContent( //aca llamamos a la funcion q tiene todo el contenido del detalle
-                    producto = estado.producto!!, //le pasamos el producto, el !! es pq estamos seguros q no es null
-                    cantidadCarrito = estado.cantidadCarrito, //le pasamos la cantidad del carrito
+                    producto = producto, //le pasamos el producto, el !! es pq estamos seguros q no es null
+                    cantidadEnCarrito = cantidadEnCarrito, //le pasamos la cantidad del carrito
+                    itemId = itemId, //el id del item en el carrito, null si no esta en el carrito
+                    carritoViewModel = carritoViewModel, //el viewmodel del carrito
                     mostrarFormularioReview = estado.mostrarFormularioReview, //si mostramos el formulario de review o no
                     imagenSeleccionada = estado.imagenSeleccionada, //la imagen seleccionada del carrusel (por si agregamos mas imagenes dsp)
-                    onAgregarCarrito = { viewModel.agregarAlCarrito() }, //callback para agregar al carrito
-                    onAumentarCantidad = { viewModel.aumentarCantidad() }, //callback para aumentar cantidad
-                    onDisminuirCantidad = { viewModel.disminuirCantidad() }, //callback para disminuir cantidad
                     onToggleFormularioReview = { viewModel.toggleFormularioReview() }, //callback para mostrar/ocultar el formulario
                     onAgregarReview = { rating, comentario, usuario -> //callback para agregar una review
                         viewModel.agregarReview(rating, comentario, usuario) //le pasamos los parametros al viewmodel
                     },
                     onProductoRelacionadoClick = onProductoClick, //callback para cuando le dan click a un producto relacionado
-                    onNavigateBack = onNavigateBack, //callback para volver atras
                     userDisplayName = userDisplayName,
                     isLoggedIn = isLoggedIn
                 )
@@ -121,16 +130,14 @@ fun ProductoDetalleScreen(
 @Composable //aca empieza el contenido real del detalle, es como el body del html
 private fun ProductoDetalleContent( //esta funcion tiene TODO el contenido del detalle, por eso son 600 lineas jaja
     producto: Producto, //el producto completo con toda la info
-    cantidadCarrito: Int, //cuantos productos hay en el carrito
+    cantidadEnCarrito: Int, //cuantos productos hay en el carrito
+    itemId: String?,
+    carritoViewModel: CarritoViewModel,
     mostrarFormularioReview: Boolean, //si mostramos el formulario de review
     imagenSeleccionada: Int, //la imagen seleccionada (por si agregamos mas imagenes)
-    onAgregarCarrito: () -> Unit, //cuando le dan agregar al carrito
-    onAumentarCantidad: () -> Unit, //cuando le dan al + del carrito
-    onDisminuirCantidad: () -> Unit, //cuando le dan al - del carrito
     onToggleFormularioReview: () -> Unit, //cuando le dan al boton de calificar
     onAgregarReview: (Float, String, String) -> Unit, //cuando envian una review
     onProductoRelacionadoClick: (String) -> Unit, //cuando le dan click a un producto relacionado
-    onNavigateBack: () -> Unit, //cuando quieren volver atras
     userDisplayName: String,
     isLoggedIn: Boolean
 ) {
@@ -166,12 +173,11 @@ private fun ProductoDetalleContent( //esta funcion tiene TODO el contenido del d
                     dimens = dimens
                 )
 
-                SeccionAcciones( //los botones de agregar al carrito y los + y -
+                SeccionAccionesRealtime( //los botones de agregar al carrito y los + y -
                     producto = producto,
-                    cantidadCarrito = cantidadCarrito,
-                    onAgregarCarrito = onAgregarCarrito,
-                    onAumentarCantidad = onAumentarCantidad,
-                    onDisminuirCantidad = onDisminuirCantidad,
+                    cantidadEnCarrito = cantidadEnCarrito,
+                    itemId = itemId,
+                    carritoViewModel = carritoViewModel,
                     dimens = dimens
                 )
 
@@ -184,7 +190,8 @@ private fun ProductoDetalleContent( //esta funcion tiene TODO el contenido del d
                 SeccionRelacionados( //el carrusel horizontal de productos similares
                     productos = producto.productosRelacionados,
                     onProductoClick = onProductoRelacionadoClick,
-                    dimens = dimens
+                    dimens = dimens,
+                    onAgregarAlCarro = { carritoViewModel.onAgregar(it) }
                 )
                 Spacer(modifier = Modifier.height(dimens.sectionSpacing)) //espaciado al final
             }
@@ -247,10 +254,22 @@ private fun SeccionInformacion(
     dimens: com.example.levelupprueba.ui.theme.Dimens //dimensiones del tema
 ) {
 
+    // Categoría - Subcategoría
+    val subcategoriaTexto = producto.subcategoria?.let { sub ->
+        "${producto.categoria.nombre} - ${sub.nombre}"
+    } ?: producto.categoria.nombre
+
     LevelUpSpacedColumn( //usamos LevelUpSpacedColumn para espaciado automatico
         spacing = dimens.fieldSpacing, //espaciado entre campos
         horizontalAlignment = Alignment.Start
     ) {
+
+        LevelUpBadge( //el codigo del producto chiquitito
+            text = producto.id,
+            textColor = MaterialTheme.colorScheme.onSurface.copy(0.60f),
+            backgroundColor = MaterialTheme.colorScheme.surface.copy(0.80f),
+        )
+
         Text( //el nombre del producto bien grande y bold
             text = producto.nombre,
             style = MaterialTheme.typography.headlineMedium,
@@ -258,10 +277,11 @@ private fun SeccionInformacion(
             color = MaterialTheme.colorScheme.onSurface
         )
 
-        Text( //el codigo del producto chiquitito
-            text = "Código: ${producto.id}",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant //un color mas clarito
+        Text( //La categoria y subcategoria del producto.
+            text = subcategoriaTexto,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Normal,
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         Row( //el rating con las estrellas y el numero
@@ -283,28 +303,32 @@ private fun SeccionInformacion(
         Row( //el precio y el descuento si hay
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text( //el precio formateado en CLP
-                text = NumberFormat.getCurrencyInstance(Locale("es", "CL"))
-                    .format(producto.precio), //esto formatea el precio con puntos y el simbolo $
+            // Precio actual: con descuento si existe, sino el normal
+            val precioFinal = if ((producto.descuento ?: 0) > 0) producto.precioConDescuento!! else producto.precio
+
+            Text(
+                text = NumberFormat.getCurrencyInstance(Locale("es", "CL")).format(precioFinal),
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground, //color primary del tema
-                fontSize = 32.sp //bien grande para q se vea
+                color = if ((producto.descuento ?: 0) > 0) SemanticColors.AccentGreenSoft else MaterialTheme.colorScheme.onBackground,
+                fontSize = 32.sp
             )
 
-            producto.descuento?.let { descuento -> //si hay descuento lo mostramos
+            // Si hay descuento, muestra el badge y el precio original tachado
+            if ((producto.descuento ?: 0) > 0) {
                 Spacer(modifier = Modifier.width(dimens.mediumSpacing))
-                Surface( //un badge rojito con el % de descuento
-                    color = SemanticColors.AccentRed, //usamos el color de error semantico
-                    shape = RoundedCornerShape(dimens.chipCornerRadius) //radio de chip del tema
-                ) {
-                    Text(
-                        text = "-$descuento%", //mostramos el % de descuento
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onBackground, //texto blanco
-                        modifier = Modifier.padding(horizontal = dimens.smallSpacing, vertical = dimens.smallSpacing / 2)
+                LevelUpBadge(
+                    text = "-${producto.descuento}%",
+                    backgroundColor = SemanticColors.AccentRed
+                )
+                Spacer(modifier = Modifier.width(dimens.smallSpacing))
+                Text(
+                    text = NumberFormat.getCurrencyInstance(Locale("es", "CL")).format(producto.precio),
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textDecoration = TextDecoration.LineThrough
                     )
-                }
+                )
             }
         }
 
@@ -368,73 +392,72 @@ private fun SeccionOrigen(
 
 //SECCION ACCIONES - BOTON AGREGAR AL CARRITO Y CONTROLES DE CANTIDAD
 @Composable //esta es la parte mas importante, donde el usuario agrega productos al carrito
-private fun SeccionAcciones(
-    producto: Producto, //el producto para saber si esta disponible
-    cantidadCarrito: Int, //cuantos productos hay en el carrito
-    onAgregarCarrito: () -> Unit, //callback para agregar al carrito
-    onAumentarCantidad: () -> Unit, //callback para el boton +
-    onDisminuirCantidad: () -> Unit, //callback para el boton -
-    dimens: com.example.levelupprueba.ui.theme.Dimens //dimensiones del tema
+private fun SeccionAccionesRealtime(
+    producto: Producto,
+    cantidadEnCarrito: Int,
+    itemId: String?,
+    carritoViewModel: CarritoViewModel,
+    dimens: com.example.levelupprueba.ui.theme.Dimens
 ) {
     Column {
-        if (cantidadCarrito == 0) { //si no hay nada en el carrito, mostramos el boton de agregar
-            LevelUpButton( //nuestro boton personalizado con el gradiente bonito
-                text = if (producto.disponible) "Agregar al carrito" else "AGOTADO", //si no esta disponible dice AGOTADO
-                onClick = onAgregarCarrito, //cuando le dan click agregamos 1 al carrito
+        if (cantidadEnCarrito == 0) {
+            LevelUpButton(
+                text = if (producto.disponible) "Agregar al carrito" else "AGOTADO",
+                onClick = { carritoViewModel.onAgregar(producto) },
                 dimens = dimens,
-                enabled = producto.disponible, //si no esta disponible el boton esta deshabilitado
+                enabled = producto.disponible,
                 modifier = Modifier.fillMaxWidth()
             )
-        } else { //si ya hay algo en el carrito, mostramos los controles de cantidad
-            Row( //un row con boton -, cantidad, boton +
+        } else {
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(dimens.mediumSpacing), //espaciado desde el tema
+                horizontalArrangement = Arrangement.spacedBy(dimens.mediumSpacing),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                FilledIconButton( //boton - para disminuir
-                    onClick = onDisminuirCantidad, //cuando le dan click disminuye la cantidad
-                    modifier = Modifier.size(dimens.buttonHeight), //tamaño del boton desde el tema
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = SemanticColors.AccentGreen //con el acento verde de LevelUp
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Remove, //icono de menos
-                        contentDescription = "Disminuir",
-                        modifier = Modifier.size(dimens.buttonIconSize), //tamaño del icono desde el tema
-                        tint = MaterialTheme.colorScheme.onBackground
-                    )
-                }
-
-                Card( //el numero de la cantidad en el medio
-                    modifier = Modifier.weight(1f), //ocupa todo el espacio disponible
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    ),
-                    shape = RoundedCornerShape(dimens.cardCornerRadius) //bordes redondeados del tema
-                ) {
-                    Text( //el numero de la cantidad bien grande
-                        text = cantidadCarrito.toString(),
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = dimens.smallSpacing),
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center //centrado
-                    )
-                }
-
-                FilledIconButton( //boton + para aumentar
-                    onClick = onAumentarCantidad, //cuando le dan click aumenta la cantidad
-                    modifier = Modifier.size(dimens.buttonHeight), //tamaño del boton desde el tema
+                FilledIconButton(
+                    onClick = { itemId?.let { carritoViewModel.onDecrement(it) } },
+                    modifier = Modifier.size(dimens.buttonHeight),
                     colors = IconButtonDefaults.filledIconButtonColors(
                         containerColor = SemanticColors.AccentBlue
                     )
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Add, //icono de mas
+                        imageVector = Icons.Default.Remove,
+                        contentDescription = "Disminuir",
+                        modifier = Modifier.size(dimens.buttonIconSize),
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+
+                Card(
+                    modifier = Modifier.weight(1f),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                    shape = RoundedCornerShape(dimens.cardCornerRadius)
+                ) {
+                    Text(
+                        text = cantidadEnCarrito.toString(),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = dimens.smallSpacing),
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                FilledIconButton(
+                    onClick = { itemId?.let { carritoViewModel.onIncrement(it) } },
+                    modifier = Modifier.size(dimens.buttonHeight),
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = SemanticColors.AccentBlue
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
                         contentDescription = "Aumentar",
-                        modifier = Modifier.size(dimens.buttonIconSize), //tamaño del icono desde el tema
+                        modifier = Modifier.size(dimens.buttonIconSize),
                         tint = MaterialTheme.colorScheme.onBackground
                     )
                 }
@@ -450,6 +473,7 @@ private fun SeccionAcciones(
 private fun SeccionRelacionados(
     productos: List<Producto>, //la lista de productos relacionados
     onProductoClick: (String) -> Unit, //callback para cuando le dan click a un producto
+    onAgregarAlCarro: (Producto) -> Unit, //callback para agregar un producto al carrito
     dimens: com.example.levelupprueba.ui.theme.Dimens //dimensiones del tema
 ) {
     LevelUpSpacedColumn( //columna con espaciado automatico
@@ -470,7 +494,8 @@ private fun SeccionRelacionados(
                 ProductoCard( //reutilizamos el ProductoCard q ya teniamos
                     producto = producto,
                     onClick = { onProductoClick(producto.id) }, //cuando le dan click navegamos al detalle de ese producto
-                    modifier = Modifier.width(250.dp) //ancho fijo para q se vean bien en el carrusel
+                    modifier = Modifier.width(250.dp), //ancho fijo para q se vean bien en el carrusel
+                    onAgregarAlCarro = onAgregarAlCarro
                 ) //esto hace q cuando estes viendo un producto puedas ir a otro y asi infinitamente
             }
         }

@@ -8,6 +8,7 @@ data class CarritoItem(
     val cantidad: Int
 ){
     // Para ver el total por producto
-    val totalLinea: Double get() = producto.precio * cantidad // Para ver el total
+    val totalLinea: Double
+        get() = (producto.precioConDescuento ?: producto.precio) * cantidad // Para ver el total
 }
 

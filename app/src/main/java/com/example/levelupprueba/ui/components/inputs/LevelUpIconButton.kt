@@ -9,7 +9,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
-
+/**
+ * Boton de icono personalizado LevelUp
+ *
+ * @param onClick Accion a realizar al hacer click en el boton
+ * @param imageVector Icono a mostrar
+ * @param contentDescription Descripcion del icono
+ * @param modifier Modificadores para personalizar el boton
+ * @param tint Color del icono
+ * @param iconSize Tamaño del icono
+ * @param buttonSize Tamaño del boton
+ *
+ * @author Christian Mesa
+ * */
 @Composable
 fun LevelUpIconButton(
     onClick: () -> Unit,

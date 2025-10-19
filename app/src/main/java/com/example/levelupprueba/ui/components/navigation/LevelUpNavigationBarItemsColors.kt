@@ -6,6 +6,11 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.runtime.Composable
 import com.example.levelupprueba.ui.theme.SemanticColors
 
+/**
+ * Colores de la barra de navegación
+ *
+ * @author Christian Mesa
+ * */
 @Composable
 fun levelUpNavigationBarItemsColors(): NavigationBarItemColors =  NavigationBarItemDefaults.colors(
 

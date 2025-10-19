@@ -17,6 +17,7 @@ import com.example.levelupprueba.ui.screens.blog.BlogListScreen
 import com.example.levelupprueba.ui.screens.eventos.EventoScreen
 import com.example.levelupprueba.ui.screens.auth.LoginScreen
 import com.example.levelupprueba.ui.screens.auth.RegisterScreen
+import com.example.levelupprueba.ui.screens.carrito.CarritoScreen
 import com.example.levelupprueba.ui.screens.profile.ProfileScreen
 import com.example.levelupprueba.viewmodel.*
 import kotlinx.coroutines.launch
@@ -31,6 +32,7 @@ fun MainNavGraph(
     loginViewModel: LoginViewModel,
     blogViewModel: BlogViewModel,
     productoViewModel: ProductoViewModel,
+    carritoViewModel: CarritoViewModel,
     eventoViewModel: EventoViewModel,
     productoDetalleViewModel: ProductoDetalleViewModel,
     profileViewModel: ProfileViewModel,
@@ -62,7 +64,8 @@ fun MainNavGraph(
                     coroutineScope.launch {
                         mainViewModel.navigateTo(Screen.ProductoDetalle.createRoute(productoId))
                     }
-                }
+                },
+                carritoViewModel = carritoViewModel
             )
         }
 
@@ -75,7 +78,8 @@ fun MainNavGraph(
                     coroutineScope.launch{
                         mainViewModel.navigateTo(Screen.ProductoDetalle.createRoute(productoId))
                     }
-                }
+                },
+                carritoViewModel = carritoViewModel
             )
         }
 
@@ -100,7 +104,8 @@ fun MainNavGraph(
                 },
                 contentPadding = innerPadding,
                 userDisplayName = userDisplayName ?: "Invitado",
-                isLoggedIn = isLoggedIn
+                isLoggedIn = isLoggedIn,
+                carritoViewModel = carritoViewModel
             )
         }
 
@@ -143,6 +148,14 @@ fun MainNavGraph(
                 }
             }
         }
+
+        // Carrito
+        composable(Screen.Carrito.route) {
+            CarritoScreen(
+                viewModel = carritoViewModel,
+                contentPadding = innerPadding,
+            )
+        } // Fin carritoScreen
     }
 }
 
