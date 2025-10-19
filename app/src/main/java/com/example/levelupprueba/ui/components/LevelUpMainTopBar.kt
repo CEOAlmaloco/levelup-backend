@@ -44,12 +44,18 @@ fun LevelUpMainTopBar(
     onMenuClick: () -> Unit,
     onCartClick: () -> Unit,
     onProfileClick: () -> Unit,
-    onSearchClick: (String) -> Unit
+    onSearchClick: (String) -> Unit,
+    showSearch: Boolean = true
 ) {
     val dimens = LocalDimens.current
     var search by remember { mutableStateOf("") }
     var isSearching by remember { mutableStateOf(false) }
     val searchFocusRequester = remember { FocusRequester() }
+
+    // Si se desactiva el buscador desde afuera, cerramos el modo búsqueda
+    LaunchedEffect(showSearch) {
+        if (!showSearch) isSearching = false
+    }
 
     Surface(
         color = MaterialTheme.colorScheme.surface,
@@ -60,7 +66,7 @@ fun LevelUpMainTopBar(
         ),
     ) {
         AnimatedContent(
-            targetState = isSearching,
+            targetState = isSearching &&  showSearch,
             transitionSpec = {
                 fadeIn().togetherWith(fadeOut())
             }
@@ -136,18 +142,19 @@ fun LevelUpMainTopBar(
                         backgroundColor = Color.Transparent
                     )
 
-                    LevelUpSearchBar(
-                        value = search,
-                        onValueChange = { search = it },
-                        onSearch = { query -> onSearchClick(query) },
-                        modifier = Modifier
-                            .padding(
-                                start = dimens.screenPadding,
-                                end = dimens.screenPadding,
-                                bottom = dimens.mediumSpacing
-                            ),
-                        onFocusChanged = { focused ->
-                            if (focused) isSearching = true
+                    if (showSearch){
+                        LevelUpSearchBar(
+                            value = search,
+                            onValueChange = { search = it },
+                            onSearch = { query -> onSearchClick(query) },
+                            modifier = Modifier
+                                .padding(
+                                    start = dimens.screenPadding,
+                                    end = dimens.screenPadding,
+                                    bottom = dimens.mediumSpacing
+                                ),
+                            onFocusChanged = { focused ->
+                                if (focused) isSearching = true
                         }
                     )
                 }
@@ -155,4 +162,4 @@ fun LevelUpMainTopBar(
         }
     }
 }
-
+}

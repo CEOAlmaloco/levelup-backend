@@ -34,6 +34,7 @@ import com.example.levelupprueba.ui.components.LevelUpMainTopBar
 import com.example.levelupprueba.ui.screens.auth.LoginScreen
 import com.example.levelupprueba.ui.screens.auth.RegisterScreen
 import com.example.levelupprueba.ui.screens.blog.BlogListScreen
+import com.example.levelupprueba.ui.screens.carrito.CarritoScreen
 import com.example.levelupprueba.ui.screens.eventos.EventoScreen
 import com.example.levelupprueba.ui.screens.home.HomeScreenProductos
 import com.example.levelupprueba.ui.screens.productos.ProductosScreen
@@ -47,6 +48,8 @@ sealed class Screen(val route: String, val title: String, val icon: androidx.com
     object Blog : Screen("blogs", "Blog", Icons.Filled.Article)
     object Eventos : Screen("eventos", "Eventos", Icons.Filled.Event) //Agregado para eventos gaming
     object Perfil : Screen("perfil", "Perfil", Icons.Filled.Person)
+
+    object Carrito : Screen("carrito", "Carrito", Icons.Filled.ShoppingCart)
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -71,6 +74,19 @@ fun MainScreen(
     val isLoggedIn = userSession != null && !userSession?.userId.isNullOrBlank()
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    val topTitle = when (currentRoute) {
+        Screen.Carrito.route   -> "Carrito"
+        Screen.Productos.route -> "Productos"
+        Screen.Blog.route      -> "Blog"
+        Screen.Eventos.route   -> "Eventos"
+        Screen.Perfil.route    -> "Perfil"
+        else                   -> "Inicio"
+    }
+    val showSearch = currentRoute != Screen.Carrito.route
+
 
     // Items del bottom navigation
     val bottomNavItems = listOf(
@@ -167,32 +183,45 @@ fun MainScreen(
                 )
             }
         ) {
+            // Detecta la ruta actual y decide título/visibilidad del buscador
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentRoute = navBackStackEntry?.destination?.route
+
+            val topTitle = when (currentRoute) {
+                Screen.Carrito.route   -> "Carrito"
+                Screen.Productos.route -> "Productos"
+                Screen.Blog.route      -> "Blog"
+                Screen.Eventos.route   -> "Eventos"
+                Screen.Perfil.route    -> "Perfil"
+                else                   -> "Inicio"
+            }
+            val showSearch = currentRoute != Screen.Carrito.route
+
             Scaffold(
                 topBar = {
                     LevelUpMainTopBar(
                         isLoggedIn = isLoggedIn,
                         nombre = userSession?.displayName,
+                        title = topTitle,
                         onMenuClick = {
                             coroutineScope.launch {
                                 drawerState.open()
                             }
                         },
                         onCartClick = {
-                            // TODO: Ir al carrito
+                            navController.navigate(Screen.Carrito.route)
                         },
                         onProfileClick = {
                             // TODO: Ir al perfil
                         },
                         onSearchClick = {
-
-                        }
+                        },
+                        showSearch = showSearch
                     )
                 },
                 bottomBar = {
                     NavigationBar {
-                        val navBackStackEntry by navController.currentBackStackEntryAsState()
                         val currentDestination = navBackStackEntry?.destination
-
                         bottomNavItems.forEach { screen ->
                             NavigationBarItem(
                                 icon = { Icon(screen.icon, contentDescription = screen.title) },
@@ -272,6 +301,11 @@ fun MainScreen(
                             }
                         }
                     }
+
+                    // Carrito
+                    composable(Screen.Carrito.route) {
+                        CarritoScreen()
+                    } // Fin carritoScreen
                 }
             }
         }
