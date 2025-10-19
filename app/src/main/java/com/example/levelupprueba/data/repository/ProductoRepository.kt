@@ -37,10 +37,8 @@ class ProductoRepository(
             )
         )
     }
-
     fun obtenerProductos(): List<Producto> {
         return listOf(
-            // Consolas
             Producto(
                 id = "CO001",
                 nombre = "PlayStation 5",
@@ -52,7 +50,13 @@ class ProductoRepository(
                 rating = 5f,
                 disponible = true,
                 destacado = true,
-                stock = 15
+                stock = 15,
+                imagenesUrls = listOf("play5"),
+                fabricante = "Sony",
+                distribuidor = "Sony Chile",
+                descuento = 10,
+                reviews = emptyList(),
+                productosRelacionados = emptyList()
             ),
             Producto(
                 id = "CO002",
@@ -65,7 +69,13 @@ class ProductoRepository(
                 rating = 5f,
                 disponible = true,
                 destacado = true,
-                stock = 12
+                stock = 12,
+                imagenesUrls = listOf("play4"),
+                fabricante = "Sony",
+                distribuidor = "Sony Chile",
+                descuento = 5,
+                reviews = emptyList(),
+                productosRelacionados = emptyList()
             ),
             Producto(
                 id = "CO003",
@@ -78,7 +88,13 @@ class ProductoRepository(
                 rating = 4f,
                 disponible = true,
                 destacado = false,
-                stock = 30
+                stock = 30,
+                imagenesUrls = listOf("mandoplay"),
+                fabricante = "Sony",
+                distribuidor = "Sony Chile",
+                descuento = null,
+                reviews = emptyList(),
+                productosRelacionados = emptyList()
             ),
             Producto(
                 id = "CO005",
@@ -91,7 +107,13 @@ class ProductoRepository(
                 rating = 4f,
                 disponible = true,
                 destacado = true,
-                stock = 25
+                stock = 25,
+                imagenesUrls = listOf("mandoplayazul"),
+                fabricante = "Sony",
+                distribuidor = "Sony Chile",
+                descuento = 15,
+                reviews = emptyList(),
+                productosRelacionados = emptyList()
             ),
             Producto(
                 id = "CO006",
@@ -104,10 +126,14 @@ class ProductoRepository(
                 rating = 3f,
                 disponible = false,
                 destacado = false,
-                stock = 0
+                stock = 0,
+                imagenesUrls = listOf("audifono"),
+                fabricante = "Sony",
+                distribuidor = "Sony Chile",
+                descuento = null,
+                reviews = emptyList(),
+                productosRelacionados = emptyList()
             ),
-
-            // Periféricos
             Producto(
                 id = "PE001",
                 nombre = "Auriculares Logitech",
@@ -119,7 +145,13 @@ class ProductoRepository(
                 rating = 4f,
                 disponible = true,
                 destacado = true,
-                stock = 20
+                stock = 20,
+                imagenesUrls = listOf("audifonoazul"),
+                fabricante = "Logitech",
+                distribuidor = "Logitech Chile",
+                descuento = 10,
+                reviews = emptyList(),
+                productosRelacionados = emptyList()
             ),
             Producto(
                 id = "PE002",
@@ -132,7 +164,13 @@ class ProductoRepository(
                 rating = 4f,
                 disponible = true,
                 destacado = true,
-                stock = 25
+                stock = 25,
+                imagenesUrls = listOf("tecladogamer"),
+                fabricante = "Redragon",
+                distribuidor = "Redragon Chile",
+                descuento = 20,
+                reviews = emptyList(),
+                productosRelacionados = emptyList()
             ),
             Producto(
                 id = "PE003",
@@ -145,7 +183,13 @@ class ProductoRepository(
                 rating = 4f,
                 disponible = true,
                 destacado = false,
-                stock = 30
+                stock = 30,
+                imagenesUrls = listOf("ratongamer"),
+                fabricante = "Cougar",
+                distribuidor = "Cougar Chile",
+                descuento = null,
+                reviews = emptyList(),
+                productosRelacionados = emptyList()
             ),
             Producto(
                 id = "PE004",
@@ -158,7 +202,13 @@ class ProductoRepository(
                 rating = 4f,
                 disponible = true,
                 destacado = true,
-                stock = 8
+                stock = 8,
+                imagenesUrls = listOf("monitorgamer"),
+                fabricante = "ASUS",
+                distribuidor = "ASUS Chile",
+                descuento = 12,
+                reviews = emptyList(),
+                productosRelacionados = emptyList()
             ),
             Producto(
                 id = "PE005",
@@ -171,7 +221,13 @@ class ProductoRepository(
                 rating = 4f,
                 disponible = true,
                 destacado = false,
-                stock = 18
+                stock = 18,
+                imagenesUrls = listOf("camaramonitor"),
+                fabricante = "Logitech",
+                distribuidor = "Logitech Chile",
+                descuento = null,
+                reviews = emptyList(),
+                productosRelacionados = emptyList()
             ),
             Producto(
                 id = "PE006",
@@ -184,10 +240,14 @@ class ProductoRepository(
                 rating = 4f,
                 disponible = true,
                 destacado = false,
-                stock = 15
+                stock = 15,
+                imagenesUrls = listOf("microfono"),
+                fabricante = "Logitech",
+                distribuidor = "Logitech Chile",
+                descuento = null,
+                reviews = emptyList(),
+                productosRelacionados = emptyList()
             ),
-
-            // Ropa
             Producto(
                 id = "RO001",
                 nombre = "Poleron StarCraft",
@@ -199,7 +259,13 @@ class ProductoRepository(
                 rating = 4.5f,
                 disponible = true,
                 destacado = false,
-                stock = 50
+                stock = 50,
+                imagenesUrls = listOf("poleronstarcraf"),
+                fabricante = "Blizzard",
+                distribuidor = "Level-Up",
+                descuento = null,
+                reviews = emptyList(),
+                productosRelacionados = emptyList()
             ),
             Producto(
                 id = "RO002",
@@ -212,7 +278,13 @@ class ProductoRepository(
                 rating = 4.5f,
                 disponible = true,
                 destacado = false,
-                stock = 50
+                stock = 50,
+                imagenesUrls = listOf("polerongrande"),
+                fabricante = "Level-Up",
+                distribuidor = "Level-Up",
+                descuento = 10,
+                reviews = emptyList(),
+                productosRelacionados = emptyList()
             ),
             Producto(
                 id = "RO003",
@@ -225,7 +297,13 @@ class ProductoRepository(
                 rating = 4.5f,
                 disponible = true,
                 destacado = false,
-                stock = 50
+                stock = 50,
+                imagenesUrls = listOf("poleronthekin"),
+                fabricante = "Team Cherry",
+                distribuidor = "Level-Up",
+                descuento = null,
+                reviews = emptyList(),
+                productosRelacionados = emptyList()
             ),
             Producto(
                 id = "RO004",
@@ -238,7 +316,13 @@ class ProductoRepository(
                 rating = 4.5f,
                 disponible = true,
                 destacado = false,
-                stock = 50
+                stock = 50,
+                imagenesUrls = listOf("poleronplay"),
+                fabricante = "Sony",
+                distribuidor = "Level-Up",
+                descuento = null,
+                reviews = emptyList(),
+                productosRelacionados = emptyList()
             ),
             Producto(
                 id = "RO005",
@@ -251,7 +335,13 @@ class ProductoRepository(
                 rating = 4.5f,
                 disponible = true,
                 destacado = false,
-                stock = 50
+                stock = 50,
+                imagenesUrls = listOf("stumblepoleron"),
+                fabricante = "Kitka Games",
+                distribuidor = "Level-Up",
+                descuento = 5,
+                reviews = emptyList(),
+                productosRelacionados = emptyList()
             ),
             Producto(
                 id = "RO006",
@@ -264,10 +354,14 @@ class ProductoRepository(
                 rating = 4.5f,
                 disponible = true,
                 destacado = false,
-                stock = 50
+                stock = 50,
+                imagenesUrls = listOf("poleronstars"),
+                fabricante = "Capcom",
+                distribuidor = "Level-Up",
+                descuento = null,
+                reviews = emptyList(),
+                productosRelacionados = emptyList()
             ),
-
-            // Entretenimiento
             Producto(
                 id = "EN001",
                 nombre = "Catan",
@@ -279,7 +373,13 @@ class ProductoRepository(
                 rating = 4f,
                 disponible = true,
                 destacado = false,
-                stock = 30
+                stock = 30,
+                imagenesUrls = listOf("catan"),
+                fabricante = "KOSMOS",
+                distribuidor = "Devir",
+                descuento = 15,
+                reviews = emptyList(),
+                productosRelacionados = emptyList()
             ),
             Producto(
                 id = "EN002",
@@ -292,7 +392,13 @@ class ProductoRepository(
                 rating = 4f,
                 disponible = true,
                 destacado = false,
-                stock = 25
+                stock = 25,
+                imagenesUrls = listOf("carcassone"),
+                fabricante = "Hans im Glück",
+                distribuidor = "Devir",
+                descuento = 10,
+                reviews = emptyList(),
+                productosRelacionados = emptyList()
             )
         )
     }

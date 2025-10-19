@@ -98,7 +98,9 @@ fun MainNavGraph(
                         mainViewModel.navigateBack()
                     }
                 },
-                contentPadding = innerPadding
+                contentPadding = innerPadding,
+                userDisplayName = userDisplayName ?: "Invitado",
+                isLoggedIn = isLoggedIn
             )
         }
 
