@@ -46,6 +46,7 @@ import com.example.levelupprueba.ui.components.overlays.LevelUpLoadingOverlay
 import com.example.levelupprueba.ui.components.sliders.LevelUpRatingSlider
 import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.ui.theme.SemanticColors
+import com.example.levelupprueba.utils.formatCLP
 import com.example.levelupprueba.viewmodel.CarritoViewModel
 import com.example.levelupprueba.viewmodel.ProductoDetalleViewModel
 import java.text.NumberFormat
@@ -311,7 +312,7 @@ private fun SeccionInformacion(
             val precioFinal = if ((producto.descuento ?: 0) > 0) producto.precioConDescuento!! else producto.precio
 
             Text(
-                text = NumberFormat.getCurrencyInstance(Locale("es", "CL")).format(precioFinal),
+                text = formatCLP(precioFinal),
                 style = MaterialTheme.typography.headlineLarge.copy(fontSize = dimens.titleSize),
                 fontWeight = FontWeight.Bold,
                 color = if ((producto.descuento ?: 0) > 0) SemanticColors.AccentGreenSoft else MaterialTheme.colorScheme.onBackground,
@@ -327,7 +328,7 @@ private fun SeccionInformacion(
                 )
                 Spacer(modifier = Modifier.width(dimens.smallSpacing))
                 Text(
-                    text = NumberFormat.getCurrencyInstance(Locale("es", "CL")).format(producto.precio),
+                    text = formatCLP(producto.precio),
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textDecoration = TextDecoration.LineThrough,

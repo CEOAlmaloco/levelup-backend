@@ -37,7 +37,15 @@ fun HomeScreenProductos(
     val imagenesCarrusel by viewModel.imagenesCarrusel.collectAsState()
     var mostrarTodosProductos by remember { mutableStateOf(false) }
     val dimens = LocalDimens.current
-
+    val productosAMostrar by remember(estado.productosDestacados, mostrarTodosProductos) {
+        derivedStateOf {
+            if (mostrarTodosProductos) {
+                estado.productosDestacados
+            } else {
+                estado.productosDestacados.take(6)
+            }
+        }
+    }
     Box(modifier = Modifier.fillMaxSize()) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
@@ -94,13 +102,6 @@ fun HomeScreenProductos(
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                 }
-            }
-
-
-            val productosAMostrar = if (mostrarTodosProductos) {
-                estado.productosDestacados
-            } else {
-                estado.productosDestacados.take(6)
             }
 
             items(productosAMostrar) { producto ->
