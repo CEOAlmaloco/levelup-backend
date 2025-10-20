@@ -31,6 +31,13 @@ import com.example.levelupprueba.ui.components.navigation.LevelUpMainTopBar
 import com.example.levelupprueba.ui.components.navigation.LevelUpNavigationBar
 import com.example.levelupprueba.ui.screens.profile.PasswordStatusHandler
 import com.example.levelupprueba.utils.getTopBarTitle
+import com.example.levelupprueba.utils.isGestureEnabled
+import com.example.levelupprueba.utils.shouldShowBackArrow
+import com.example.levelupprueba.utils.shouldShowBottomBar
+import com.example.levelupprueba.utils.shouldShowCart
+import com.example.levelupprueba.utils.shouldShowMenu
+import com.example.levelupprueba.utils.shouldShowProfile
+import com.example.levelupprueba.utils.shouldShowSearch
 import com.example.levelupprueba.viewmodel.*
 import kotlinx.coroutines.launch
 
@@ -69,7 +76,7 @@ fun MainScreen(
     val currentRoute = navBackStackEntry?.destination?.route
     val topBarTitle = getTopBarTitle(currentRoute, navBackStackEntry)
     val bottomNavItems = listOf(Screen.Home, Screen.Productos, Screen.Blog, Screen.Eventos)
-    val showBottomBar = currentRoute in bottomNavItems.map { it.route }
+    val showBottomBar = shouldShowBottomBar(currentRoute)
 
     // -- Drawer y secciones --
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -106,8 +113,10 @@ fun MainScreen(
     // -- Efects --
 
     LaunchedEffect(isLoggedIn, userSession?.userId) {
-        if (isLoggedIn && userSession?.userId != null) {
-            profileViewModel.cargarDatosUsuario(userSession.userId)
+        userSession?.let { session ->
+            if (isLoggedIn && session.userId.isNotBlank()) {
+                profileViewModel.cargarDatosUsuario(session.userId)
+            }
         }
     }
 
@@ -135,7 +144,7 @@ fun MainScreen(
     ) {
         ModalNavigationDrawer(
             drawerState = drawerState,
-            gesturesEnabled = currentRoute != Screen.Perfil.route,
+            gesturesEnabled = isGestureEnabled(currentRoute),
             drawerContent = {
                 LevelUpDrawerContent(
                     drawerSections = drawerSections,
@@ -161,22 +170,25 @@ fun MainScreen(
                         isLoggedIn = isLoggedIn,
                         nombre = updatedDisplayName,
                         avatar = updatedAvatar,
-                        showMenu =
-                            currentRoute != Screen.Perfil.route &&
-                            currentRoute != Screen.ProductoDetalle.route &&
-                            currentRoute != Screen.Carrito.route ,
-                        showCart = currentRoute != Screen.Perfil.route,
-                        showProfile = currentRoute != Screen.Perfil.route,
-                        showSearch = currentRoute != Screen.Perfil.route,
-                        showBackArrow =
-                            currentRoute == Screen.Perfil.route ||
-                            currentRoute == Screen.ProductoDetalle.route ||
-                            currentRoute == Screen.Carrito.route ,
+                        showMenu = shouldShowMenu(currentRoute),
+                        showCart = shouldShowCart(currentRoute),
+                        showProfile = shouldShowProfile(currentRoute),
+                        showSearch = shouldShowSearch(currentRoute),
+                        showBackArrow = shouldShowBackArrow(currentRoute),
                         onBackClick = { coroutineScope.launch { mainViewModel.navigateBack() } },
                         onMenuClick = { coroutineScope.launch { drawerState.open() } },
-                        onCartClick = { coroutineScope.launch { mainViewModel.navigateTo(Screen.Carrito.route)}},
+                        onCartClick = {
+                            if (currentRoute != Screen.Carrito.route) {
+                                coroutineScope.launch { mainViewModel.navigateTo(Screen.Carrito.route) }
+                            }
+                        },
                         onProfileClick = { handleProfileNavigation() },
-                        onSearchClick = { /* TODO */ },
+                        onSearchClick = { query ->
+                            productoViewModel.actualizarTextoBusqueda(query)
+                            if (currentRoute != Screen.Productos.route) {
+                                coroutineScope.launch { mainViewModel.navigateTo(Screen.Productos.route) }
+                            }
+                        },
                         cantidadCarrito = cantidadCarrito
                     )
                 },
