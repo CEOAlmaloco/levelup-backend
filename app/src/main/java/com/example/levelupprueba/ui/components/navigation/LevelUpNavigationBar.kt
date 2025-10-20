@@ -54,6 +54,7 @@ fun LevelUpNavigationBar(
         ) {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentDestination = navBackStackEntry?.destination
+            val currentRoute = currentDestination?.route
 
             bottomNavItems.forEach { screen ->
                 NavigationBarItem(
@@ -61,8 +62,10 @@ fun LevelUpNavigationBar(
                     label = { Text(screen.title) },
                     selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                     onClick = {
-                        coroutineScope.launch {
-                            mainViewModel.navigateTo(screen.route)
+                        if (currentRoute != screen.route) {
+                            coroutineScope.launch {
+                                mainViewModel.navigateTo(screen.route)
+                            }
                         }
                     },
                     colors = levelUpNavigationBarItemsColors()

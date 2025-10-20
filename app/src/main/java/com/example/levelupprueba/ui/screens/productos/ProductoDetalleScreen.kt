@@ -20,6 +20,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -232,7 +233,10 @@ private fun SeccionVisual(
             .fillMaxWidth()
             .height(dimens.imageHeight), //altura desde las dimensiones del tema
         shape = RoundedCornerShape(dimens.imageCornerRadius), //bordes redondeados desde el tema
-        elevation = CardDefaults.cardElevation(defaultElevation = dimens.cardElevation) //sombra desde el tema
+        elevation = CardDefaults.cardElevation(defaultElevation = dimens.cardElevation), //sombra desde el tema
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        )
     ) {
         AsyncImage( //usamos coil para cargar las imagenes de forma asincrona
             model = ImageRequest.Builder(context)
@@ -240,7 +244,7 @@ private fun SeccionVisual(
                 .crossfade(true) //animacion de fade cuando carga
                 .build(),
             contentDescription = nombre, //para accesibilidad
-            contentScale = ContentScale.Crop, //recorta la imagen para q llene todo el espacio
+            contentScale = ContentScale.Fit, //recorta la imagen para q llene todo el espacio
             modifier = Modifier.fillMaxSize()
         )
     }
