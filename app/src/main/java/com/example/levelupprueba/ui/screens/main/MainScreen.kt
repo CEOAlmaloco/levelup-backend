@@ -4,6 +4,8 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -26,9 +29,12 @@ import com.example.levelupprueba.navigation.Screen
 import com.example.levelupprueba.ui.components.GlobalSnackbarHost
 import com.example.levelupprueba.ui.components.LevelUpCustomSnackbar
 import com.example.levelupprueba.ui.components.RememberLastValidSnackbarState
+import com.example.levelupprueba.ui.components.filtros.FiltrosComponent
+import com.example.levelupprueba.ui.components.filtros.LevelUpFiltersOverlay
 import com.example.levelupprueba.ui.components.navigation.DrawerSection
 import com.example.levelupprueba.ui.components.navigation.LevelUpMainTopBar
 import com.example.levelupprueba.ui.components.navigation.LevelUpNavigationBar
+import com.example.levelupprueba.ui.components.overlays.LevelUpLoadingOverlay
 import com.example.levelupprueba.ui.screens.profile.PasswordStatusHandler
 import com.example.levelupprueba.utils.getTopBarTitle
 import com.example.levelupprueba.utils.isGestureEnabled
@@ -238,7 +244,10 @@ fun MainScreen(
                 )
             }
         }
+        LevelUpFiltersOverlay(
+            productoViewModel = productoViewModel,
 
+        )
         GlobalSnackbarHost(
             snackbarState = globalSnackbarState,
             snackbarHostState = snackbarHostState,
@@ -247,7 +256,6 @@ fun MainScreen(
                 changePasswordViewModel.resetPasswordStatus()
             }
         )
-
         // Overlay global / status dialogs
         ProfileStatusHandler(
             profileUiState = profileUiState,
