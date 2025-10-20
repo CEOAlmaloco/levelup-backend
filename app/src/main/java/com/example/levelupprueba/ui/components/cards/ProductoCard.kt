@@ -62,6 +62,7 @@ fun ProductoCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(4f/ 3f)
+                    .background(MaterialTheme.colorScheme.onBackground)
             ) {
                 val context = LocalContext.current
                 val imageResId = context.resources.getIdentifier(
