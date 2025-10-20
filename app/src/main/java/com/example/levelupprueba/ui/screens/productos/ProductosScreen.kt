@@ -106,45 +106,6 @@ fun ProductosScreen(
                 }
             }
         }
-
-        // overlay oscuro cuando se muestran filtros
-        if (estado.mostrarFiltros) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.5f))
-                    .clickable { viewModel.cerrarFiltros() }
-            )
-        }
-
-        // Panel de filtros deslizante
-        if (estado.mostrarFiltros) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(end = 0.dp),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                FiltrosComponent(
-                    filtros = estado.filtros,
-                    onCategoriaChange = { viewModel.cambiarCategoria(it) },
-                    onSubcategoriaToggle = { viewModel.toggleSubcategoria(it) },
-                    onTextoBusquedaChange = { viewModel.actualizarTextoBusqueda(it) },
-                    onPrecioMinimoChange = { viewModel.actualizarPrecioMinimo(it) },
-                    onPrecioMaximoChange = { viewModel.actualizarPrecioMaximo(it) },
-                    onSoloDisponiblesToggle = { viewModel.toggleSoloDisponibles() },
-                    onRatingMinimoChange = { viewModel.actualizarRatingMinimo(it) },
-                    onOrdenamientoChange = { viewModel.cambiarOrdenamiento(it) },
-                    onLimpiarFiltros = { viewModel.limpiarFiltros() },
-                    onCerrar = { viewModel.cerrarFiltros() }
-                )
-            }
-        }
-
-        // Loading overlay
-        if (estado.isLoading) {
-            LevelUpLoadingOverlay()
-        }
     }
 }
 

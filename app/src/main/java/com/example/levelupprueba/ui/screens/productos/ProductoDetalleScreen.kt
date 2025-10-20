@@ -271,19 +271,19 @@ private fun SeccionInformacion(
         LevelUpBadge( //el codigo del producto chiquitito
             text = producto.id,
             textColor = MaterialTheme.colorScheme.onSurface.copy(0.60f),
-            backgroundColor = MaterialTheme.colorScheme.surface.copy(0.80f),
+            backgroundColor = MaterialTheme.colorScheme.surface.copy(0.80f)
         )
 
         Text( //el nombre del producto bien grande y bold
             text = producto.nombre,
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.headlineMedium.copy(fontSize = dimens.titleSize),
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
         )
 
         Text( //La categoria y subcategoria del producto.
             text = subcategoriaTexto,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyMedium.copy(fontSize = dimens.subtitleSize),
             fontWeight = FontWeight.Normal,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -293,13 +293,13 @@ private fun SeccionInformacion(
         ) {
             ProductoRatingStars( //componente q hicimos para mostrar las estrellas
                 rating = producto.ratingPromedio, //el rating promedio calculado desde las reviews
-                starSize = dimens.smallIconSize, //tamaño de icono pequeño del tema
+                starSize = dimens.iconSize, //tamaño de icono pequeño del tema
                 tint = SemanticColors.AccentYellow
             )
             Spacer(modifier = Modifier.width(dimens.smallSpacing))
             Text( //el numero del rating al lado de las estrellas
                 text = String.format("%.1f", producto.ratingPromedio), //formateamos a 1 decimal
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium.copy(fontSize = dimens.bodySize),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -312,7 +312,7 @@ private fun SeccionInformacion(
 
             Text(
                 text = NumberFormat.getCurrencyInstance(Locale("es", "CL")).format(precioFinal),
-                style = MaterialTheme.typography.headlineLarge,
+                style = MaterialTheme.typography.headlineLarge.copy(fontSize = dimens.titleSize),
                 fontWeight = FontWeight.Bold,
                 color = if ((producto.descuento ?: 0) > 0) SemanticColors.AccentGreenSoft else MaterialTheme.colorScheme.onBackground,
                 fontSize = 32.sp
@@ -330,7 +330,8 @@ private fun SeccionInformacion(
                     text = NumberFormat.getCurrencyInstance(Locale("es", "CL")).format(producto.precio),
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textDecoration = TextDecoration.LineThrough
+                        textDecoration = TextDecoration.LineThrough,
+                        fontSize = dimens.captionSize
                     )
                 )
             }
@@ -338,7 +339,7 @@ private fun SeccionInformacion(
 
         Text( //la descripcion del producto
             text = producto.descripcion,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyMedium.copy(fontSize = dimens.bodySize),
             color = MaterialTheme.colorScheme.onSurface,
             lineHeight = 24.sp //espaciado entre lineas para q se lea mejor
         )
@@ -362,31 +363,31 @@ private fun SeccionOrigen(
         ) {
             Text( //el titulo de la seccion
                 text = "Origen del producto",
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium.copy(fontSize = dimens.titleSize),
                 fontWeight = FontWeight.Bold
             )
 
             Row { //fabricante en bold y el valor normal
                 Text(
                     text = "Fabricante: ",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = dimens.subtitleSize),
                     fontWeight = FontWeight.Bold
                 )
                 Text( //el nombre del fabricante
                     text = fabricante,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = dimens.bodySize)
                 )
             }
 
             Row { //distribuidor en bold y el valor normal
                 Text(
                     text = "Distribuidor: ",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = dimens.subtitleSize),
                     fontWeight = FontWeight.Bold
                 )
                 Text( //el nombre del distribuidor
                     text = distribuidor,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = dimens.bodySize)
                 )
             }
         }
@@ -535,7 +536,7 @@ private fun SeccionReviews(
             ) {
                 Text(
                     text = "Reseñas y calificaciones",
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.headlineSmall.copy(fontSize = dimens.titleSize),
                     fontWeight = FontWeight.Bold
                 )
 
@@ -557,7 +558,7 @@ private fun SeccionReviews(
                 Spacer(modifier = Modifier.width(dimens.smallSpacing))
                 Text( //el numero del rating al lado
                     text = String.format("%.1f", ratingPromedio),
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleLarge.copy(fontSize = dimens.subtitleSize),
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -582,7 +583,7 @@ private fun SeccionReviews(
             ) {
                 Text( //mensaje motivando a ser el primero en opinar
                     text = "Sin reseñas aún. ¡Sé el primero en opinar!",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = dimens.bodySize),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -723,13 +724,13 @@ private fun SeccionCompartir(
         ) {
             Text(
                 text = "Soporte y Compartir",
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium.copy(fontSize = dimens.titleSize),
                 fontWeight = FontWeight.Bold
             )
             
             Text(
                 text = "¿Necesitas ayuda con este producto?",
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium.copy(fontSize = dimens.bodySize),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             
