@@ -93,6 +93,7 @@ fun MainNavGraph(
                 productoId = productoId,
                 viewModel = productoDetalleViewModel,
                 onProductoClick = { id ->
+
                     coroutineScope.launch {
                         mainViewModel.navigateTo(Screen.ProductoDetalle.createRoute(id))
                     }
