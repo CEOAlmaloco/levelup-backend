@@ -2,8 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.10"
-    id("kotlin-kapt")
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.0.21"
+    id("com.google.devtools.ksp") version "2.0.21-1.0.28"
 }
 
 android {
@@ -21,13 +21,31 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Configuración para desarrollo local
+            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8094/\"") // Emulador Android
+            buildConfigField("String", "API_KEY", "\"levelup-2024-secret-api-key-change-in-production\"")
+            buildConfigField("Boolean", "IS_PRODUCTION", "false")
+        }
+        
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Configuración para producción AWS
+            // IMPORTANTE: Cambiar esta URL después de desplegar en AWS
+            // Ejemplo: "https://api.levelup-tu-dominio.com/" o "https://tu-dominio-aws.amazonaws.com:8094/"
+            buildConfigField("String", "API_BASE_URL", "\"https://api-gateway.tu-dominio.com/\"") // AWS Producción
+            buildConfigField("String", "API_KEY", "\"levelup-2024-secret-api-key-change-in-production\"")
+            buildConfigField("Boolean", "IS_PRODUCTION", "true")
         }
+    }
+    
+    buildFeatures {
+        compose = true
+        buildConfig = true // Habilitar BuildConfig para acceder a las constantes
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -36,14 +54,11 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
-    buildFeatures {
-        compose = true
-    }
 }
 
 dependencies {
     implementation("androidx.room:room-runtime:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")

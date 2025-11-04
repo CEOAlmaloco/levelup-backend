@@ -7,7 +7,7 @@ import com.example.levelupprueba.data.local.UserDataStore
 import com.example.levelupprueba.data.local.getUserSessionFlow
 import com.example.levelupprueba.data.repository.UsuarioRepository
 import com.example.levelupprueba.model.evento.Evento
-import com.example.levelupprueba.data.repository.EventoRepository
+import com.example.levelupprueba.data.repository.EventoRepositoryRemote
 import com.example.levelupprueba.model.evento.EventoUiState
 import com.example.levelupprueba.model.evento.RecompensaCanje
 import com.example.levelupprueba.model.usuario.Usuario
@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 /* Este viewmodel se encarga de la logica de la pantalla de eventos  UI 
 */
 class EventoViewModel(//creamo la instancia del repositorio 
-    private val repository: EventoRepository = EventoRepository(),// creamos la variable para acceder a evento repository
+    private val repository: EventoRepositoryRemote = EventoRepositoryRemote(),// creamos la variable para acceder a evento repository (usa Retrofit)
     private val usuarioRepository: UsuarioRepository? = null
 ) : ViewModel() {
 
@@ -52,8 +52,7 @@ class EventoViewModel(//creamo la instancia del repositorio
         viewModelScope.launch {//lanzamos la corrutina
             _estado.update { it.copy(isLoading = true, error = null) }//actualizamos el estado para que se muestre el loading y el error
             try {
-                delay(800)//800 ms es 0.8 segundos 
-                val eventos = repository.obtenerEventos()//obtenemos los eventos del futuro SQLLITE 
+                val eventos = repository.obtenerEventos()//obtenemos los eventos desde el backend usando Retrofit
                 val recompensas = repository.obtenerRecompensas()// seteamos otra variable local de otra funcion 
                 _estado.update {
                     it.copy(

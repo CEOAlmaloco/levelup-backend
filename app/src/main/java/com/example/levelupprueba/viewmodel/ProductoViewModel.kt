@@ -30,11 +30,13 @@ class ProductoViewModel(private val repository: ProductoRepository = ProductoRep
 
     private fun cargarProductos() {//esta funcion se encarga de cargar los productos y los destacados
         viewModelScope.launch {// el scope es un contenedor para las corrutinas y la launch es para lanzar la corrutina
+            android.util.Log.d("ProductoViewModel", "Iniciando carga de productos...")
             _estado.update { it.copy(isLoading = true, error = null) }//se actualiza el estado para que se muestre el loading y el error
             try {
-                delay(500)//se simula el delay de la api
-                todosLosProductos = repository.obtenerProductos()//se obtienen los productos
+                todosLosProductos = repository.obtenerProductos()//se obtienen los productos desde el backend
+                android.util.Log.d("ProductoViewModel", "Productos obtenidos: ${todosLosProductos.size}")
                 val destacados = repository.obtenerProductosDestacados()//se obtienen los productos destacados
+                android.util.Log.d("ProductoViewModel", "Productos destacados obtenidos: ${destacados.size}")
                 //se actualiza el estado para que se muestre los productos y los destacados
                 _estado.update {
                     it.copy(
@@ -43,7 +45,10 @@ class ProductoViewModel(private val repository: ProductoRepository = ProductoRep
                         isLoading = false//y seteamos el loading y el error a false pq ya cargo
                     )
                 }
+                android.util.Log.d("ProductoViewModel", "Estado actualizado correctamente")
             } catch (e: Exception) {
+                android.util.Log.e("ProductoViewModel", "Error al cargar productos: ${e.message}", e)
+                e.printStackTrace()
                 _estado.update {
                     it.copy(
                         isLoading = false,
