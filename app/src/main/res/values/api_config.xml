@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Configuración de API -->
+    
+    <!-- URL Base del API Gateway -->
+    <!-- Para desarrollo local con emulador: http://10.0.2.2:8094/ -->
+    <!-- Para desarrollo local con dispositivo físico: http://192.168.1.XXX:8094/ (cambiar IP) -->
+    <!-- Para producción AWS: https://api.tu-dominio.com/ -->
+    <string name="api_base_url_dev">http://10.0.2.2:8094/</string>
+    <string name="api_base_url_prod">https://api.tu-dominio.com/</string>
+    
+    <!-- Timeout de conexión en segundos -->
+    <integer name="api_timeout_seconds">30</integer>
+    
+    <!-- Endpoints de servicios -->
+    <string name="endpoint_auth">auth</string>
+    <string name="endpoint_usuario">usuarios</string>
+    <string name="endpoint_productos">productos</string>
+    <string name="endpoint_carrito">carrito</string>
+    <string name="endpoint_pedido">pedido</string>
+    <string name="endpoint_pagos">pagos</string>
+    <string name="endpoint_eventos">eventos</string>
+    <string name="endpoint_contenido">contenido</string>
+    <string name="endpoint_resenia">resenia</string>
+    <string name="endpoint_referidos">referidos</string>
+    <string name="endpoint_promociones">promociones</string>
+    <string name="endpoint_notificaciones">notificaciones</string>
+    <string name="endpoint_inventario">inventario</string>
+</resources>
+
