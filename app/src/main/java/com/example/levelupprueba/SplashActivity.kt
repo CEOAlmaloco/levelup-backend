@@ -14,7 +14,7 @@ class SplashActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             val session = getUserSessionFlow(this@SplashActivity).first()
-            if (session.userId.isNotBlank()) {
+            if (session.userId > 0 && session.accessToken.isNotBlank()) {
                 // Usuario logueado: ir a MainActivity
                 startActivity(Intent(this@SplashActivity, MainActivity::class.java))
             } else {

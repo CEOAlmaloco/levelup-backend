@@ -11,6 +11,20 @@ import java.time.format.DateTimeParseException
 
 object UsuarioValidator {
 
+    fun validarRun(run: String): FieldErrors? =
+        when {
+            run.isBlank() -> FieldErrors.Obligatorio("RUN")
+            else -> {
+                // Remover guiones y espacios para validar
+                val runLimpio = run.replace("-", "").replace(" ", "").uppercase()
+                if (!runLimpio.matches(Regex("^[0-9]{7,8}[0-9K]$"))) {
+                    UsuarioFieldErrors.RunInvalido
+                } else {
+                    null
+                }
+            }
+        }
+
     fun validarNombre(nombre: String): FieldErrors? =
         if (nombre.isBlank()) FieldErrors.Obligatorio("nombre") else null
 
@@ -28,8 +42,11 @@ object UsuarioValidator {
     fun validarPassword(password: String): FieldErrors? =
         when {
             password.isBlank() -> FieldErrors.Obligatorio("contraseña")
-            password.length < 4 -> FieldErrors.MinLength("contraseña", 4)
-            password.length > 10 -> FieldErrors.MaxLength("contraseña", 10)
+            password.length < 8 -> FieldErrors.MinLength("contraseña", 8)
+            password.length > 100 -> FieldErrors.MaxLength("contraseña", 100)
+            !password.matches(Regex(".*[a-z].*")) -> UsuarioFieldErrors.PasswordSinMinuscula
+            !password.matches(Regex(".*[A-Z].*")) -> UsuarioFieldErrors.PasswordSinMayuscula
+            !password.matches(Regex(".*\\d.*")) -> UsuarioFieldErrors.PasswordSinNumero
             else -> null
         }
 

@@ -99,16 +99,16 @@ class EventoViewModel(//creamo la instancia del repositorio
         val ctx = context ?: return null
         
         val session = getUserSessionFlow(ctx).first()
-        if (session.userId.isEmpty()) return null
+        if (session.userId == 0L) return null
         
         // Priorizar base de datos SQLite si esta disponible
         return if (usuarioRepository != null) {
-            usuarioRepository.getUsuarioById(session.userId)
+            usuarioRepository.getUsuarioById(session.userId.toString())
         } else {
             // Fallback a DataStore si no hay repository
             val dataStore = userDataStore ?: return null
             val usuarios = dataStore.getUsuarios()
-            usuarios.find { it.id == session.userId }
+            usuarios.find { it.id == session.userId.toString() }
         }
     }
 

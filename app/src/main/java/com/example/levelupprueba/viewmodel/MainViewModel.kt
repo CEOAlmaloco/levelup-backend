@@ -38,8 +38,8 @@ class MainViewModel(
             getUserSessionFlow(context).collect { session ->
                 _userSessionFlow.value = session
                 // Si hay sesión, carga el avatar del usuario de Room
-                if (session.userId.isNotBlank()) {
-                    val usuario = usuarioRepository.getUsuarioById(session.userId)
+                if (session.userId > 0) {
+                    val usuario = usuarioRepository.getUsuarioById(session.userId.toString())
                     _avatar.value = usuario?.avatar
                 } else {
                     _avatar.value = null

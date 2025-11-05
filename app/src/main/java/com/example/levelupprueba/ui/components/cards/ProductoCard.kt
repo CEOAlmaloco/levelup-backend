@@ -65,21 +65,59 @@ fun ProductoCard(
                     .background(MaterialTheme.colorScheme.onBackground)
             ) {
                 val context = LocalContext.current
-                val imageResId = context.resources.getIdentifier(
-                    producto.imagenUrl,
-                    "drawable",
-                    context.packageName
-                )
+                
+                // Determinar si es URL (S3 o HTTP), Base64, o drawable resource
+                val imageData = when {
+                    // Si es URL completa (S3 o HTTP)
+                    producto.imagenUrl.startsWith("http://") || producto.imagenUrl.startsWith("https://") -> {
+                        producto.imagenUrl
+                    }
+                    // Si es Base64
+                    producto.imagenUrl.startsWith("data:image") -> {
+                        producto.imagenUrl
+                    }
+                    // Si parece ser Base64 puro (sin prefijo), agregar el prefijo
+                    producto.imagenUrl.isNotBlank() && producto.imagenUrl.length > 100 -> {
+                        "data:image/png;base64,${producto.imagenUrl}"
+                    }
+                    // Si es una referencia S3 (key), intentar construir URL o buscar en drawable como fallback
+                    producto.imagenUrl.isNotBlank() -> {
+                        // Intentar buscar en drawable como fallback
+                        val imageResourceId = context.resources.getIdentifier(
+                            producto.imagenUrl,
+                            "drawable",
+                            context.packageName
+                        )
+                        if (imageResourceId != 0) imageResourceId else null
+                    }
+                    else -> null
+                }
 
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(imageResId)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = producto.nombre,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
+                if (imageData != null) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(imageData)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = producto.nombre,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    // Placeholder si no hay imagen
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Sin imagen",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
 
                 // Badge de disponibilidad/agotado en la esquina superior derecha
                 LevelUpProductBadge(

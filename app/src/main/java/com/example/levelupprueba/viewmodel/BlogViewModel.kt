@@ -25,20 +25,19 @@ class BlogViewModel(
     init {// cuando se inicie el viewmodel se cargaran los blogs
         cargarBlogs()
     }
-    //y aca el cargar blogs
+    //y aca el cargar blogs desde el backend
     fun cargarBlogs() {
         viewModelScope.launch {//un scope es un contenedor para las corrutinas y la launch es para lanzar la corrutina
             _estado.update { it.copy(isLoading = true, error = null) }
 //aca lo q hacemos es que el estado cuando se actualize genera una copia de este para no modificar el original y seteamos los valores de isLoading y error a true y null
-            try {//siempre en un delay poner un try catch ya que los delay pueden siempre tirar error
-                delay(1000) // aca simulamos que llamamos a la api como si fuera async
+            try {//llamamos al backend para obtener los blogs
                 val blogs = repository.obtenerBlogs()
                 _estado.update {
                     it.copy(
                         blogs = blogs,
                         isLoading = false
                     )
-                }//baicamente lo q hacemos aca es simular la llamada de la api con los blogs de la base de datos, entonces vemos cmo se ve la pantalla con los datos sin depender del backend
+                }//cargamos los blogs desde el backend usando ContenidoApiService
             } catch (e: Exception) {
                 _estado.update {
                     it.copy(

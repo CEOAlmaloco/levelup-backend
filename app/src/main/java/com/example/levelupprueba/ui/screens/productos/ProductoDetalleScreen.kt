@@ -50,7 +50,6 @@ import com.example.levelupprueba.viewmodel.CarritoViewModel
 import com.example.levelupprueba.viewmodel.ProductoDetalleViewModel
 import com.example.levelupprueba.data.local.getUserSessionFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.collectAsState
 import java.text.NumberFormat
 import java.util.*
 
@@ -84,7 +83,7 @@ fun ProductoDetalleScreen(
         if (isLoggedIn) {
             try {
                 val session = getUserSessionFlow(context).first()
-                userId = session.userId.toLongOrNull()
+                userId = session.userId
             } catch (e: Exception) {
                 userId = null
             }
@@ -238,16 +237,37 @@ private fun ProductoDetalleContent( //esta funcion tiene TODO el contenido del d
 //SECCION VISUAL - LA IMAGEN GRANDE DEL PRODUCTO
 @Composable //esta funcion muestra la imagen principal del producto en un card bonito
 private fun SeccionVisual(
-    imagenUrl: String, //el nombre de la imagen q esta en drawable
+    imagenUrl: String, //URL de S3, Base64, o referencia a drawable
     nombre: String, //el nombre del producto para accesibilidad
     dimens: com.example.levelupprueba.ui.theme.Dimens //dimensiones del tema
 ) {
     val context = LocalContext.current
-    val imageResourceId = context.resources.getIdentifier( //buscamos la imagen en drawable
-        imagenUrl, //el nombre de la imagen sin extension
-        "drawable", //buscamos en la carpeta drawable
-        context.packageName //del package de la app
-    ) //esto es medio feo pq tenemos q tener las imagenes en drawable, despues lo cambiamos a urls remotas TODO
+    
+    // Determinar si es URL (S3 o HTTP), Base64, o drawable resource
+    val imageData = when {
+        // Si es URL completa (S3 o HTTP)
+        imagenUrl.startsWith("http://") || imagenUrl.startsWith("https://") -> {
+            imagenUrl
+        }
+        // Si es Base64
+        imagenUrl.startsWith("data:image") -> {
+            imagenUrl
+        }
+        // Si parece ser Base64 puro (sin prefijo), agregar el prefijo
+        imagenUrl.isNotBlank() && imagenUrl.length > 100 -> {
+            "data:image/png;base64,$imagenUrl"
+        }
+        // Si es una referencia S3 (key) o drawable, intentar buscar en drawable como fallback
+        imagenUrl.isNotBlank() -> {
+            val imageResourceId = context.resources.getIdentifier(
+                imagenUrl,
+                "drawable",
+                context.packageName
+            )
+            if (imageResourceId != 0) imageResourceId else null
+        }
+        else -> null
+    }
 
     Card( //envolvemos la imagen en un card para q tenga sombra y bordes redondeados, usamos Card de material3 pq LevelUpCard tiene padding interno
         modifier = Modifier
@@ -259,15 +279,31 @@ private fun SeccionVisual(
             containerColor = Color.White
         )
     ) {
-        AsyncImage( //usamos coil para cargar las imagenes de forma asincrona
-            model = ImageRequest.Builder(context)
-                .data(imageResourceId) //le pasamos el id de la imagen
-                .crossfade(true) //animacion de fade cuando carga
-                .build(),
-            contentDescription = nombre, //para accesibilidad
-            contentScale = ContentScale.Fit, //recorta la imagen para q llene todo el espacio
-            modifier = Modifier.fillMaxSize()
-        )
+        if (imageData != null) {
+            AsyncImage( //usamos coil para cargar las imagenes de forma asincrona
+                model = ImageRequest.Builder(context)
+                    .data(imageData) //le pasamos la URL de S3, Base64, o drawable resource
+                    .crossfade(true) //animacion de fade cuando carga
+                    .build(),
+                contentDescription = nombre, //para accesibilidad
+                contentScale = ContentScale.Fit, //recorta la imagen para q llene todo el espacio
+                modifier = Modifier.fillMaxSize()
+            )
+        } else {
+            // Placeholder si no hay imagen
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Sin imagen",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }
 //FIN SECCION VISUAL

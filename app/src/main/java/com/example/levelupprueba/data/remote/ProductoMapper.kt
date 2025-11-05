@@ -17,12 +17,25 @@ object ProductoMapper {
      * Mapea un ProductoDto del backend a un Producto del modelo Kotlin
      */
     fun mapProductoDto(dto: ProductoDto): Producto {
-        // Resolver imagenUrl desde imagen o imagenUrl del backend
-        val imagenUrl = dto.imagenUrl ?: dto.imagen ?: ""
+        // Priorizar imagenUrl del backend (URL completa de S3 construida)
+        // Si no existe, usar imagenS3Key (referencia S3) o imagen (compatibilidad con Base64)
+        val imagenUrl = when {
+            !dto.imagenUrl.isNullOrBlank() -> dto.imagenUrl // URL completa de S3 desde el backend
+            !dto.imagenS3Key.isNullOrBlank() -> dto.imagenS3Key // Referencia S3 (se construirá la URL si es necesario)
+            !dto.imagen.isNullOrBlank() -> dto.imagen // Base64 o ruta legacy
+            else -> ""
+        }
         
-        // Parsear imagenes JSON si existe
+        // Parsear imagenesUrls (JSON array de URLs completas de S3) o imagenesS3Keys (referencias)
         val imagenesUrls = try {
-            val imagenesJson = dto.imagenes
+            // Priorizar imagenesUrls (URLs completas de S3)
+            val imagenesJson = when {
+                !dto.imagenesUrls.isNullOrBlank() -> dto.imagenesUrls
+                !dto.imagenesS3Keys.isNullOrBlank() -> dto.imagenesS3Keys
+                !dto.imagenes.isNullOrBlank() -> dto.imagenes
+                else -> null
+            }
+            
             if (imagenesJson != null && imagenesJson.isNotBlank()) {
                 val gson = Gson()
                 val type = object : TypeToken<List<String>>() {}.type
@@ -43,19 +56,31 @@ object ProductoMapper {
         val subcategoriaId = dto.subcategoriaId
         val subcategoria = subcategoriaId?.let { mapSubcategoria(it, categoria) }
         
-        // Obtener nombre del producto
-        val nombre = dto.nombre ?: dto.titulo ?: ""
+        // Obtener nombre del producto (priorizar nombreProducto del backend)
+        val nombre = dto.nombreProducto ?: dto.nombre ?: dto.titulo ?: ""
+        
+        // Obtener descripción (priorizar descripcionProducto del backend)
+        val descripcion = dto.descripcionProducto ?: dto.descripcion ?: ""
+        
+        // Obtener precio (priorizar precioProducto del backend)
+        val precio = dto.precioProducto ?: dto.precio ?: 0.0
+        
+        // Obtener ID (priorizar idProducto del backend)
+        val id = (dto.idProducto ?: dto.id)?.toString() ?: ""
+        
+        // Obtener disponibilidad (priorizar activo del backend)
+        val disponible = dto.activo ?: dto.disponible ?: true
         
         return Producto(
-            id = dto.id?.toString() ?: "",
+            id = id,
             nombre = nombre,
-            descripcion = dto.descripcion ?: "",
-            precio = dto.precio ?: 0.0,
+            descripcion = descripcion,
+            precio = precio,
             imagenUrl = imagenUrl,
             categoria = categoria,
             subcategoria = subcategoria,
             rating = (dto.rating ?: 0.0).toFloat(),
-            disponible = dto.disponible ?: true,
+            disponible = disponible,
             destacado = false, // El backend no tiene este campo, se puede calcular después
             stock = dto.stock ?: 0,
             imagenesUrls = imagenesUrls,
