@@ -3,15 +3,22 @@ package com.example.levelupprueba.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.levelupprueba.data.repository.UsuarioRepository
-import com.example.levelupprueba.model.admin.users.UsuariosState
+import com.example.levelupprueba.model.admin.users.UsuariosStatus
 import com.example.levelupprueba.model.admin.users.UsuariosUiState
 import com.example.levelupprueba.model.usuario.Usuario
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class UsuariosManagementViewModel (
+/**
+ * ViewModel para la pantalla de usuarios en vista de administrador.
+ * @param usuarioRepository Repositorio de usuarios.
+ *
+ * @author Christian Mesa
+ * */
+class UsuariosViewModel (
     private val usuarioRepository: UsuarioRepository
 ) : ViewModel() {
 
@@ -23,36 +30,49 @@ class UsuariosManagementViewModel (
 
     // Helper para setear el estado de Loading
     private fun setLoading() = _estado.update {
-        it.copy(state = UsuariosState.Loading)
+        it.copy(state = UsuariosStatus.Loading)
+    }
+
+    private fun setDeleting() = _estado.update {
+        it.copy(state = UsuariosStatus.Deleting)
     }
 
     // Helper para setear el estado de Error
     private fun setError(errorMessage: String) = _estado.update {
-        it.copy(state = UsuariosState.Error(errorMessage = errorMessage))
+        it.copy(state = UsuariosStatus.Error(errorMessage = errorMessage))
     }
 
     // Helper para setear el estado de Success
     private fun setSuccess(usuarios: List<Usuario>) = _estado.update {
         it.copy(
-            state = if (usuarios.isEmpty()) UsuariosState.Empty
-                    else UsuariosState.Success(usuarios)
+            state = if (usuarios.isEmpty()) UsuariosStatus.Empty
+                    else UsuariosStatus.Success(usuarios)
         )
+    }
+
+    // Helper para limpiar la ultima accion
+    fun clearLastAction() = _estado.update {
+        it.copy(lastAction = null)
+    }
+
+    // ⚠️⚠️⚠️⚠️ ESTO ES UNA PRUEBA PARA CREAR UN USUARIO DE PRUEBA (BORRAR DESPUES)
+
+    init {
+        viewModelScope.launch {
+            crearUsuarioDePrueba()
+        }
     }
 
     // Cargar usuarios desde la base de datos interna
     private suspend fun cargarUsuariosInterno(){
         setLoading()
         try {
+            delay(1500)
             val usuarios = usuarioRepository.getAllUsuarios()
             setSuccess(usuarios)
         } catch (e: Exception){
             setError("Error al cargar usuarios: ${e.message}")
         }
-    }
-
-    // Cargar usuarios desde la base de datos
-    init {
-        cargarUsuarios()
     }
 
     // Funcion para cargar usuarios desde la base de datos
@@ -94,12 +114,20 @@ class UsuariosManagementViewModel (
     }
 
     // Funcion para eliminar un usuario
-    fun eliminarUsuario(usuario: Usuario){
+    fun eliminarUsuario(userId: String){
         // Corrutina para eliminar el usuario
+        setDeleting()
         viewModelScope.launch {
             try {
-                usuarioRepository.deleteUsuario(usuario)
-                cargarUsuariosInterno()
+                delay(1500)
+                val usuario = usuarioRepository.getUsuarioById(userId)
+                if (usuario != null){
+                    usuarioRepository.deleteUsuario(usuario)
+                    cargarUsuariosInterno()
+                    _estado.update { it.copy(lastAction = "delete") }
+                }else{
+                    setError("Usuario no encontrado")
+                }
             } catch (e: Exception){
                 setError("Error al eliminar usuario: ${e.message}")
             }
@@ -116,6 +144,32 @@ class UsuariosManagementViewModel (
             } catch (e: Exception){
                 setError("Error al eliminar todos los usuarios: ${e.message}")
             }
+        }
+    }
+
+    // USUARIO DE PRUEBA (BORRAR DESPUES) ⚠️⚠️⚠️⚠️⚠️⚠️
+    private suspend fun crearUsuarioDePrueba() {
+        val usuarioDePrueba = Usuario(
+            id = "",
+            nombre = "Prueba",
+            apellidos = "AA",
+            email = "example@gmail.com",
+            password = "1234",
+            telefono = "123456789",
+            fechaNacimiento = "24/12/2005",
+            region = "Valparaiso",
+            comuna = "Valparaiso",
+            direccion = "",
+            referralCode = "",
+            points = 0,
+            referredBy = "",
+            role = "cliente",
+            avatar = null
+        )
+        try {
+            usuarioRepository.saveUsuario(usuarioDePrueba)
+        } catch (e: Exception) {
+            setError("Error al crear el usuario de prueba: ${e.message}")
         }
     }
 }

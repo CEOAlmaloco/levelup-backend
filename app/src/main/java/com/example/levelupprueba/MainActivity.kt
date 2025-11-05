@@ -39,6 +39,8 @@ import com.example.levelupprueba.viewmodel.ProfileViewModel
 import com.example.levelupprueba.viewmodel.ProfileViewModelFactory
 import com.example.levelupprueba.viewmodel.UsuarioViewModel
 import com.example.levelupprueba.viewmodel.UsuarioViewModelFactory
+import com.example.levelupprueba.viewmodel.UsuariosViewModel
+import com.example.levelupprueba.viewmodel.UsuariosViewModelFactory
 
 
 //Todo lo que pongamos dentro de setcontent sera la interfaz
@@ -74,6 +76,7 @@ class MainActivity : ComponentActivity() {
 
             // Factories - las fabricas para crear viewmodels con parametros personalizados
             val mainViewModelFactory = MainViewModelFactory(context, usuarioRepository)
+            val usuariosViewModelFactory = UsuariosViewModelFactory(usuarioRepository)
             val eventoViewModelFactory = EventoViewModelFactory(usuarioRepository)
             val loginViewModelFactory = LoginViewModelFactory(usuarioRepository)
             val productoDetalleViewModelFactory = ProductoDetalleViewModelFactory(reviewDao) //factory con el reviewDao
@@ -85,6 +88,7 @@ class MainActivity : ComponentActivity() {
             val eventoViewModel: EventoViewModel = viewModel(factory = eventoViewModelFactory)
             val usuarioViewModelFactory = UsuarioViewModelFactory(usuarioRepository, eventoViewModel)
             val usuarioViewModel: UsuarioViewModel = viewModel(factory = usuarioViewModelFactory)
+            val usuariosViewModel: UsuariosViewModel = viewModel(factory = usuariosViewModelFactory)
             val mainViewModel: MainViewModel = viewModel(factory = mainViewModelFactory)
             val loginViewModel: LoginViewModel = viewModel(factory = loginViewModelFactory)
             val blogViewModel: BlogViewModel = viewModel()
@@ -114,7 +118,6 @@ class MainActivity : ComponentActivity() {
                         is com.example.levelupprueba.navigation.NavigationEvents.NavigateUp -> {
                             navController.navigateUp()
                         }
-                        null -> {}
                     }
                 }
             }
@@ -131,6 +134,7 @@ class MainActivity : ComponentActivity() {
                     mainViewModel = mainViewModel,
                     navController = navController,
                     usuarioViewModel = usuarioViewModel,
+                    usuariosViewModel = usuariosViewModel,
                     loginViewModel = loginViewModel,
                     blogViewModel = blogViewModel,
                     productoViewModel = productoViewModel,

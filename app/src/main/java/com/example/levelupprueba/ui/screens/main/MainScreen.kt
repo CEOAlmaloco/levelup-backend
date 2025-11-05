@@ -4,8 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +12,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -29,13 +27,14 @@ import com.example.levelupprueba.navigation.Screen
 import com.example.levelupprueba.ui.components.GlobalSnackbarHost
 import com.example.levelupprueba.ui.components.LevelUpCustomSnackbar
 import com.example.levelupprueba.ui.components.RememberLastValidSnackbarState
-import com.example.levelupprueba.ui.components.filtros.FiltrosComponent
+import com.example.levelupprueba.ui.components.fab.LevelUpFloatingActionButton
 import com.example.levelupprueba.ui.components.filtros.LevelUpFiltersOverlay
 import com.example.levelupprueba.ui.components.navigation.DrawerSection
 import com.example.levelupprueba.ui.components.navigation.LevelUpMainTopBar
 import com.example.levelupprueba.ui.components.navigation.LevelUpNavigationBar
-import com.example.levelupprueba.ui.components.overlays.LevelUpLoadingOverlay
+import com.example.levelupprueba.ui.screens.admin.users.AdminUsuariosStatusHandler
 import com.example.levelupprueba.ui.screens.profile.PasswordStatusHandler
+import com.example.levelupprueba.utils.getFabConfigForRoute
 import com.example.levelupprueba.utils.getTopBarTitle
 import com.example.levelupprueba.utils.isGestureEnabled
 import com.example.levelupprueba.utils.shouldShowBackArrow
@@ -47,6 +46,27 @@ import com.example.levelupprueba.utils.shouldShowSearch
 import com.example.levelupprueba.viewmodel.*
 import kotlinx.coroutines.launch
 
+/**
+ * Pantalla principal de la aplicacion Level-Up.
+ * @param userSession sesion del usuario.
+ * @param isLoading indica si se esta cargando.
+ * @param avatar avatar del usuario.
+ * @param mainViewModel viewmodel principal.
+ * @param navController controlador de navegacion.
+ * @param carritoViewModel viewmodel del carrito.
+ * @param usuarioViewModel viewmodel del usuario.
+ * @param usuariosViewModel viewmodel de los usuarios.
+ * @param loginViewModel viewmodel de login.
+ * @param blogViewModel viewmodel del blog.
+ * @param productoViewModel viewmodel de los productos.
+ * @param eventoViewModel viewmodel de los eventos.
+ * @param productoDetalleViewModel viewmodel del detalle de producto.
+ * @param profileViewModel viewmodel del perfil.
+ * @param changePasswordViewModel viewmodel de cambio de contraseña.
+ * @param startOnEventosForTesting indica si se debe iniciar en la pantalla de eventos.
+ *
+ * @author Level-Up Team
+ * */
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,6 +78,7 @@ fun MainScreen(
     navController: NavHostController,
     carritoViewModel: CarritoViewModel,
     usuarioViewModel: UsuarioViewModel,
+    usuariosViewModel: UsuariosViewModel,
     loginViewModel: LoginViewModel,
     blogViewModel: BlogViewModel,
     productoViewModel: ProductoViewModel,
@@ -90,7 +111,8 @@ fun MainScreen(
         DrawerSection(icon = Icons.Default.Home, label = "Inicio"),
         DrawerSection(icon = Icons.Default.ShoppingCart, label = "Productos"),
         DrawerSection(icon = Icons.Default.Article, label = "Blog"),
-        DrawerSection(icon = Icons.Default.Event, label = "Eventos")
+        DrawerSection(icon = Icons.Default.Event, label = "Eventos"),
+        DrawerSection(icon = Icons.Default.Group, label = "Usuarios")
     )
 
     // -- Profile UI State --
@@ -112,6 +134,7 @@ fun MainScreen(
 
     val passwordStatus by changePasswordViewModel.status.collectAsState()
 
+    val usuariosState by usuariosViewModel.estado.collectAsState()
     // -- Carrito --
 
     val cantidadCarrito by carritoViewModel.cantidadCarrito.collectAsState()
@@ -141,6 +164,7 @@ fun MainScreen(
             }
         }
     }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -198,6 +222,23 @@ fun MainScreen(
                         cantidadCarrito = cantidadCarrito
                     )
                 },
+                floatingActionButton = {
+                    val fabConfig = getFabConfigForRoute(
+                        route = currentRoute,
+                        onAddUsuario = {/*TODO*/},
+                        onAddProducto = {/*TODO*/},
+                        onAddCategoria = {/*TODO*/}
+                    )
+                    AnimatedVisibility(visible = fabConfig != null) {
+                        fabConfig?.let {
+                            LevelUpFloatingActionButton(
+                                onClick = it.onClickAction,
+                                icon = it.icon,
+                                contentDescription = it.contentDescription
+                            )
+                        }
+                    }
+                },
                 bottomBar = {
                     if (showBottomBar) {
                         LevelUpNavigationBar(
@@ -228,6 +269,7 @@ fun MainScreen(
                     startDestination = startDestination,
                     mainViewModel = mainViewModel,
                     usuarioViewModel = usuarioViewModel,
+                    usuariosViewModel = usuariosViewModel,
                     loginViewModel = loginViewModel,
                     blogViewModel = blogViewModel,
                     productoViewModel = productoViewModel,
@@ -244,10 +286,6 @@ fun MainScreen(
                 )
             }
         }
-        LevelUpFiltersOverlay(
-            productoViewModel = productoViewModel,
-
-        )
         GlobalSnackbarHost(
             snackbarState = globalSnackbarState,
             snackbarHostState = snackbarHostState,
@@ -255,6 +293,10 @@ fun MainScreen(
                 mainViewModel.clearSnackbar()
                 changePasswordViewModel.resetPasswordStatus()
             }
+        )
+        LevelUpFiltersOverlay(
+            productoViewModel = productoViewModel,
+
         )
         // Overlay global / status dialogs
         ProfileStatusHandler(
@@ -269,6 +311,11 @@ fun MainScreen(
         PasswordStatusHandler(
             status = passwordStatus,
             mainViewModel = mainViewModel
+        )
+        AdminUsuariosStatusHandler(
+            usuariosUiState = usuariosState,
+            mainViewModel = mainViewModel,
+            usuariosViewModel = usuariosViewModel
         )
     }
 }

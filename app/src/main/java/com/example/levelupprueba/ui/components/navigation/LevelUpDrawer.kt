@@ -8,9 +8,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExitToApp
@@ -20,13 +21,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import com.example.levelupprueba.ui.components.navigation.DrawerSection
-import com.example.levelupprueba.ui.components.inputs.LevelUpIconButton
-import com.example.levelupprueba.ui.components.user.LevelUpProfileAvatarButton
 import com.example.levelupprueba.ui.components.buttons.LevelUpOutlinedButton
 import com.example.levelupprueba.ui.components.buttons.MenuButton
 import com.example.levelupprueba.ui.components.cards.LevelUpCard
 import com.example.levelupprueba.ui.components.forms.LevelUpSectionDivider
+import com.example.levelupprueba.ui.components.inputs.LevelUpIconButton
+import com.example.levelupprueba.ui.components.user.LevelUpProfileAvatarButton
 import com.example.levelupprueba.ui.theme.Dimens
 import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.ui.theme.SemanticColors
@@ -57,97 +57,95 @@ fun LevelUpDrawer(
     onSectionClick: (DrawerSection) -> Unit,
     sections: List<DrawerSection>,
     dimens: Dimens = LocalDimens.current
-){
-    Column(
+) {
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(dimens.screenPadding),
+            .padding(horizontal = dimens.screenPadding, vertical = dimens.largeSpacing*2),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        LevelUpCard(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .padding(bottom = dimens.mediumSpacing)
+        item {
+            LevelUpCard(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(bottom = dimens.smallSpacing)
-                ) {
-                    LevelUpIconButton(
-                        onClick = onBackClick,
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Atrás",
-                        buttonSize = dimens.iconSize,
-                        iconSize = dimens.iconSize
-                    )
-                }
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    modifier = Modifier.padding(bottom = dimens.mediumSpacing)
                 ) {
-                    LevelUpProfileAvatarButton(
-                        isLoggedIn = isLoggedIn,
-                        nombre = userName,
-                        onClick = onProfileClick,
-                        avatar = avatar
-                    )
-                    Spacer(Modifier.height(dimens.smallSpacing))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = dimens.smallSpacing)
+                    ) {
+                        LevelUpIconButton(
+                            onClick = onBackClick,
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Atrás",
+                            buttonSize = dimens.iconSize,
+                            iconSize = dimens.iconSize
+                        )
+                    }
 
-                    Text(
-                        text = if (userName.isNullOrBlank()) "Invitado" else "¡Hola, $userName!",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        LevelUpProfileAvatarButton(
+                            isLoggedIn = isLoggedIn,
+                            nombre = userName,
+                            onClick = onProfileClick,
+                            avatar = avatar
+                        )
 
-                    Spacer(Modifier.height(dimens.mediumSpacing))
+                        Spacer(Modifier.height(dimens.smallSpacing))
 
-                    LevelUpOutlinedButton(
-                        onClick = onProfileClick,
-                        text = if (isLoggedIn) "Ver perfil" else "Iniciar sesión",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    )
-                }
+                        Text(
+                            text = if (userName.isNullOrBlank()) "Invitado" else "¡Hola, $userName!",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
 
-                Spacer(Modifier.height(dimens.sectionSpacing))
+                        Spacer(Modifier.height(dimens.mediumSpacing))
 
-                sections.forEach { section ->
-                    LevelUpDrawerItem(
-                        imageVector = section.icon,
-                        contentDescription = section.label,
-                        text = section.label,
-                        onClick = { onSectionClick(section) }
-                    )
-                    LevelUpSectionDivider()
-                }
+                        LevelUpOutlinedButton(
+                            onClick = onProfileClick,
+                            text = if (isLoggedIn) "Ver perfil" else "Iniciar sesión",
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
 
-                Spacer(Modifier.height(dimens.largeSpacing))
+                    Spacer(Modifier.height(dimens.sectionSpacing))
 
-                if (isLoggedIn) {
-                    MenuButton(
-                        text = "Cerrar sesión",
-                        icon = Icons.Default.ExitToApp,
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        onClick = onLogoutClick,
-                        contentColor = MaterialTheme.colorScheme.onBackground,
-                        containerColor = SemanticColors.AccentRed
-                    )
+                    sections.forEach { section ->
+                        LevelUpDrawerItem(
+                            imageVector = section.icon,
+                            contentDescription = section.label,
+                            text = section.label,
+                            onClick = { onSectionClick(section) }
+                        )
+                        LevelUpSectionDivider()
+                    }
+
+                    if (isLoggedIn) {
+                        Spacer(Modifier.height(dimens.largeSpacing))
+                        MenuButton(
+                            text = "Cerrar sesión",
+                            icon = Icons.Default.ExitToApp,
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = onLogoutClick,
+                            contentColor = MaterialTheme.colorScheme.onBackground,
+                            containerColor = SemanticColors.AccentRed
+                        )
+                    }
                 }
             }
         }
-        Spacer(modifier = Modifier.height(dimens.mediumSpacing))
-        Text(
-            text = "©2025 LevelUp. Todos los derechos reservados.\nVersion 1.0.0",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(0.7f),
-            textAlign = TextAlign.Center
-        )
+        item {Spacer(Modifier.height(dimens.mediumSpacing)) }
+        // Footer
+        item {
+            Text(
+                text = "©2025 LevelUp. Todos los derechos reservados.\nVersion 1.0.0",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(0.7f),
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
