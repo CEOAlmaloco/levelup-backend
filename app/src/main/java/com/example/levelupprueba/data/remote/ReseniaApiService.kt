@@ -11,72 +11,64 @@ interface ReseniaApiService {
     /**
      * Obtiene reseñas de un producto
      */
-    @GET("resenia/producto/{productoId}")
+    @GET("resenias/producto/{productoId}")
     suspend fun getReseniasPorProducto(
-        @Path("productoId") productoId: String,
-        @Query("page") page: Int = 0,
-        @Query("size") size: Int = 10
-    ): Response<ReseniaResponsePage>
+        @Path("productoId") productoId: Long
+    ): Response<List<ReseniaDto>>
     
     /**
      * Crea una nueva reseña
      */
-    @POST("resenia")
-    suspend fun crearResenia(@Body resenia: ReseniaRequest): Response<ReseniaDto>
+    @POST("resenias/producto/{productoId}")
+    suspend fun crearResenia(
+        @Path("productoId") productoId: Long,
+        @Body resenia: ReseniaRequest
+    ): Response<ReseniaDto>
     
     /**
      * Actualiza una reseña
      */
-    @PUT("resenia/{id}")
+    @PUT("resenias/{id}")
     suspend fun actualizarResenia(
-        @Path("id") id: String,
+        @Path("id") id: Long,
         @Body resenia: ReseniaRequest
     ): Response<ReseniaDto>
     
     /**
      * Elimina una reseña
      */
-    @DELETE("resenia/{id}")
-    suspend fun eliminarResenia(@Path("id") id: String): Response<Unit>
+    @DELETE("resenias/{id}")
+    suspend fun eliminarResenia(@Path("id") id: Long): Response<Unit>
     
     /**
      * Obtiene las reseñas del usuario
      */
-    @GET("resenia/mis-resenias")
-    suspend fun getMisResenias(): Response<List<ReseniaDto>>
+    @GET("resenias/usuario/{idUsuario}")
+    suspend fun getReseniasPorUsuario(@Path("idUsuario") idUsuario: Long): Response<List<ReseniaDto>>
 }
 
 /**
  * Request de reseña
  */
 data class ReseniaRequest(
-    val productoId: String,
-    val calificacion: Int,
-    val comentario: String? = null
+    val idUsuario: Long,
+    val usuarioNombre: String,
+    val rating: Int,
+    val comentario: String
 )
 
 /**
  * DTO de Reseña
  */
 data class ReseniaDto(
-    val id: String,
-    val productoId: String,
-    val usuarioId: String,
-    val nombreUsuario: String,
-    val calificacion: Int,
-    val comentario: String? = null,
-    val fechaCreacion: String,
-    val fechaActualizacion: String? = null
-)
-
-/**
- * Respuesta paginada de reseñas
- */
-data class ReseniaResponsePage(
-    val content: List<ReseniaDto>,
-    val totalElements: Int,
-    val totalPages: Int,
-    val number: Int,
-    val size: Int
+    val id: Long?,
+    val idProducto: Long,
+    val idUsuario: Long,
+    val usuarioNombre: String,
+    val rating: Int,
+    val comentario: String,
+    val fechaCreacion: String?,
+    val fechaActualizacion: String?,
+    val activo: Boolean? = true
 )
 
