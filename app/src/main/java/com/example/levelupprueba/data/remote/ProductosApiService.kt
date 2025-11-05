@@ -94,17 +94,25 @@ interface ProductosApiService {
  */
 data class ProductoDto(
     val id: Long? = null,
+    val idProducto: Long? = null, // Alias del backend
     val titulo: String? = null,
     val nombre: String? = null, // Compatibilidad con frontend
+    val nombreProducto: String? = null, // Alias del backend
     val categoriaId: String? = null,
     val subcategoriaId: String? = null,
     val imagen: String? = null,
-    val imagenUrl: String? = null, // Compatibilidad con frontend
-    val imagenes: String? = null, // JSON array como String
+    val imagenUrl: String? = null, // URL completa de S3 desde el backend
+    val imagenS3Key: String? = null, // Referencia S3 guardada en BD
+    val imagenes: String? = null, // JSON array como String (referencias S3)
+    val imagenesUrls: String? = null, // JSON array de URLs completas de S3
+    val imagenesS3Keys: String? = null, // JSON array de referencias S3
     val precio: Double? = null,
+    val precioProducto: Double? = null, // Alias del backend
     val disponible: Boolean? = null,
+    val activo: Boolean? = null, // Alias del backend
     val rating: Double? = null,
     val descripcion: String? = null,
+    val descripcionProducto: String? = null, // Alias del backend
     val stock: Int? = null,
     val codigoProducto: String? = null,
     val createdAt: String? = null,

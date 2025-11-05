@@ -91,18 +91,6 @@ data class CambiarPasswordRequest(
 )
 
 /**
- * DTO de Referido
- */
-data class ReferidoDto(
-    val id: String,
-    val usuarioReferidoId: String,
-    val nombreReferido: String,
-    val fechaRegistro: String,
-    val puntosGanados: Int,
-    val estado: String
-)
-
-/**
  * Respuesta paginada de usuarios
  */
 data class UsuarioResponsePage(

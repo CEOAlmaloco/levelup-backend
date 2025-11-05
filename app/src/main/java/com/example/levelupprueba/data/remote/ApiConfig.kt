@@ -168,6 +168,26 @@ object ApiConfig {
         retrofit.create(ReferidosApiService::class.java)
     }
     
+    val pedidosService: PedidosApiService by lazy {
+        retrofit.create(PedidosApiService::class.java)
+    }
+    
+    val pagosService: PagosApiService by lazy {
+        retrofit.create(PagosApiService::class.java)
+    }
+    
+    val promocionesService: PromocionesApiService by lazy {
+        retrofit.create(PromocionesApiService::class.java)
+    }
+    
+    val contenidoService: ContenidoApiService by lazy {
+        retrofit.create(ContenidoApiService::class.java)
+    }
+    
+    val notificacionesService: NotificacionesApiService by lazy {
+        retrofit.create(NotificacionesApiService::class.java)
+    }
+    
     /**
      * Limpia la configuración (usado en logout)
      */

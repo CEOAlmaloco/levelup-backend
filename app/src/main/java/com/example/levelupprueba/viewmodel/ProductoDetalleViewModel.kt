@@ -32,8 +32,15 @@ class ProductoDetalleViewModel(
                     val relacionados = repository.obtenerProductosRelacionados(productoBase)//traemos los productos relacionados
                     
                     // Creamos el producto completo con toda la información de detalle
+                    // Usar imagenesUrls del backend si están disponibles, sino usar solo la imagen principal
+                    val imagenesUrls = if (productoBase.imagenesUrls.isNotEmpty()) {
+                        productoBase.imagenesUrls
+                    } else {
+                        listOf(productoBase.imagenUrl)
+                    }
+                    
                     val productoCompleto = productoBase.copy(//copiamos el producto base y le agregamos la informacion de detalle
-                        imagenesUrls = listOf(productoBase.imagenUrl),//agregamos la imagen principal
+                        imagenesUrls = imagenesUrls,//agregamos las imágenes (principal + adicionales desde S3)
                         fabricante = productoBase.fabricante,
                         distribuidor = productoBase.distribuidor,
                         reviews = reviews, 

@@ -69,7 +69,7 @@ fun MainScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     // -- Relacionado al usuario --
-    val isLoggedIn = userSession?.userId?.isNotBlank() == true
+    val isLoggedIn = userSession?.userId != null && userSession.userId > 0 && userSession.accessToken.isNotBlank()
 
     // -- Navegacion --
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -114,8 +114,8 @@ fun MainScreen(
 
     LaunchedEffect(isLoggedIn, userSession?.userId) {
         userSession?.let { session ->
-            if (isLoggedIn && session.userId.isNotBlank()) {
-                profileViewModel.cargarDatosUsuario(session.userId)
+            if (isLoggedIn && session.userId > 0) {
+                profileViewModel.cargarDatosUsuario(session.userId.toString())
             }
         }
     }
@@ -233,7 +233,7 @@ fun MainScreen(
                     innerPadding = innerPadding,
                     isLoading = isLoading,
                     isLoggedIn = isLoggedIn,
-                    userSessionId = userSession?.userId,
+                    userSessionId = userSession?.userId?.toString(),
                     userDisplayName = userSession?.displayName
                 )
             }

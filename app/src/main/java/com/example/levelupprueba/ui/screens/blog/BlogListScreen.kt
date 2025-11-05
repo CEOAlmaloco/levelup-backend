@@ -133,23 +133,58 @@ fun BlogCard(blog: Blog) {//aca creamos la funcion para el blog card
                     .fillMaxWidth()
                     .height(200.dp)
             ) {
-                // Cargamos la imagen con Coil
+                // Cargamos la imagen desde el backend (Base64 o URL)
                 val context = LocalContext.current
-                val imageResourceId = context.resources.getIdentifier(
-                    blog.imagenUrl,
-                    "drawable",
-                    context.packageName
-                )
+                val imageData = when {
+                    blog.imagenUrl.startsWith("data:image") || blog.imagenUrl.startsWith("data:image/") -> {
+                        // Si es Base64 con prefijo, usar directamente
+                        blog.imagenUrl
+                    }
+                    blog.imagenUrl.startsWith("http://") || blog.imagenUrl.startsWith("https://") -> {
+                        // Si es URL, usar la URL
+                        blog.imagenUrl
+                    }
+                    blog.imagenUrl.isNotBlank() && blog.imagenUrl.length > 100 -> {
+                        // Si parece ser Base64 puro (sin prefijo), agregar el prefijo
+                        "data:image/png;base64,${blog.imagenUrl}"
+                    }
+                    blog.imagenUrl.isNotBlank() -> {
+                        // Intentar buscar en drawable como fallback
+                        val imageResourceId = context.resources.getIdentifier(
+                            blog.imagenUrl,
+                            "drawable",
+                            context.packageName
+                        )
+                        if (imageResourceId != 0) imageResourceId else null
+                    }
+                    else -> null
+                }
 
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(imageResourceId)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = blog.titulo,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
+                if (imageData != null) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(imageData)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = blog.titulo,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    // Placeholder si no hay imagen
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Sin imagen",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
 
                 // Etiqueta de categoría
                 Card(
