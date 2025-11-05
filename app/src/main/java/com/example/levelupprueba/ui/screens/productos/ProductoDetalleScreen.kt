@@ -48,6 +48,9 @@ import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.ui.theme.SemanticColors
 import com.example.levelupprueba.viewmodel.CarritoViewModel
 import com.example.levelupprueba.viewmodel.ProductoDetalleViewModel
+import com.example.levelupprueba.data.local.getUserSessionFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.collectAsState
 import java.text.NumberFormat
 import java.util.*
 
@@ -70,9 +73,24 @@ fun ProductoDetalleScreen(
     val estado by viewModel.estado.collectAsState() //traemos el estado del viewmodel, el by es para q se actualice solo
     val dimens = LocalDimens.current //traemos las dimensiones del tema para q sea responsive
     val carrito by carritoViewModel.carrito.collectAsState()
+    val context = LocalContext.current
+    var userId: Long? by remember { mutableStateOf(null) }
 
     LaunchedEffect(productoId) { //esto se ejecuta cuando cambia el productoId, es como el useEffect de react
         viewModel.cargarProducto(productoId) //cargamos el producto con el id q nos llega
+    }
+    
+    LaunchedEffect(isLoggedIn) {
+        if (isLoggedIn) {
+            try {
+                val session = getUserSessionFlow(context).first()
+                userId = session.userId.toLongOrNull()
+            } catch (e: Exception) {
+                userId = null
+            }
+        } else {
+            userId = null
+        }
     }
 
     Box(
@@ -114,9 +132,10 @@ fun ProductoDetalleScreen(
                     mostrarFormularioReview = estado.mostrarFormularioReview, //si mostramos el formulario de review o no
                     imagenSeleccionada = estado.imagenSeleccionada, //la imagen seleccionada del carrusel (por si agregamos mas imagenes dsp)
                     onToggleFormularioReview = { viewModel.toggleFormularioReview() }, //callback para mostrar/ocultar el formulario
-                    onAgregarReview = { rating, comentario, usuario -> //callback para agregar una review
-                        viewModel.agregarReview(rating, comentario, usuario) //le pasamos los parametros al viewmodel
+                    onAgregarReview = { rating, comentario, usuario, idUsuario -> //callback para agregar una review
+                        viewModel.agregarReview(rating, comentario, usuario, idUsuario) //le pasamos los parametros al viewmodel
                     },
+                    userId = userId,
                     onProductoRelacionadoClick = onProductoClick, //callback para cuando le dan click a un producto relacionado
                     userDisplayName = userDisplayName,
                     isLoggedIn = isLoggedIn
@@ -137,10 +156,11 @@ private fun ProductoDetalleContent( //esta funcion tiene TODO el contenido del d
     mostrarFormularioReview: Boolean, //si mostramos el formulario de review
     imagenSeleccionada: Int, //la imagen seleccionada (por si agregamos mas imagenes)
     onToggleFormularioReview: () -> Unit, //cuando le dan al boton de calificar
-    onAgregarReview: (Float, String, String) -> Unit, //cuando envian una review
+    onAgregarReview: (Float, String, String, Long?) -> Unit, //cuando envian una review
     onProductoRelacionadoClick: (String) -> Unit, //cuando le dan click a un producto relacionado
     userDisplayName: String,
-    isLoggedIn: Boolean
+    isLoggedIn: Boolean,
+    userId: Long?
 ) {
     val dimens = LocalDimens.current //dimensiones del tema
     val context = LocalContext.current //el contexto de android, lo necesitamos para compartir y eso
@@ -205,6 +225,7 @@ private fun ProductoDetalleContent( //esta funcion tiene TODO el contenido del d
                 mostrarFormulario = mostrarFormularioReview,
                 onToggleFormulario = onToggleFormularioReview,
                 onAgregarReview = onAgregarReview,
+                userId = userId,
                 dimens = dimens,
                 usuarioNombre = userDisplayName,
                 isLoggedIn = isLoggedIn
@@ -514,7 +535,8 @@ private fun SeccionReviews(
     ratingPromedio: Float, //el rating promedio calculado
     mostrarFormulario: Boolean, //si mostramos el formulario de agregar review
     onToggleFormulario: () -> Unit, //callback para mostrar/ocultar el formulario
-    onAgregarReview: (Float, String, String) -> Unit, //callback para agregar una review
+    onAgregarReview: (Float, String, String, Long?) -> Unit, //callback para agregar una review
+    userId: Long?,
     dimens: com.example.levelupprueba.ui.theme.Dimens, //dimensiones del tema
     usuarioNombre: String,
     isLoggedIn: Boolean
@@ -600,7 +622,7 @@ private fun SeccionReviews(
 @OptIn(ExperimentalMaterial3Api::class) //usamos apis experimentales
 @Composable //este es el formulario q aparece cuando le dan al boton de calificar
 private fun FormularioReview(
-    onAgregarReview: (Float, String, String) -> Unit, //callback para enviar la review
+    onAgregarReview: (Float, String, String, Long?) -> Unit, //callback para enviar la review
     usuarioNombre: String,
     isLoggedIn: Boolean,
     dimens: com.example.levelupprueba.ui.theme.Dimens //dimensiones del tema
@@ -639,7 +661,7 @@ private fun FormularioReview(
                 LevelUpButton( //boton para enviar la review
                     onClick = {
                         if (comentario.isNotBlank()) { //validamos q no este vacio
-                            onAgregarReview(rating, comentario, usuarioNombre) //enviamos la review al viewmodel
+                            onAgregarReview(rating, comentario, usuarioNombre, null) //enviamos la review al viewmodel (userId se pasa desde arriba)
                             comentario = "" //limpiamos el form
                             rating = 5f //volvemos al rating por defecto
                         } //TODO: agregar validacion de q el usuario este logueado

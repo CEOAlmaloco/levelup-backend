@@ -160,6 +160,14 @@ object ApiConfig {
         retrofit.create(ReseniaApiService::class.java)
     }
     
+    val inventarioService: InventarioApiService by lazy {
+        retrofit.create(InventarioApiService::class.java)
+    }
+    
+    val referidosService: ReferidosApiService by lazy {
+        retrofit.create(ReferidosApiService::class.java)
+    }
+    
     /**
      * Limpia la configuración (usado en logout)
      */

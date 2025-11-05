@@ -3,11 +3,14 @@ package com.example.levelupprueba.data.repository
 import com.example.levelupprueba.data.local.ReviewDao
 import com.example.levelupprueba.data.remote.ApiConfig
 import com.example.levelupprueba.data.remote.ProductoMapper
+import com.example.levelupprueba.data.remote.ReseniaDto
+import com.example.levelupprueba.data.remote.ReseniaRequest
 import com.example.levelupprueba.model.producto.ImagenCarrusel
 import com.example.levelupprueba.model.producto.Producto
 import com.example.levelupprueba.model.producto.Review
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import android.util.Log
 
 /**
  * Repositorio de productos que obtiene datos desde el backend Spring Boot usando Retrofit
@@ -17,6 +20,7 @@ class ProductoRepository(
 ) {
     
     private val productosService = ApiConfig.productosService
+    private val reseniaService = ApiConfig.reseniaService
     
     /**
      * Obtiene imágenes del carrusel (hardcodeadas por ahora, se puede mover al backend)
@@ -178,61 +182,121 @@ class ProductoRepository(
         }
     }
 
-    // Métodos de reviews (siguen usando Room local)
-    suspend fun obtenerReviews(productoId: String): List<Review> = withContext(Dispatchers.IO) {
-        return@withContext reviewDao?.getReviewsByProductoId(productoId) ?: listOf(
-            Review(
-                id = "1",
-                productoId = productoId,
-                usuarioNombre = "Juan Pérez",
-                rating = 5f,
-                comentario = "Excelente producto, llegó en perfectas condiciones y funciona perfecto.",
-                fecha = "2024-10-10"
-            ),
-            Review(
-                id = "2",
-                productoId = productoId,
-                usuarioNombre = "María González",
-                rating = 4f,
-                comentario = "Muy buena calidad, aunque el envío tardó un poco más de lo esperado.",
-                fecha = "2024-10-08"
-            ),
-            Review(
-                id = "3",
-                productoId = productoId,
-                usuarioNombre = "Carlos Ramírez",
-                rating = 5f,
-                comentario = "Increíble! Superó mis expectativas. Totalmente recomendado.",
-                fecha = "2024-10-05"
-            )
+    /**
+     * Mapea ReseniaDto del backend a Review del modelo local
+     */
+    private fun mapearReseniaDtoToReview(dto: ReseniaDto, productoId: String): Review {
+        return Review(
+            id = dto.id?.toString() ?: System.currentTimeMillis().toString(),
+            productoId = productoId,
+            usuarioNombre = dto.usuarioNombre,
+            rating = dto.rating.toFloat(),
+            comentario = dto.comentario,
+            fecha = dto.fechaCreacion ?: ""
         )
     }
 
-    suspend fun agregarReview(productoId: String, review: Review): Boolean = withContext(Dispatchers.IO) {
-        return@withContext try {
-            reviewDao?.insertReview(review)
-            true
+    // Métodos de reviews usando el backend
+    suspend fun obtenerReviews(productoId: String): List<Review> = withContext(Dispatchers.IO) {
+        try {
+            val productoIdLong = productoId.toLongOrNull() ?: return@withContext emptyList()
+            Log.d("ProductoRepository", "Obteniendo reseñas del backend para producto: $productoId")
+            
+            val response = reseniaService.getReseniasPorProducto(productoIdLong)
+            
+            if (response.isSuccessful && response.body() != null) {
+                val reseniasDto = response.body()!!
+                Log.d("ProductoRepository", "Reseñas recibidas: ${reseniasDto.size}")
+                val reviews = reseniasDto.map { mapearReseniaDtoToReview(it, productoId) }
+                Log.d("ProductoRepository", "Reseñas mapeadas: ${reviews.size}")
+                reviews
+            } else {
+                Log.e("ProductoRepository", "Error al obtener reseñas: code=${response.code()}, message=${response.message()}")
+                emptyList()
+            }
         } catch (e: Exception) {
+            Log.e("ProductoRepository", "Excepción al obtener reseñas: ${e.message}", e)
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    suspend fun agregarReview(productoId: String, review: Review, idUsuario: Long? = null): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val productoIdLong = productoId.toLongOrNull() ?: return@withContext false
+            
+            if (idUsuario == null) {
+                Log.e("ProductoRepository", "Error: idUsuario es null, no se puede crear reseña")
+                return@withContext false
+            }
+            
+            val reseniaRequest = ReseniaRequest(
+                idUsuario = idUsuario,
+                usuarioNombre = review.usuarioNombre,
+                rating = review.rating.toInt(),
+                comentario = review.comentario
+            )
+            
+            Log.d("ProductoRepository", "Creando reseña en backend para producto: $productoId")
+            val response = reseniaService.crearResenia(productoIdLong, reseniaRequest)
+            
+            if (response.isSuccessful && response.body() != null) {
+                Log.d("ProductoRepository", "Reseña creada exitosamente")
+                true
+            } else {
+                Log.e("ProductoRepository", "Error al crear reseña: code=${response.code()}, message=${response.message()}")
+                false
+            }
+        } catch (e: Exception) {
+            Log.e("ProductoRepository", "Excepción al agregar reseña: ${e.message}", e)
             e.printStackTrace()
             false
         }
     }
 
     suspend fun borrarReview(review: Review): Boolean = withContext(Dispatchers.IO) {
-        return@withContext try {
-            reviewDao?.deleteReview(review)
-            true
+        try {
+            val reviewId = review.id.toLongOrNull() ?: return@withContext false
+            
+            Log.d("ProductoRepository", "Eliminando reseña del backend: $reviewId")
+            val response = reseniaService.eliminarResenia(reviewId)
+            
+            if (response.isSuccessful) {
+                Log.d("ProductoRepository", "Reseña eliminada exitosamente")
+                true
+            } else {
+                Log.e("ProductoRepository", "Error al eliminar reseña: code=${response.code()}, message=${response.message()}")
+                false
+            }
         } catch (e: Exception) {
+            Log.e("ProductoRepository", "Excepción al borrar reseña: ${e.message}", e)
             e.printStackTrace()
             false
         }
     }
 
     suspend fun obtenerRatingPromedio(productoId: String): Float = withContext(Dispatchers.IO) {
-        return@withContext reviewDao?.getAverageRating(productoId) ?: 0f
+        try {
+            val reviews = obtenerReviews(productoId)
+            if (reviews.isEmpty()) {
+                return@withContext 0f
+            }
+            val promedio = reviews.map { it.rating }.average().toFloat()
+            Log.d("ProductoRepository", "Rating promedio calculado: $promedio")
+            promedio
+        } catch (e: Exception) {
+            Log.e("ProductoRepository", "Excepción al calcular rating promedio: ${e.message}", e)
+            0f
+        }
     }
 
     suspend fun contarReviews(productoId: String): Int = withContext(Dispatchers.IO) {
-        return@withContext reviewDao?.getReviewCount(productoId) ?: 0
+        try {
+            val reviews = obtenerReviews(productoId)
+            reviews.size
+        } catch (e: Exception) {
+            Log.e("ProductoRepository", "Excepción al contar reseñas: ${e.message}", e)
+            0
+        }
     }
 }

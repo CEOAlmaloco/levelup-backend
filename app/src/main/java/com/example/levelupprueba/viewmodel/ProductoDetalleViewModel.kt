@@ -78,10 +78,18 @@ class ProductoDetalleViewModel(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun agregarReview(rating: Float, comentario: String, usuarioNombre: String) {//le pasamos los parametros para agregar la review
+    fun agregarReview(rating: Float, comentario: String, usuarioNombre: String, idUsuario: Long? = null) {//le pasamos los parametros para agregar la review
         viewModelScope.launch { //lanzamos una corrutina para hacer la operacion asincrona
             try {
                 val productoId = _estado.value.producto?.id ?: return@launch //validacion de q el producto no sea null
+                
+                if (idUsuario == null) {
+                    _estado.update {
+                        it.copy(error = "Error: Usuario no autenticado. Debes iniciar sesión para agregar una reseña.")
+                    }
+                    return@launch
+                }
+                
                 //si el producto no es null, creamos la nueva review
                 val nuevaReview = Review(
                     id = System.currentTimeMillis().toString(),//generamos el id de la review con el tiempo actual en milisegundos ya que es unico
@@ -92,7 +100,7 @@ class ProductoDetalleViewModel(
                     fecha = java.time.LocalDate.now().toString() //me da miedo ver q dice java en kt, pero es de java.time q kotlin usa
                 )
                 
-                val exito = repository.agregarReview(productoId, nuevaReview) //guardamos en SQLite
+                val exito = repository.agregarReview(productoId, nuevaReview, idUsuario) //guardamos en el backend
                 
                 if (exito) { //si se guardo bien, actualizamos el estado
                     val reviewsActualizadas = repository.obtenerReviews(productoId) //traemos las reviews actualizadas de la bd
