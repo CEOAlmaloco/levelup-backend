@@ -17,11 +17,25 @@ object UsuarioValidator {
     fun validarApellidos(apellidos: String): FieldErrors? =
         if (apellidos.isBlank()) FieldErrors.Obligatorio("apellidos") else null
 
+    // Expresión regular básica para validar formato de correo
+    private val EMAIL_REGEX =
+        Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")
+
     fun validarEmail(email: String): FieldErrors? =
         when {
-            email.isBlank() -> FieldErrors.Obligatorio("correo")
-            !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> UsuarioFieldErrors.EmailInvalido
-            !email.endsWith("@gmail.com") && !email.endsWith("@duoc.cl") -> UsuarioFieldErrors.EmailDominioNoPermitido
+            // Campo obligatorio
+            email.isBlank() ->
+                FieldErrors.Obligatorio("correo")
+
+            // Formato general del correo inválido
+            !EMAIL_REGEX.matches(email) ->
+                UsuarioFieldErrors.EmailInvalido
+
+            // Dominio no permitido (ajusta si en tu código usas otros dominios)
+            !email.endsWith("@gmail.com") && !email.endsWith("@duocuc.cl") ->
+                UsuarioFieldErrors.EmailDominioNoPermitido
+
+            // Todo OK
             else -> null
         }
 

@@ -39,6 +39,15 @@ android {
     buildFeatures {
         compose = true
     }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            all {
+                it.useJUnitPlatform() // habilita JUnit5 / Kotest para src/test (JVM unit tests)
+            }
+        }
+    }
 }
 
 dependencies {
@@ -62,12 +71,19 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.foundation)
     testImplementation(libs.junit)
+    testImplementation(libs.junitJupiter)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    testImplementation(libs.mockk)                  // MockK
+    testImplementation(libs.junitJupiter)           // JUnit5 (junit-jupiter)
+    testImplementation(libs.kotlinxCoroutinesTest)  // kotlinx-coroutines-test
+    testImplementation(libs.kotestRunnerJunit5)     // Kotest runner
+    testImplementation(libs.kotestAssertionsCore)   // Kotest assertions
+
 
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.7")
@@ -88,4 +104,5 @@ dependencies {
 
     // OSMDroid - Mapa OpenStreetMap (sin API key) ya q no se puede con JS como el otro tengo q hacer una cosa rara 
     implementation("org.osmdroid:osmdroid-android:6.1.18")
+
 }
