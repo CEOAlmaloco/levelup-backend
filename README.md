@@ -62,7 +62,17 @@ cd levelup-backend
    - **Android SDK Location**: `C:\Users\[Usuario]\AppData\Local\Android\Sdk`
    - **JDK Location**: JDK 11 o superior
 
-### 4. Sincronizar Dependencias
+### 4. Configurar endpoints del backend
+
+1. Copia el archivo `config/api-config.sample.properties` como `config/api-config.properties`.
+2. Edita `gateway.url.debug` para que apunte al API Gateway cuando el stack corre en Docker (por defecto `http://10.0.2.2:8094/` para emulador).
+3. Ajusta `gateway.url.device` con la IP de tu PC si probarás en un teléfono de la misma red.
+4. Define `gateway.url.release` con la URL pública (EC2 o dominio) que tengas desplegada.
+5. Si el API Key cambia, actualiza `gateway.api.key`.
+
+> `api-config.properties` está en `.gitignore`, por lo que tus endpoints reales no se subirán al repositorio.
+
+### 5. Sincronizar Dependencias
 
 ```bash
 # En la terminal de Android Studio o línea de comandos
