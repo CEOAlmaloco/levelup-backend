@@ -21,8 +21,8 @@ object ApiConfig {
     private val BASE_URL = BuildConfig.API_BASE_URL
     
     // URL alternativa para dispositivo físico (desarrollo)
-    // Si necesitas probar en dispositivo físico, cambia la IP a la de tu PC
-    private const val BASE_URL_DEV_DEVICE = "http://192.168.1.100:8094/" // Dispositivo físico (cambiar IP)
+    // Se configura desde BuildConfig (debug usa gateway.url.device)
+    private val BASE_URL_DEVICE = BuildConfig.API_BASE_URL_DEVICE.ifBlank { BASE_URL }
     
     // Timeout de conexión
     private const val TIMEOUT_SECONDS = 30L
@@ -60,6 +60,12 @@ object ApiConfig {
      * Obtiene el User ID del usuario autenticado actual
      */
     fun getUserId(): String? = userId
+
+    /**
+     * Devuelve la URL base alternativa pensada para pruebas en dispositivo físico.
+     * (Útil para logs o validaciones en tiempo de ejecución).
+     */
+    fun getDeviceGatewayUrl(): String = BASE_URL_DEVICE
     
     /**
      * API Key para autenticación con el backend

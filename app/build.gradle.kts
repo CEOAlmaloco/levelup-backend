@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -5,6 +7,40 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization") version "2.0.21"
     id("com.google.devtools.ksp") version "2.0.21-1.0.28"
 }
+
+// === Configuración dinámica de endpoints ===
+val apiConfigDir = rootProject.file("config")
+val apiConfigSampleFile = apiConfigDir.resolve("api-config.sample.properties")
+val apiConfigFile = apiConfigDir.resolve("api-config.properties")
+
+val apiConfigProps = Properties().apply {
+    if (apiConfigSampleFile.exists()) {
+        apiConfigSampleFile.inputStream().use { load(it) }
+    }
+    if (apiConfigFile.exists()) {
+        apiConfigFile.inputStream().use { load(it) }
+    }
+}
+
+fun normalizeUrl(value: String, ensureTrailingSlash: Boolean = true): String {
+    val trimmed = value.trim()
+    if (!ensureTrailingSlash) return trimmed
+    return if (trimmed.endsWith("/")) trimmed else "$trimmed/"
+}
+
+fun configValue(key: String, defaultValue: String, ensureTrailingSlash: Boolean = false): String =
+    normalizeUrl(
+        value = apiConfigProps.getProperty(key)?.takeIf { it.isNotBlank() } ?: defaultValue,
+        ensureTrailingSlash = ensureTrailingSlash
+    )
+
+fun String.asBuildConfigString(): String =
+    "\"" + this.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+
+val debugGatewayUrl = configValue("gateway.url.debug", "http://10.0.2.2:8094/", ensureTrailingSlash = true)
+val deviceGatewayUrl = configValue("gateway.url.device", "http://192.168.1.100:8094/", ensureTrailingSlash = true)
+val releaseGatewayUrl = configValue("gateway.url.release", "http://ec2-54-161-72-45.compute-1.amazonaws.com:8094/", ensureTrailingSlash = true)
+val sharedApiKey = configValue("gateway.api.key", "levelup-2024-secret-api-key-change-in-production")
 
 android {
     namespace = "com.example.levelupprueba"
@@ -23,8 +59,9 @@ android {
     buildTypes {
         debug {
             // Configuración para desarrollo local
-            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8094/\"") // Emulador Android
-            buildConfigField("String", "API_KEY", "\"levelup-2024-secret-api-key-change-in-production\"")
+            buildConfigField("String", "API_BASE_URL", debugGatewayUrl.asBuildConfigString()) // Emulador / Docker
+            buildConfigField("String", "API_BASE_URL_DEVICE", deviceGatewayUrl.asBuildConfigString())
+            buildConfigField("String", "API_KEY", sharedApiKey.asBuildConfigString())
             buildConfigField("Boolean", "IS_PRODUCTION", "false")
         }
         
@@ -35,10 +72,9 @@ android {
                 "proguard-rules.pro"
             )
             // Configuración para producción AWS
-            // IMPORTANTE: Cambiar esta URL después de desplegar en AWS
-            // Ejemplo: "https://api.levelup-tu-dominio.com/" o "https://tu-dominio-aws.amazonaws.com:8094/"
-            buildConfigField("String", "API_BASE_URL", "\"https://api-gateway.tu-dominio.com/\"") // AWS Producción
-            buildConfigField("String", "API_KEY", "\"levelup-2024-secret-api-key-change-in-production\"")
+            buildConfigField("String", "API_BASE_URL", releaseGatewayUrl.asBuildConfigString())
+            buildConfigField("String", "API_BASE_URL_DEVICE", releaseGatewayUrl.asBuildConfigString())
+            buildConfigField("String", "API_KEY", sharedApiKey.asBuildConfigString())
             buildConfigField("Boolean", "IS_PRODUCTION", "true")
         }
     }
