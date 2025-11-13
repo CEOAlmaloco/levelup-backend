@@ -69,6 +69,7 @@ cd levelup-backend
 3. Ajusta `gateway.url.device` con la IP de tu PC si probarás en un teléfono de la misma red.
 4. Define `gateway.url.release` con la URL pública (EC2 o dominio) que tengas desplegada.
 5. Si el API Key cambia, actualiza `gateway.api.key`.
+6. Configura `media.base.url` con la ruta base (S3/CDN) donde están las imágenes (`https://levelup-gamer-products.s3.us-east-1.amazonaws.com/` por defecto).
 
 > `api-config.properties` está en `.gitignore`, por lo que tus endpoints reales no se subirán al repositorio.
 

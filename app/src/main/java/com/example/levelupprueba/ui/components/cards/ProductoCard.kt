@@ -144,7 +144,7 @@ fun ProductoCard(
                 LevelUpProductBadge(
                     modifier = Modifier
                         .align(Alignment.BottomStart),
-                    text = producto.id,
+                    text = producto.codigo ?: "SKU ${producto.id}",
                     backgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
                     contentColor = MaterialTheme.colorScheme.onSurface,
                     font = FontWeight.Medium
@@ -188,9 +188,9 @@ fun ProductoCard(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 // Categoría - Subcategoría
-                val subcategoriaTexto = producto.subcategoria?.let { sub ->
-                    "${producto.categoria.nombre} - ${sub.nombre}"
-                } ?: producto.categoria.nombre
+                val categoriaDisplay = producto.categoriaNombre ?: producto.categoria.nombre
+                val subcategoriaDisplay = producto.subcategoriaNombre ?: producto.subcategoria?.nombre
+                val subcategoriaTexto = subcategoriaDisplay?.let { "$categoriaDisplay - $it" } ?: categoriaDisplay
 
                 Text(
                     text = subcategoriaTexto,
@@ -234,18 +234,22 @@ fun ProductoCard(
                 Spacer(modifier = Modifier.height(dimens.mediumSpacing))
 
                 // Precio (con o sin descuento)
-                Text(
-                    text = NumberFormat.getCurrencyInstance(Locale("es", "CL"))
-                        .format(producto.precioConDescuento ?: producto.precio),
-                    style = MaterialTheme.typography.titleLarge.copy(fontSize = dimens.titleSize),
-                    fontWeight = FontWeight.Bold,
-                    color = SemanticColors.AccentGreenSoft
-                )
-
-                // Precio original tachado si hay descuento
+                val precioActual = producto.precioConDescuento ?: producto.precio
                 if ((producto.descuento ?: 0) > 0) {
                     Text(
+                        text = "Precio ahora",
+                        style = MaterialTheme.typography.labelMedium.copy(fontSize = dimens.captionSize),
+                        color = SemanticColors.AccentGreenSoft
+                    )
+                    Text(
                         text = NumberFormat.getCurrencyInstance(Locale("es", "CL"))
+                            .format(precioActual),
+                        style = MaterialTheme.typography.titleLarge.copy(fontSize = dimens.titleSize),
+                        fontWeight = FontWeight.Bold,
+                        color = SemanticColors.AccentGreenSoft
+                    )
+                    Text(
+                        text = "Precio antes: " + NumberFormat.getCurrencyInstance(Locale("es", "CL"))
                             .format(producto.precio),
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -255,6 +259,13 @@ fun ProductoCard(
                         modifier = Modifier.padding(top = 2.dp)
                     )
                 } else {
+                    Text(
+                        text = NumberFormat.getCurrencyInstance(Locale("es", "CL"))
+                            .format(precioActual),
+                        style = MaterialTheme.typography.titleLarge.copy(fontSize = dimens.titleSize),
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                     Spacer(modifier = Modifier.height(21.dp))
                 }
                 Spacer(modifier = Modifier.height(dimens.mediumSpacing))

@@ -3,12 +3,12 @@ package com.example.levelupprueba.viewmodel
 //BlogViewModel.kt - Lógica para cargar blogs, filtrar por categoría
 
 //importe un monton de cosas bla bla bla
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.levelupprueba.model.blog.Blog
 import com.example.levelupprueba.data.repository.BlogRepository
 import com.example.levelupprueba.model.blog.BlogUiState
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -38,7 +38,9 @@ class BlogViewModel(
                         isLoading = false
                     )
                 }//cargamos los blogs desde el backend usando ContenidoApiService
+                Log.d("BlogViewModel", "Blogs cargados: ${blogs.size}")
             } catch (e: Exception) {
+                Log.e("BlogViewModel", "Error al cargar blogs", e)
                 _estado.update {
                     it.copy(
                         isLoading = false,

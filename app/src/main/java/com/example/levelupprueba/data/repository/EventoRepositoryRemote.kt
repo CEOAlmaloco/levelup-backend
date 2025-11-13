@@ -1,9 +1,11 @@
 package com.example.levelupprueba.data.repository
 
+import android.util.Log
 import com.example.levelupprueba.data.remote.ApiConfig
 import com.example.levelupprueba.data.remote.EventosApiService
-import com.example.levelupprueba.model.evento.Evento
+import com.example.levelupprueba.data.remote.MediaUrlResolver
 import com.example.levelupprueba.model.evento.CodigoEvento
+import com.example.levelupprueba.model.evento.Evento
 import com.example.levelupprueba.model.evento.RecompensaCanje
 import com.example.levelupprueba.model.evento.TipoRecompensa
 import kotlinx.coroutines.Dispatchers
@@ -29,14 +31,21 @@ class EventoRepositoryRemote {
             
             if (response.isSuccessful && response.body() != null) {
                 val eventoResponsePage = response.body()!!
-                eventoResponsePage.content.map { eventoDto ->
+                val eventos = eventoResponsePage.content.map { eventoDto ->
                     mapEventoDtoToEvento(eventoDto)
                 }
+                Log.d("EventoRepository", "Eventos recibidos: ${eventos.size}")
+                eventos
             } else {
+                Log.w(
+                    "EventoRepository",
+                    "Error al obtener eventos: code=${response.code()} body=${response.errorBody()?.string()}"
+                )
                 // Si hay error, retornar lista vacía
                 emptyList()
             }
         } catch (e: Exception) {
+            Log.e("EventoRepository", "Excepción al obtener eventos", e)
             // En caso de excepción, retornar lista vacía
             emptyList()
         }
@@ -50,13 +59,20 @@ class EventoRepositoryRemote {
             val response = eventosService.getEventosProximos(limit = limit)
             
             if (response.isSuccessful && response.body() != null) {
-                response.body()!!.map { eventoDto ->
+                val proximos = response.body()!!.map { eventoDto ->
                     mapEventoDtoToEvento(eventoDto)
                 }
+                Log.d("EventoRepository", "Eventos próximos recibidos: ${proximos.size}")
+                proximos
             } else {
+                Log.w(
+                    "EventoRepository",
+                    "Error al obtener proximos eventos: code=${response.code()} body=${response.errorBody()?.string()}"
+                )
                 emptyList()
             }
         } catch (e: Exception) {
+            Log.e("EventoRepository", "Excepción al obtener proximos eventos", e)
             emptyList()
         }
     }
@@ -71,9 +87,14 @@ class EventoRepositoryRemote {
             if (response.isSuccessful && response.body() != null) {
                 mapEventoDtoToEvento(response.body()!!)
             } else {
+                Log.w(
+                    "EventoRepository",
+                    "Error al obtener evento $id: code=${response.code()} body=${response.errorBody()?.string()}"
+                )
                 null
             }
         } catch (e: Exception) {
+            Log.e("EventoRepository", "Excepción al obtener evento $id", e)
             null
         }
     }
@@ -86,6 +107,7 @@ class EventoRepositoryRemote {
             val response = eventosService.inscribirseEvento(eventoId)
             response.isSuccessful
         } catch (e: Exception) {
+            Log.e("EventoRepository", "Excepción al inscribirse en evento $eventoId", e)
             false
         }
     }
@@ -98,6 +120,7 @@ class EventoRepositoryRemote {
             val response = eventosService.cancelarInscripcion(eventoId)
             response.isSuccessful
         } catch (e: Exception) {
+            Log.e("EventoRepository", "Excepción al cancelar inscripción $eventoId", e)
             false
         }
     }
@@ -112,9 +135,14 @@ class EventoRepositoryRemote {
             if (response.isSuccessful && response.body() != null) {
                 response.body()!!
             } else {
+                Log.w(
+                    "EventoRepository",
+                    "Error al obtener inscripciones: code=${response.code()} body=${response.errorBody()?.string()}"
+                )
                 emptyList()
             }
         } catch (e: Exception) {
+            Log.e("EventoRepository", "Excepción al obtener inscripciones", e)
             emptyList()
             }
     }
@@ -185,30 +213,122 @@ class EventoRepositoryRemote {
      * Mapea EventoDto del backend a Evento del modelo
      */
     private fun mapEventoDtoToEvento(eventoDto: EventoDto): Evento {
-        // Parsear fecha y hora desde fechaInicio
-        val fechaInicio = eventoDto.fechaInicio
-        val partes = fechaInicio.split("T")
-        val fecha = if (partes.isNotEmpty()) partes[0] else fechaInicio
-        val hora = if (partes.size > 1) partes[1].substring(0, 5) else "00:00"
+        // Resolver título y descripción
+        val titulo = eventoDto.titulo ?: eventoDto.nombreEvento ?: ""
+        val descripcion = eventoDto.descripcion ?: eventoDto.descripcionEvento ?: ""
         
-        // Parsear ubicación
+        // Resolver fechas
+        val fechaInicioRaw = eventoDto.fechaInicioString
+            ?: eventoDto.fechaInicio
+            ?: eventoDto.fechaFinString
+            ?: eventoDto.fechaFin
+            ?: ""
+        
+        val fechaHora = when {
+            fechaInicioRaw.contains("T") -> fechaInicioRaw.split("T")
+            fechaInicioRaw.contains(" ") -> fechaInicioRaw.split(" ")
+            else -> listOf(fechaInicioRaw)
+        }
+        val fecha = fechaHora.getOrNull(0)?.takeIf { it.isNotBlank() } ?: fechaInicioRaw
+        val hora = fechaHora.getOrNull(1)?.take(5)
+            ?: eventoDto.fechaInicio?.takeLast(5)
+            ?: "00:00"
+        
+        // Resolver ubicación y ciudad
         val ubicacion = eventoDto.ubicacion
-        val partesUbicacion = ubicacion.split(",")
-        val lugar = if (partesUbicacion.isNotEmpty()) partesUbicacion[0].trim() else ubicacion
-        val ciudad = if (partesUbicacion.size > 1) partesUbicacion.last().trim() else ""
+            ?: eventoDto.ubicacionEvento
+            ?: ""
+        val ciudad = eventoDto.ciudad ?: run {
+            val partesUbicacion = ubicacion.split(",")
+            if (partesUbicacion.size > 1) partesUbicacion.last().trim() else ""
+        }
+        val lugar = when {
+            ubicacion.isNotBlank() -> ubicacion.split(",").first().trim()
+            ciudad.isNotBlank() -> ciudad
+            else -> "Por confirmar"
+        }
+        
+        // Resolver coordenadas
+        val latitud = eventoDto.latitud ?: eventoDto.coordenadasLatitud ?: 0.0
+        val longitud = eventoDto.longitud ?: eventoDto.coordenadasLongitud ?: 0.0
+        
+        // Resolver puntos, capacidad y participantes
+        val puntos = eventoDto.puntosRecompensa
+            ?: eventoDto.puntosLevelUp
+            ?: 0
+        
+        val capacidadMaxima = eventoDto.capacidadMaxima
+            ?: eventoDto.cuposMaximos
+            ?: 0
+        
+        val participantesActuales = eventoDto.participantesActuales
+            ?: if (eventoDto.cuposMaximos != null && eventoDto.cuposDisponibles != null) {
+                (eventoDto.cuposMaximos - eventoDto.cuposDisponibles).coerceAtLeast(0)
+            } else {
+                0
+            }
+        
+        val cuposDisponibles = eventoDto.cuposDisponibles
+            ?: if (capacidadMaxima > 0) (capacidadMaxima - participantesActuales).coerceAtLeast(0) else 0
+        
+        // Resolver precios y estado
+        val precio = eventoDto.precio ?: eventoDto.costoEntrada ?: 0.0
+        val estado = when {
+            !eventoDto.estado.isNullOrBlank() -> eventoDto.estado
+            eventoDto.activo == true -> "ACTIVO"
+            eventoDto.activo == false -> "INACTIVO"
+            else -> ""
+        }
+        
+        // Resolver categoría
+        val categoria = eventoDto.categoria ?: eventoDto.tipoEvento ?: ""
+        
+        // Resolver imágenes (priorizar URLs remotas)
+        val candidateImages = listOf(
+            eventoDto.imagenUrl,
+            eventoDto.bannerUrl,
+            eventoDto.imagenStorageUrl,
+            eventoDto.imagen
+        )
+        
+        val imagenUrl = MediaUrlResolver.resolveFirst(candidateImages)
+        
+        val imagenesUrls: List<String> = buildList {
+            addAll(MediaUrlResolver.resolveList(eventoDto.imagenesUrls))
+            if (isEmpty()) {
+                addAll(MediaUrlResolver.resolveJsonList(eventoDto.imagenes))
+            }
+        }.ifEmpty {
+            if (imagenUrl.isNotBlank()) listOf(imagenUrl) else emptyList()
+        }
+        
+        val bannerUrl = MediaUrlResolver.resolve(eventoDto.bannerUrl ?: eventoDto.imagenStorageUrl)
+        
+        val resolvedId = eventoDto.id
+            ?: eventoDto.idEvento?.toString()
+            ?: titulo.lowercase().replace(" ", "-")
         
         return Evento(
-            id = eventoDto.id ?: "",
-            titulo = eventoDto.titulo,
+            id = resolvedId,
+            titulo = titulo,
             lugar = lugar,
             direccion = ubicacion,
             ciudad = ciudad,
             fecha = fecha,
             hora = hora,
-            puntos = eventoDto.puntosRecompensa,
-            latitud = eventoDto.latitud ?: 0.0,
-            longitud = eventoDto.longitud ?: 0.0,
-            descripcion = eventoDto.descripcion
+            puntos = puntos,
+            latitud = latitud,
+            longitud = longitud,
+            descripcion = descripcion,
+            categoria = categoria,
+            capacidadMaxima = capacidadMaxima,
+            participantesActuales = participantesActuales,
+            cuposDisponibles = cuposDisponibles,
+            precio = precio,
+            estado = estado,
+            imagenUrl = imagenUrl,
+            bannerUrl = bannerUrl.takeIf { it.isNotBlank() },
+            imagenesUrls = imagenesUrls
         )
     }
 }

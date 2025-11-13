@@ -1,5 +1,6 @@
 package com.example.levelupprueba.data.remote
 
+import com.google.gson.annotations.SerializedName
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -98,24 +99,76 @@ interface ContenidoApiService {
  * Response de artículo
  */
 data class ArticuloResponse(
-    val idArticulo: Long,
-    val tituloArticulo: String,
-    val contenidoArticulo: String,
-    val resumenArticulo: String,
-    val imagenArticulo: String?,
-    val categoriaArticulo: String,
-    val etiquetasArticulo: String?,
-    val autorArticulo: String,
-    val fechaPublicacion: String,
-    val fechaActualizacion: String?,
-    val estadoArticulo: String,
-    val vistasArticulo: Int,
-    val likesArticulo: Int,
-    val compartidosArentario: Int,
-    val tiempoLectura: Int?,
-    val esDestacado: Boolean,
-    val esPremium: Boolean,
-    val activo: Boolean
+    @SerializedName("idArticulo")
+    val idArticulo: Long? = null,
+    @SerializedName("id")
+    val id: String? = null,
+    @SerializedName("tituloArticulo")
+    val tituloArticulo: String? = null,
+    @SerializedName("titulo")
+    val titulo: String? = null,
+    @SerializedName("contenidoArticulo")
+    val contenidoArticulo: String? = null,
+    @SerializedName("contenido")
+    val contenido: String? = null,
+    @SerializedName("resumenArticulo")
+    val resumenArticulo: String? = null,
+    @SerializedName("resumen")
+    val resumen: String? = null,
+    @SerializedName("imagenArticulo")
+    val imagenArticulo: String? = null,
+    @SerializedName("imagenUrl")
+    val imagenUrl: String? = null,
+    @SerializedName("imagenPreviewUrl")
+    val imagenPreviewUrl: String? = null,
+    @SerializedName("imagenMiniaturaUrl")
+    val imagenMiniaturaUrl: String? = null,
+    @SerializedName("imagenStorageUrl")
+    val imagenStorageUrl: String? = null,
+    @SerializedName("categoriaArticulo")
+    val categoriaArticulo: String? = null,
+    @SerializedName("categoria")
+    val categoria: String? = null,
+    @SerializedName("etiquetasArticulo")
+    val etiquetasArticulo: String? = null,
+    @SerializedName("tags")
+    val tags: List<String>? = null,
+    @SerializedName("autorArticulo")
+    val autorArticulo: String? = null,
+    @SerializedName("autor")
+    val autor: String? = null,
+    @SerializedName("fechaPublicacion")
+    val fechaPublicacion: String? = null,
+    @SerializedName("fechaPublicacionString")
+    val fechaPublicacionString: String? = null,
+    @SerializedName("fecha")
+    val fecha: String? = null,
+    @SerializedName("fechaActualizacion")
+    val fechaActualizacion: String? = null,
+    @SerializedName("estadoArticulo")
+    val estadoArticulo: String? = null,
+    @SerializedName("estado")
+    val estado: String? = null,
+    @SerializedName("vistasArticulo")
+    val vistasArticulo: Int? = null,
+    @SerializedName("likesArticulo")
+    val likesArticulo: Int? = null,
+    @SerializedName("compartidosArentario")
+    val compartidosArentario: Int? = null,
+    @SerializedName("tiempoLectura")
+    val tiempoLectura: Int? = null,
+    @SerializedName("esDestacado")
+    val esDestacado: Boolean? = null,
+    @SerializedName("destacado")
+    val destacado: Boolean? = null,
+    @SerializedName("esPremium")
+    val esPremium: Boolean? = null,
+    @SerializedName("activo")
+    val activo: Boolean? = null,
+    @SerializedName("enlaceExterno")
+    val enlaceExterno: String? = null,
+    @SerializedName("link")
+    val link: String? = null
 )
 
 /**

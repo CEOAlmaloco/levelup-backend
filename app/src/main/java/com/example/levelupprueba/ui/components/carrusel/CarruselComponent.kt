@@ -29,6 +29,7 @@ import coil.request.ImageRequest
 import com.example.levelupprueba.model.producto.ImagenCarrusel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.example.levelupprueba.R
 
 @Composable
 fun CarruselComponent(
@@ -163,10 +164,16 @@ fun CarruselItem(
             "drawable",
             context.packageName
         )
+        val imageModel = when {
+            imagen.imagenUrl.startsWith("http://") || imagen.imagenUrl.startsWith("https://") -> imagen.imagenUrl
+            imagen.imagenUrl.startsWith("data:image") -> imagen.imagenUrl
+            imageResourceId != 0 -> imageResourceId
+            else -> R.drawable.levelup_logo
+        }
 
         AsyncImage(
             model = ImageRequest.Builder(context)
-                .data(imageResourceId)
+                .data(imageModel)
                 .crossfade(true)
                 .build(),
             contentDescription = imagen.titulo,

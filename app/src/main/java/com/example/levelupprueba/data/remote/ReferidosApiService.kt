@@ -71,6 +71,14 @@ interface ReferidosApiService {
      */
     @GET("referidos/{id}/descuentos")
     suspend fun getDescuentos(@Path("id") id: Long): Response<List<DescuentoDto>>
+
+    /**
+     * Otorga puntos diarios por inicio de sesión
+     */
+    @POST("puntos/usuario/{idUsuario}/inicio-sesion")
+    suspend fun otorgarPuntosInicioSesion(
+        @Path("idUsuario") idUsuario: Long
+    ): Response<TransaccionPuntosResponseDto>
 }
 
 /**
@@ -120,6 +128,40 @@ data class DescuentoDto(
     val porcentaje: Double,
     val descripcion: String,
     val fechaExpiracion: String
+)
+
+/**
+ * DTO de Transacción de puntos
+ */
+data class TransaccionPuntosResponseDto(
+    val id: Long? = null,
+    val idUsuario: Long? = null,
+    val idEvento: Long? = null,
+    val tipoTransaccion: String? = null,
+    val puntos: Int? = null,
+    val puntosAnteriores: Int? = null,
+    val puntosNuevos: Int? = null,
+    val descripcion: String? = null,
+    val codigoReferencia: String? = null,
+    val fechaTransaccion: String? = null,
+    val evento: EventoPuntosResponseDto? = null
+)
+
+data class EventoPuntosResponseDto(
+    val id: Long? = null,
+    val tipoEvento: String? = null,
+    val nombreEvento: String? = null,
+    val descripcionEvento: String? = null,
+    val puntosOtorgados: Int? = null,
+    val codigoEvento: String? = null,
+    val fechaEvento: String? = null,
+    val lugarEvento: String? = null,
+    val direccionEvento: String? = null,
+    val idUsuario: Long? = null,
+    val idProducto: Long? = null,
+    val idPedido: Long? = null,
+    val fechaCreacion: String? = null,
+    val activo: Boolean? = null
 )
 
 /**

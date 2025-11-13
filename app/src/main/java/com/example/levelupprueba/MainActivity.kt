@@ -18,7 +18,9 @@ import androidx.navigation.compose.rememberNavController
 import com.example.levelupprueba.data.local.AppDatabase
 import com.example.levelupprueba.data.local.room.CarritoDatabase
 import com.example.levelupprueba.data.repository.CarritoRepositoryRoom
+import com.example.levelupprueba.data.repository.NotificacionesRepositoryRemote
 import com.example.levelupprueba.data.repository.UsuarioRepository
+import com.example.levelupprueba.navigation.NavigationEvents
 import com.example.levelupprueba.ui.screens.main.MainScreen
 import com.example.levelupprueba.ui.theme.LevelUpPruebaTheme
 import com.example.levelupprueba.viewmodel.BlogViewModel
@@ -42,12 +44,12 @@ import com.example.levelupprueba.viewmodel.UsuarioViewModelFactory
 
 
 //Todo lo que pongamos dentro de setcontent sera la interfaz
-class MainActivity : ComponentActivity() {
+class   MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        //carlosc
         // Detecta si es tablet usando smallestScreenWidthDp
         val isTablet = resources.configuration.smallestScreenWidthDp >= 600
 
@@ -71,6 +73,7 @@ class MainActivity : ComponentActivity() {
             val carritoDao = CarritoDatabase.get(context).carritoDao()
             val carritoRepo = CarritoRepositoryRoom(carritoDao)
             val usuarioRepository = UsuarioRepository(usuarioDao)
+            val notificacionesRepository = NotificacionesRepositoryRemote()
 
             // Factories - las fabricas para crear viewmodels con parametros personalizados
             val mainViewModelFactory = MainViewModelFactory(context, usuarioRepository)
@@ -78,7 +81,7 @@ class MainActivity : ComponentActivity() {
             val loginViewModelFactory = LoginViewModelFactory(usuarioRepository)
             val productoDetalleViewModelFactory = ProductoDetalleViewModelFactory(reviewDao) //factory con el reviewDao
             val carritoViewModelFactory = CarritoViewModelFactory(carritoRepo)
-            val profileViewModelFactory = ProfileViewModelFactory(usuarioRepository)
+            val profileViewModelFactory = ProfileViewModelFactory(usuarioRepository, notificacionesRepository)
             val changePasswordViewModelFactory = ChangePasswordViewModelFactory(usuarioRepository)
 
             // ViewModels - aca creamos los viewmodels, algunos con factory y otros sin factory
@@ -105,16 +108,9 @@ class MainActivity : ComponentActivity() {
 
                 mainViewModel.navigationEvent.collect { event ->
                     when (event) {
-                        is com.example.levelupprueba.navigation.NavigationEvents.NavigateTo -> {
-                            navController.navigate(event.route)
-                        }
-                        is com.example.levelupprueba.navigation.NavigationEvents.NavigateBack -> {
-                            navController.popBackStack()
-                        }
-                        is com.example.levelupprueba.navigation.NavigationEvents.NavigateUp -> {
-                            navController.navigateUp()
-                        }
-                        null -> {}
+                        is NavigationEvents.NavigateTo -> navController.navigate(event.route)
+                        is NavigationEvents.NavigateBack -> navController.popBackStack()
+                        else -> navController.navigateUp()
                     }
                 }
             }

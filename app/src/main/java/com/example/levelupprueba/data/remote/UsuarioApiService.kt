@@ -58,18 +58,31 @@ interface UsuarioApiService {
  * DTO de Usuario
  */
 data class UsuarioDto(
-    val id: String,
-    val nombre: String,
-    val email: String,
+    val id: String? = null,
+    val idUsuario: String? = null,
+    val nombre: String? = null,
+    val apellido: String? = null,
+    val apellidos: String? = null,
+    val correo: String? = null,
+    val email: String? = null,
     val telefono: String? = null,
     val direccion: String? = null,
-    val fechaNacimiento: String,
-    val role: String,
-    val nivel: Int = 1,
-    val puntos: Int = 0,
+    val ciudad: String? = null,
+    val region: String? = null,
+    val comuna: String? = null,
+    val pais: String? = null,
+    val fechaNacimiento: String? = null,
+    val role: String? = null,
+    val tipoUsuario: String? = null,
+    val nivel: Int? = null,
+    val nivelUsuario: String? = null,
+    val puntos: Int? = null,
+    val puntosLevelUp: Int? = null,
     val avatar: String? = null,
-    val createdAt: String,
-    val updatedAt: String
+    val avatarUrl: String? = null,
+    val codigoReferido: String? = null,
+    val createdAt: String? = null,
+    val updatedAt: String? = null
 )
 
 /**
