@@ -1,5 +1,6 @@
 package com.example.levelupprueba.model.profile
 
+import com.example.levelupprueba.model.notificacion.Notificacion
 import com.example.levelupprueba.model.usuario.UsuarioCampo
 
 data class ProfileUiState(
@@ -14,6 +15,7 @@ data class ProfileUiState(
     val avatar: String? = null,
     val referralCode: String = "", // Codigo de referido del usuario
     val points: Int = 0, // Puntos del usuario
+    val notificaciones: List<Notificacion> = emptyList(),
     val isEditing: Boolean = false,
     val isLoading: Boolean = false,
     val errors: Map<String, String> = emptyMap(),

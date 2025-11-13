@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.levelupprueba.data.local.getUserSessionFlow
+import com.example.levelupprueba.data.remote.MediaUrlResolver
 import com.example.levelupprueba.data.repository.UsuarioRepository
 import com.example.levelupprueba.model.auth.UserSession
 import kotlinx.coroutines.flow.StateFlow
@@ -37,10 +38,16 @@ class MainViewModel(
         viewModelScope.launch {
             getUserSessionFlow(context).collect { session ->
                 _userSessionFlow.value = session
+                if (session.accessToken.isNotBlank() && session.userId > 0) {
+                    com.example.levelupprueba.data.remote.ApiConfig.setAuthToken(session.accessToken)
+                    com.example.levelupprueba.data.remote.ApiConfig.setUserId(session.userId.toString())
+                } else {
+                    com.example.levelupprueba.data.remote.ApiConfig.clear()
+                }
                 // Si hay sesión, carga el avatar del usuario de Room
                 if (session.userId > 0) {
                     val usuario = usuarioRepository.getUsuarioById(session.userId.toString())
-                    _avatar.value = usuario?.avatar
+                    _avatar.value = usuario?.avatar?.let { MediaUrlResolver.resolve(it) }
                 } else {
                     _avatar.value = null
                 }
@@ -50,10 +57,16 @@ class MainViewModel(
 
     fun setUserSession(session: UserSession?) {
         _userSessionFlow.value = session
+        if (session != null && session.accessToken.isNotBlank() && session.userId > 0) {
+            com.example.levelupprueba.data.remote.ApiConfig.setAuthToken(session.accessToken)
+            com.example.levelupprueba.data.remote.ApiConfig.setUserId(session.userId.toString())
+        } else {
+            com.example.levelupprueba.data.remote.ApiConfig.clear()
+        }
     }
 
     fun updateAvatar(path: String?) {
-        _avatar.value = path
+        _avatar.value = path?.let { MediaUrlResolver.resolve(it) }
     }
 
     suspend fun navigateTo(route: String) {

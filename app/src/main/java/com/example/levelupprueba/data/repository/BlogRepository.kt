@@ -1,6 +1,8 @@
 package com.example.levelupprueba.data.repository
 
+import android.util.Log
 import com.example.levelupprueba.data.remote.ApiConfig
+import com.example.levelupprueba.data.remote.MediaUrlResolver
 import com.example.levelupprueba.data.remote.ArticuloResponse
 import com.example.levelupprueba.model.blog.Blog
 
@@ -13,13 +15,20 @@ class BlogRepository {
         return try {
             val response = ApiConfig.contenidoService.getArticulosPublicados()
             if (response.isSuccessful && response.body() != null) {
-                response.body()!!.map { articulo ->
+                val blogs = response.body()!!.map { articulo ->
                     articulo.toBlog()
                 }
+                Log.d("BlogRepository", "Blogs publicados recibidos: ${blogs.size}")
+                blogs
             } else {
+                Log.w(
+                    "BlogRepository",
+                    "Error al obtener blogs publicados: code=${response.code()} body=${response.errorBody()?.string()}"
+                )
                 emptyList()
             }
         } catch (e: Exception) {
+            Log.e("BlogRepository", "Excepción al obtener blogs publicados", e)
             emptyList()
         }
     }
@@ -31,13 +40,20 @@ class BlogRepository {
         return try {
             val response = ApiConfig.contenidoService.getArticulosDestacados()
             if (response.isSuccessful && response.body() != null) {
-                response.body()!!.map { articulo ->
+                val blogs = response.body()!!.map { articulo ->
                     articulo.toBlog()
                 }
+                Log.d("BlogRepository", "Blogs destacados recibidos: ${blogs.size}")
+                blogs
             } else {
+                Log.w(
+                    "BlogRepository",
+                    "Error al obtener blogs destacados: code=${response.code()} body=${response.errorBody()?.string()}"
+                )
                 emptyList()
             }
         } catch (e: Exception) {
+            Log.e("BlogRepository", "Excepción al obtener blogs destacados", e)
             emptyList()
         }
     }
@@ -49,13 +65,20 @@ class BlogRepository {
         return try {
             val response = ApiConfig.contenidoService.getArticulosPorCategoria(categoria)
             if (response.isSuccessful && response.body() != null) {
-                response.body()!!.map { articulo ->
+                val blogs = response.body()!!.map { articulo ->
                     articulo.toBlog()
                 }
+                Log.d("BlogRepository", "Blogs por categoría '$categoria' recibidos: ${blogs.size}")
+                blogs
             } else {
+                Log.w(
+                    "BlogRepository",
+                    "Error al obtener blogs por categoría '$categoria': code=${response.code()} body=${response.errorBody()?.string()}"
+                )
                 emptyList()
             }
         } catch (e: Exception) {
+            Log.e("BlogRepository", "Excepción al obtener blogs por categoría '$categoria'", e)
             emptyList()
         }
     }
@@ -65,19 +88,60 @@ class BlogRepository {
  * Función de extensión para convertir ArticuloResponse del backend a Blog del modelo local
  */
 private fun ArticuloResponse.toBlog(): Blog {
-    // Parsear etiquetas si vienen como string separado por comas
-    val tags = etiquetasArticulo?.split(",")?.map { it.trim() }?.filter { it.isNotBlank() } ?: emptyList()
+    // Determinar ID del artículo considerando compatibilidad
+    val resolvedId = when {
+        !id.isNullOrBlank() -> id
+        idArticulo != null -> idArticulo.toString()
+        else -> ""
+    }
+    
+    // Resolver título, contenido y resumen
+    val resolvedTitulo = titulo ?: tituloArticulo ?: ""
+    val resolvedContenido = contenido ?: contenidoArticulo ?: ""
+    val resolvedResumen = resumen ?: resumenArticulo ?: ""
+    
+    // Resolver categoría
+    val resolvedCategoria = (categoria ?: categoriaArticulo ?: "general").lowercase()
+    
+    // Resolver autor
+    val resolvedAutor = autor ?: autorArticulo ?: "LevelUp Gamer"
+    
+    // Resolver fecha (priorizar string ya formateada)
+    val resolvedFecha = fechaPublicacionString
+        ?: fechaPublicacion
+        ?: fecha
+        ?: ""
+    
+    // Resolver tags
+    val resolvedTags: List<String> = when {
+        !tags.isNullOrEmpty() -> tags.map { it.trim() }.filter { it.isNotBlank() }
+        !etiquetasArticulo.isNullOrBlank() -> etiquetasArticulo.split(",").map { it.trim() }.filter { it.isNotBlank() }
+        else -> emptyList()
+    }
+    
+    // Resolver imagen priorizando URLs remotas (S3) sobre Base64
+    val candidateImages = listOf(
+        imagenUrl,
+        imagenPreviewUrl,
+        imagenMiniaturaUrl,
+        imagenStorageUrl,
+        imagenArticulo
+    )
+    
+    val resolvedImagen = MediaUrlResolver.resolveFirst(candidateImages)
+    
+    val isDestacadoResolved = destacado ?: esDestacado ?: false
     
     return Blog(
-        id = idArticulo.toString(),
-        titulo = tituloArticulo,
-        contenido = contenidoArticulo,
-        resumen = resumenArticulo,
-        categoria = categoriaArticulo.lowercase(),
-        imagenUrl = imagenArticulo ?: "", // Si es Base64, usar directamente; si es URL, usar la URL
-        autor = autorArticulo,
-        fechaPublicacion = fechaPublicacion,
-        tags = tags,
-        destacado = esDestacado
+        id = resolvedId,
+        titulo = resolvedTitulo,
+        contenido = resolvedContenido,
+        resumen = resolvedResumen,
+        categoria = resolvedCategoria,
+        imagenUrl = resolvedImagen,
+        autor = resolvedAutor,
+        fechaPublicacion = resolvedFecha,
+        tags = resolvedTags,
+        destacado = isDestacadoResolved
     )
 }

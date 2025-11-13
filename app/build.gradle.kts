@@ -41,6 +41,7 @@ val debugGatewayUrl = configValue("gateway.url.debug", "http://10.0.2.2:8094/", 
 val deviceGatewayUrl = configValue("gateway.url.device", "http://192.168.1.100:8094/", ensureTrailingSlash = true)
 val releaseGatewayUrl = configValue("gateway.url.release", "http://ec2-54-161-72-45.compute-1.amazonaws.com:8094/", ensureTrailingSlash = true)
 val sharedApiKey = configValue("gateway.api.key", "levelup-2024-secret-api-key-change-in-production")
+val mediaBaseUrl = configValue("media.base.url", "https://levelup-gamer-products.s3.us-east-1.amazonaws.com/", ensureTrailingSlash = true)
 
 android {
     namespace = "com.example.levelupprueba"
@@ -62,6 +63,7 @@ android {
             buildConfigField("String", "API_BASE_URL", debugGatewayUrl.asBuildConfigString()) // Emulador / Docker
             buildConfigField("String", "API_BASE_URL_DEVICE", deviceGatewayUrl.asBuildConfigString())
             buildConfigField("String", "API_KEY", sharedApiKey.asBuildConfigString())
+            buildConfigField("String", "MEDIA_BASE_URL", mediaBaseUrl.asBuildConfigString())
             buildConfigField("Boolean", "IS_PRODUCTION", "false")
         }
         
@@ -75,6 +77,7 @@ android {
             buildConfigField("String", "API_BASE_URL", releaseGatewayUrl.asBuildConfigString())
             buildConfigField("String", "API_BASE_URL_DEVICE", releaseGatewayUrl.asBuildConfigString())
             buildConfigField("String", "API_KEY", sharedApiKey.asBuildConfigString())
+            buildConfigField("String", "MEDIA_BASE_URL", mediaBaseUrl.asBuildConfigString())
             buildConfigField("Boolean", "IS_PRODUCTION", "true")
         }
     }

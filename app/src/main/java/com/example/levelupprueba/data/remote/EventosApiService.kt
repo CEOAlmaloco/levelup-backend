@@ -1,5 +1,6 @@
 package com.example.levelupprueba.data.remote
 
+import com.google.gson.annotations.SerializedName
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -73,23 +74,84 @@ interface EventosApiService {
  * DTO de Evento
  */
 data class EventoDto(
+    @SerializedName("id")
     val id: String? = null,
-    val titulo: String,
-    val descripcion: String,
-    val fechaInicio: String,
-    val fechaFin: String,
-    val ubicacion: String,
+    @SerializedName("idEvento")
+    val idEvento: Long? = null,
+    @SerializedName("titulo")
+    val titulo: String? = null,
+    @SerializedName("nombreEvento")
+    val nombreEvento: String? = null,
+    @SerializedName("descripcion")
+    val descripcion: String? = null,
+    @SerializedName("descripcionEvento")
+    val descripcionEvento: String? = null,
+    @SerializedName("fechaInicioString")
+    val fechaInicioString: String? = null,
+    @SerializedName("fechaInicio")
+    val fechaInicio: String? = null,
+    @SerializedName("fechaFinString")
+    val fechaFinString: String? = null,
+    @SerializedName("fechaFin")
+    val fechaFin: String? = null,
+    @SerializedName("ubicacion")
+    val ubicacion: String? = null,
+    @SerializedName("ubicacionEvento")
+    val ubicacionEvento: String? = null,
+    @SerializedName("ciudad")
+    val ciudad: String? = null,
+    @SerializedName("latitud")
     val latitud: Double? = null,
+    @SerializedName("coordenadasLatitud")
+    val coordenadasLatitud: Double? = null,
+    @SerializedName("longitud")
     val longitud: Double? = null,
-    val imagen: String,
-    val categoria: String,
-    val capacidadMaxima: Int,
-    val participantesActuales: Int = 0,
-    val puntosRecompensa: Int,
-    val edadMinima: Int,
-    val precio: Double,
-    val estado: String,
-    val createdAt: String? = null
+    @SerializedName("coordenadasLongitud")
+    val coordenadasLongitud: Double? = null,
+    @SerializedName("imagenUrl")
+    val imagenUrl: String? = null,
+    @SerializedName("imagenStorageUrl")
+    val imagenStorageUrl: String? = null,
+    @SerializedName("bannerUrl")
+    val bannerUrl: String? = null,
+    @SerializedName("imagen")
+    val imagen: String? = null,
+    @SerializedName("imagenes")
+    val imagenes: String? = null,
+    @SerializedName("imagenesUrls")
+    val imagenesUrls: List<String>? = null,
+    @SerializedName("categoria")
+    val categoria: String? = null,
+    @SerializedName("tipoEvento")
+    val tipoEvento: String? = null,
+    @SerializedName("capacidadMaxima")
+    val capacidadMaxima: Int? = null,
+    @SerializedName("cuposMaximos")
+    val cuposMaximos: Int? = null,
+    @SerializedName("participantesActuales")
+    val participantesActuales: Int? = null,
+    @SerializedName("cuposDisponibles")
+    val cuposDisponibles: Int? = null,
+    @SerializedName("puntosRecompensa")
+    val puntosRecompensa: Int? = null,
+    @SerializedName("puntosLevelUp")
+    val puntosLevelUp: Int? = null,
+    @SerializedName("edadMinima")
+    val edadMinima: Int? = null,
+    @SerializedName("requisitosEdad")
+    val requisitosEdad: Int? = null,
+    @SerializedName("precio")
+    val precio: Double? = null,
+    @SerializedName("costoEntrada")
+    val costoEntrada: Double? = null,
+    @SerializedName("estado")
+    val estado: String? = null,
+    @SerializedName("activo")
+    val activo: Boolean? = null,
+    @SerializedName("createdAt")
+    val createdAt: String? = null,
+    @SerializedName("equiposRequeridos")
+    val equiposRequeridos: String? = null
 )
 
 /**

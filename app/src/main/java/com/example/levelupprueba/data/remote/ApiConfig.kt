@@ -1,5 +1,6 @@
 package com.example.levelupprueba.data.remote
 
+import android.util.Log
 import com.example.levelupprueba.BuildConfig
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -84,14 +85,18 @@ object ApiConfig {
         requestBuilder.addHeader("X-API-Key", API_KEY)
         
         // Agregar token JWT si existe (para autenticación de usuario)
-        authToken?.let {
-            requestBuilder.addHeader("Authorization", "Bearer $it")
+        val token = authToken
+        if (token.isNullOrBlank()) {
+            Log.w("ApiConfig", "Auth token no configurado para ${originalRequest.url}")
+        } else {
+            requestBuilder.addHeader("Authorization", "Bearer $token")
         }
-        
+
         // Agregar User ID si existe (para endpoints que requieren X-User-Id)
         // El backend espera Long, pero mantenemos String para compatibilidad
         // Si el userId es un número, lo enviamos tal cual; si no, intentamos parsearlo
-        userId?.let {
+        val currentUserId = userId
+        currentUserId?.let {
             try {
                 // Intentar convertir a Long para validar que es un número
                 val userIdLong = it.toLong()
@@ -100,6 +105,8 @@ object ApiConfig {
                 // Si no es un número, enviarlo tal cual (puede causar error en el backend)
                 requestBuilder.addHeader("X-User-Id", it)
             }
+        } ?: run {
+            Log.w("ApiConfig", "UserId no configurado para ${originalRequest.url}")
         }
         
         // Agregar headers comunes

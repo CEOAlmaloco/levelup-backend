@@ -6,6 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.levelupprueba.data.remote.MediaUrlResolver
+import com.example.levelupprueba.data.repository.NotificacionesRepositoryRemote
 import com.example.levelupprueba.data.repository.UsuarioRepository
 import com.example.levelupprueba.model.profile.ProfileStatus
 import com.example.levelupprueba.model.profile.ProfileUiState
@@ -19,8 +21,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ProfileViewModel(
-    private val usuarioRepository: UsuarioRepository
-): ViewModel() {
+    private val usuarioRepository: UsuarioRepository,
+    private val notificacionesRepository: NotificacionesRepositoryRemote = NotificacionesRepositoryRemote()
+) : ViewModel() {
 
     private val _estado = MutableStateFlow(ProfileUiState())
 
@@ -41,8 +44,9 @@ class ProfileViewModel(
                     
                     // Obtener código de referido desde el backend
                     var codigoReferido = ""
+                    val usuarioIdApi = usuarioDto.id ?: usuarioDto.idUsuario
                     try {
-                        val codigoResponse = com.example.levelupprueba.data.remote.ApiConfig.referidosService.getCodigoReferido(usuarioDto.id.toLongOrNull() ?: 0L)
+                        val codigoResponse = com.example.levelupprueba.data.remote.ApiConfig.referidosService.getCodigoReferido(usuarioIdApi?.toLongOrNull() ?: 0L)
                         if (codigoResponse.isSuccessful && codigoResponse.body() != null) {
                             codigoReferido = codigoResponse.body()!!["codigoReferido"] ?: ""
                         }
@@ -51,19 +55,41 @@ class ProfileViewModel(
                         android.util.Log.e("ProfileViewModel", "Error al obtener código de referido: ${e.message}")
                     }
                     
+                    val nombre = usuarioDto.nombre ?: ""
+                    val apellidos = usuarioDto.apellidos
+                        ?: usuarioDto.apellido
+                        ?: ""
+                    val email = usuarioDto.email ?: usuarioDto.correo ?: ""
+                    val telefono = usuarioDto.telefono ?: ""
+                    val fechaNacimiento = usuarioDto.fechaNacimiento ?: ""
+                    val region = usuarioDto.region ?: usuarioDto.pais ?: ""
+                    val comuna = usuarioDto.comuna ?: usuarioDto.ciudad ?: ""
+                    val direccion = usuarioDto.direccion ?: ""
+                    val avatar = MediaUrlResolver.resolve(usuarioDto.avatar ?: usuarioDto.avatarUrl)
+                    val puntos = usuarioDto.puntos ?: usuarioDto.puntosLevelUp ?: 0
+                    val usuarioIdLong = usuarioIdApi?.toLongOrNull() ?: 0L
+                    
+                    val notificaciones = try {
+                        notificacionesRepository.obtenerNotificacionesUsuario(usuarioIdLong)
+                    } catch (e: Exception) {
+                        android.util.Log.e("ProfileViewModel", "Error al obtener notificaciones: ${e.message}")
+                        emptyList()
+                    }
+
                     _estado.update {
                         it.copy(
-                            nombre = it.nombre.copy(valor = usuarioDto.nombre ?: ""),
-                            apellidos = it.apellidos.copy(valor = ""), // El backend no devuelve apellidos en UsuarioDto
-                            email = it.email.copy(valor = usuarioDto.email),
-                            telefono = it.telefono.copy(valor = usuarioDto.telefono ?: ""),
-                            fechaNacimiento = it.fechaNacimiento.copy(valor = usuarioDto.fechaNacimiento),
-                            region = it.region.copy(valor = ""), // El backend no devuelve región en UsuarioDto
-                            comuna = it.comuna.copy(valor = ""), // El backend no devuelve comuna en UsuarioDto
-                            direccion = it.direccion.copy(valor = usuarioDto.direccion ?: ""),
-                            avatar = usuarioDto.avatar,
+                            nombre = it.nombre.copy(valor = nombre),
+                            apellidos = it.apellidos.copy(valor = apellidos),
+                            email = it.email.copy(valor = email),
+                            telefono = it.telefono.copy(valor = telefono),
+                            fechaNacimiento = it.fechaNacimiento.copy(valor = fechaNacimiento),
+                            region = it.region.copy(valor = region),
+                            comuna = it.comuna.copy(valor = comuna),
+                            direccion = it.direccion.copy(valor = direccion),
+                            avatar = avatar,
                             referralCode = codigoReferido,
-                            points = usuarioDto.puntos,
+                            points = puntos,
+                            notificaciones = notificaciones,
                             isLoading = false,
                             profileStatus = ProfileStatus.Loaded
                         )
@@ -197,7 +223,7 @@ class ProfileViewModel(
                     // Actualizar avatar en el estado
                     _estado.update { 
                         it.copy(
-                            avatar = usuarioDto.avatar,
+                            avatar = MediaUrlResolver.resolve(usuarioDto.avatar ?: usuarioDto.avatarUrl),
                             profileStatus = ProfileStatus.Saved
                         )
                     }

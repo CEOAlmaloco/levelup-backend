@@ -3,6 +3,7 @@ package com.example.levelupprueba.viewmodel
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.levelupprueba.AuthActivity
@@ -124,6 +125,24 @@ class LoginViewModel(
                     // Configurar token en ApiConfig para futuras peticiones
                     com.example.levelupprueba.data.remote.ApiConfig.setAuthToken(authResponse.accessToken)
                     com.example.levelupprueba.data.remote.ApiConfig.setUserId(usuarioInfo.id.toString())
+
+                    // Otorgar puntos por inicio de sesión (microservicio referidos)
+                    try {
+                        val puntosResponse = com.example.levelupprueba.data.remote.ApiConfig.referidosService
+                            .otorgarPuntosInicioSesion(usuarioInfo.id)
+                        if (!puntosResponse.isSuccessful) {
+                            Log.w(
+                                "LoginViewModel",
+                                "No se pudieron otorgar puntos por inicio de sesión: ${puntosResponse.code()}"
+                            )
+                        }
+                    } catch (pointsError: Exception) {
+                        Log.e(
+                            "LoginViewModel",
+                            "Error al otorgar puntos por inicio de sesión",
+                            pointsError
+                        )
+                    }
                     
                     // Actualizar MainViewModel
                     mainViewModel.setUserSession(session)

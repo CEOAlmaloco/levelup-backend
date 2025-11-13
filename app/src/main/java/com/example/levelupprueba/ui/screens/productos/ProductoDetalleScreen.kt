@@ -8,6 +8,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
@@ -316,9 +317,9 @@ private fun SeccionInformacion(
 ) {
 
     // Categoría - Subcategoría
-    val subcategoriaTexto = producto.subcategoria?.let { sub ->
-        "${producto.categoria.nombre} - ${sub.nombre}"
-    } ?: producto.categoria.nombre
+    val categoriaDisplay = producto.categoriaNombre ?: producto.categoria.nombre
+    val subcategoriaDisplay = producto.subcategoriaNombre ?: producto.subcategoria?.nombre
+    val subcategoriaTexto = subcategoriaDisplay?.let { "$categoriaDisplay - $it" } ?: categoriaDisplay
 
     LevelUpSpacedColumn( //usamos LevelUpSpacedColumn para espaciado automatico
         spacing = dimens.fieldSpacing, //espaciado entre campos
@@ -326,7 +327,7 @@ private fun SeccionInformacion(
     ) {
 
         LevelUpBadge( //el codigo del producto chiquitito
-            text = producto.id,
+            text = producto.codigo ?: producto.id,
             textColor = MaterialTheme.colorScheme.onSurface.copy(0.60f),
             backgroundColor = MaterialTheme.colorScheme.surface.copy(0.80f)
         )
@@ -365,7 +366,7 @@ private fun SeccionInformacion(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Precio actual: con descuento si existe, sino el normal
-            val precioFinal = if ((producto.descuento ?: 0) > 0) producto.precioConDescuento!! else producto.precio
+            val precioFinal = if ((producto.descuento ?: 0) > 0) producto.precioConDescuento ?: producto.precio else producto.precio
 
             Text(
                 text = NumberFormat.getCurrencyInstance(Locale("es", "CL")).format(precioFinal),
@@ -395,8 +396,8 @@ private fun SeccionInformacion(
         }
 
         Text( //la descripcion del producto
-            text = producto.descripcion,
-            style = MaterialTheme.typography.bodyMedium.copy(fontSize = dimens.bodySize),
+            text = producto.descripcion.takeIf { it.isNotBlank() } ?: "Descripción no disponible",
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface,
             lineHeight = 24.sp //espaciado entre lineas para q se lea mejor
         )

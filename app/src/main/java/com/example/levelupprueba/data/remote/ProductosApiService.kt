@@ -99,7 +99,9 @@ data class ProductoDto(
     val nombre: String? = null, // Compatibilidad con frontend
     val nombreProducto: String? = null, // Alias del backend
     val categoriaId: String? = null,
+    val categoriaNombre: String? = null,
     val subcategoriaId: String? = null,
+    val subcategoriaNombre: String? = null,
     val imagen: String? = null,
     val imagenUrl: String? = null, // URL completa de S3 desde el backend
     val imagenS3Key: String? = null, // Referencia S3 guardada en BD
@@ -108,13 +110,21 @@ data class ProductoDto(
     val imagenesS3Keys: String? = null, // JSON array de referencias S3
     val precio: Double? = null,
     val precioProducto: Double? = null, // Alias del backend
+    val precioConDescuento: Double? = null,
+    val descuento: Double? = null,
+    val enOferta: Boolean? = null,
     val disponible: Boolean? = null,
     val activo: Boolean? = null, // Alias del backend
     val rating: Double? = null,
+    val ratingPromedio: Double? = null,
     val descripcion: String? = null,
     val descripcionProducto: String? = null, // Alias del backend
     val stock: Int? = null,
     val codigoProducto: String? = null,
+    val fabricante: String? = null,
+    val distribuidor: String? = null,
+    val destacado: Boolean? = null,
+    val reviews: List<ReseniaResumenDto>? = null,
     val createdAt: String? = null,
     val updatedAt: String? = null
 )
@@ -174,5 +184,20 @@ data class SubcategoriaDto(
     val id: String,
     val nombre: String,
     val categoria: CategoriaDto? = null
+)
+
+/**
+ * DTO resumen de reseña proveniente del backend de productos
+ */
+data class ReseniaResumenDto(
+    val id: Long? = null,
+    val idProducto: Long? = null,
+    val idUsuario: Long? = null,
+    val usuarioNombre: String? = null,
+    val rating: Int? = null,
+    val comentario: String? = null,
+    val fechaCreacion: String? = null,
+    val fechaActualizacion: String? = null,
+    val activo: Boolean? = null
 )
 

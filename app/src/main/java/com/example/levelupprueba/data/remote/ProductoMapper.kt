@@ -1,10 +1,10 @@
 package com.example.levelupprueba.data.remote
 
+import com.example.levelupprueba.data.remote.MediaUrlResolver
 import com.example.levelupprueba.model.producto.Categoria
 import com.example.levelupprueba.model.producto.Producto
 import com.example.levelupprueba.model.producto.Subcategoria
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import com.example.levelupprueba.model.producto.Review
 
 // ProductoDto está en el mismo paquete, accesible directamente
 
@@ -19,42 +19,50 @@ object ProductoMapper {
     fun mapProductoDto(dto: ProductoDto): Producto {
         // Priorizar imagenUrl del backend (URL completa de S3 construida)
         // Si no existe, usar imagenS3Key (referencia S3) o imagen (compatibilidad con Base64)
-        val imagenUrl = when {
-            !dto.imagenUrl.isNullOrBlank() -> dto.imagenUrl // URL completa de S3 desde el backend
-            !dto.imagenS3Key.isNullOrBlank() -> dto.imagenS3Key // Referencia S3 (se construirá la URL si es necesario)
-            !dto.imagen.isNullOrBlank() -> dto.imagen // Base64 o ruta legacy
-            else -> ""
-        }
+        val imagenUrl = MediaUrlResolver.resolveFirst(
+            listOf(
+                dto.imagenUrl,
+                dto.imagenS3Key,
+                dto.imagen
+            )
+        )
         
-        // Parsear imagenesUrls (JSON array de URLs completas de S3) o imagenesS3Keys (referencias)
-        val imagenesUrls = try {
-            // Priorizar imagenesUrls (URLs completas de S3)
-            val imagenesJson = when {
-                !dto.imagenesUrls.isNullOrBlank() -> dto.imagenesUrls
-                !dto.imagenesS3Keys.isNullOrBlank() -> dto.imagenesS3Keys
-                !dto.imagenes.isNullOrBlank() -> dto.imagenes
-                else -> null
-            }
-            
-            if (imagenesJson != null && imagenesJson.isNotBlank()) {
-                val gson = Gson()
-                val type = object : TypeToken<List<String>>() {}.type
-                val imagenesList: List<String> = gson.fromJson(imagenesJson, type)
-                imagenesList.ifEmpty { listOf(imagenUrl) }
+        // Parsear galería de imágenes desde los campos disponibles
+        val imagenesUrls: List<String> = run {
+            val jsonSources = dto.imagenesUrls
+                ?: dto.imagenesS3Keys
+                ?: dto.imagenes
+
+            val parsed = MediaUrlResolver.resolveJsonList(jsonSources)
+            if (parsed.isNotEmpty()) {
+                parsed
             } else {
-                listOf(imagenUrl)
+                val resolvedCandidates = MediaUrlResolver.resolveList(
+                    listOf(
+                        dto.imagenUrl,
+                        dto.imagenS3Key,
+                        dto.imagen
+                    )
+                )
+                if (resolvedCandidates.isNotEmpty()) {
+                    resolvedCandidates
+                } else if (imagenUrl.isNotBlank()) {
+                    listOf(imagenUrl)
+                } else {
+                    emptyList<String>()
+                }
             }
-        } catch (e: Exception) {
-            listOf(imagenUrl)
         }
         
         // Mapear categoría desde categoriaId
         val categoriaId = dto.categoriaId ?: ""
         val categoria = mapCategoria(categoriaId)
+        val categoriaNombre = dto.categoriaNombre ?: categoria.nombre
         
         // Mapear subcategoría desde subcategoriaId
         val subcategoriaId = dto.subcategoriaId
-        val subcategoria = subcategoriaId?.let { mapSubcategoria(it, categoria) }
+        val subcategoria = subcategoriaId?.let { mapSubcategoria(it) }
+        val subcategoriaNombre = dto.subcategoriaNombre ?: subcategoria?.nombre
         
         // Obtener nombre del producto (priorizar nombreProducto del backend)
         val nombre = dto.nombreProducto ?: dto.nombre ?: dto.titulo ?: ""
@@ -67,27 +75,41 @@ object ProductoMapper {
         
         // Obtener ID (priorizar idProducto del backend)
         val id = (dto.idProducto ?: dto.id)?.toString() ?: ""
+        val codigoProducto = dto.codigoProducto
         
         // Obtener disponibilidad (priorizar activo del backend)
         val disponible = dto.activo ?: dto.disponible ?: true
+
+        val descuentoOrigen = dto.descuento
+        val descuento = descuentoOrigen?.toInt()
+        val precioConDescuento = dto.precioConDescuento
+        val enOferta = dto.enOferta ?: (descuentoOrigen != null && descuentoOrigen > 0.0)
+        val ratingPromedio = (dto.ratingPromedio ?: dto.rating)?.toFloat() ?: 0f
+        val reviews = dto.reviews?.mapNotNull { mapReseniaDto(it, id) } ?: emptyList()
         
         return Producto(
             id = id,
+            codigo = codigoProducto,
             nombre = nombre,
             descripcion = descripcion,
             precio = precio,
+            precioConDescuentoBackend = precioConDescuento,
             imagenUrl = imagenUrl,
             categoria = categoria,
+            categoriaNombre = categoriaNombre,
             subcategoria = subcategoria,
-            rating = (dto.rating ?: 0.0).toFloat(),
+            subcategoriaNombre = subcategoriaNombre,
+            rating = ratingPromedio,
+            ratingPromedioBackend = ratingPromedio,
             disponible = disponible,
-            destacado = false, // El backend no tiene este campo, se puede calcular después
+            destacado = dto.destacado ?: false,
+            enOferta = enOferta,
             stock = dto.stock ?: 0,
             imagenesUrls = imagenesUrls,
-            fabricante = null, // El backend no tiene este campo
-            distribuidor = null, // El backend no tiene este campo
-            descuento = null, // El backend no tiene este campo
-            reviews = emptyList(), // Las reviews se cargan por separado
+            fabricante = dto.fabricante,
+            distribuidor = dto.distribuidor,
+            descuento = descuento,
+            reviews = reviews,
             productosRelacionados = emptyList() // Se cargan por separado
         )
     }
@@ -115,7 +137,7 @@ object ProductoMapper {
     /**
      * Mapea un subcategoriaId a un enum Subcategoria
      */
-    private fun mapSubcategoria(subcategoriaId: String, categoria: Categoria): Subcategoria? {
+    private fun mapSubcategoria(subcategoriaId: String): Subcategoria? {
         return when (subcategoriaId.uppercase()) {
             // Consola
             "HA" -> Subcategoria.HARDWARE
@@ -137,6 +159,20 @@ object ProductoMapper {
             "JM" -> Subcategoria.JUEGOS_MESA
             else -> null
         }
+    }
+
+    private fun mapReseniaDto(dto: ReseniaResumenDto, productoId: String): Review? {
+        val reviewId = dto.id?.toString() ?: return null
+        val rating = dto.rating ?: return null
+
+        return Review(
+            id = reviewId,
+            productoId = productoId,
+            usuarioNombre = dto.usuarioNombre ?: "Usuario",
+            rating = rating.toFloat(),
+            comentario = dto.comentario ?: "",
+            fecha = dto.fechaCreacion ?: ""
+        )
     }
 }
 

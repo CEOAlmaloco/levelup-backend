@@ -1,6 +1,7 @@
 package com.example.levelupprueba.viewmodel
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.levelupprueba.data.local.UserDataStore
@@ -31,10 +32,6 @@ class EventoViewModel(//creamo la instancia del repositorio
     var userDataStore: UserDataStore? = null//creamos la variable para acceder a user data store
     private var context: Context? = null//creamos la variable para acceder a context
 
-    init {
-        cargarDatosIniciales()
-    }
-
     /* el context  se usa para acceder a recursos archivos preferencias bases de datos.
     entonces con esto lo q hacemos es hacer una variable global para que se pueda acceder a ella desde cualquier parte de la aplicacion.
     luego llamamos a una funcion para cargar los puntos del usuario.
@@ -42,6 +39,7 @@ class EventoViewModel(//creamo la instancia del repositorio
     fun inicializar(ctx: Context) {
         context = ctx
         userDataStore = UserDataStore(ctx)
+        cargarDatosIniciales()
         cargarPuntosUsuario()
     }
 
@@ -50,6 +48,7 @@ class EventoViewModel(//creamo la instancia del repositorio
      */
     private fun cargarDatosIniciales() {
         viewModelScope.launch {//lanzamos la corrutina
+            Log.d("EventoViewModel", "Cargando eventos desde backend...")
             _estado.update { it.copy(isLoading = true, error = null) }//actualizamos el estado para que se muestre el loading y el error
             try {
                 val eventos = repository.obtenerEventos()//obtenemos los eventos desde el backend usando Retrofit
@@ -62,7 +61,9 @@ class EventoViewModel(//creamo la instancia del repositorio
                         eventoSeleccionado = eventos.firstOrNull() //first or null es para que si no hay eventos se muestre el primero o null 
                     )
                 }
+                Log.d("EventoViewModel", "Eventos cargados: ${eventos.size}")
             } catch (e: Exception) {
+                Log.e("EventoViewModel", "Error al cargar eventos", e)
                 _estado.update {
                     it.copy(
                         isLoading = false,
@@ -81,10 +82,12 @@ class EventoViewModel(//creamo la instancia del repositorio
             try { 
                 delay(500)
                 val usuario = obtenerUsuarioActual()
+                Log.d("EventoViewModel", "Puntos actuales del usuario: ${usuario?.points ?: 0}")
                 _estado.update { 
                     it.copy(puntosUsuario = usuario?.points ?: 0) // si no hay usuario se muestra 0 puntos
                 }
             } catch (e: Exception) {
+                Log.w("EventoViewModel", "No se pudieron cargar los puntos del usuario", e)
                 // user no logueado o error
             }
         }
