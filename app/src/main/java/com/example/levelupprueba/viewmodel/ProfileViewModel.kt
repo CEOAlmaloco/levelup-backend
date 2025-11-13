@@ -6,6 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.levelupprueba.data.remote.MediaUrlResolver
+import com.example.levelupprueba.data.repository.NotificacionesRepositoryRemote
 import com.example.levelupprueba.data.repository.UsuarioRepository
 import com.example.levelupprueba.model.profile.ProfileStatus
 import com.example.levelupprueba.model.profile.ProfileUiState
@@ -19,8 +21,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ProfileViewModel(
-    private val usuarioRepository: UsuarioRepository
-): ViewModel() {
+    private val usuarioRepository: UsuarioRepository,
+    private val notificacionesRepository: NotificacionesRepositoryRemote = NotificacionesRepositoryRemote()
+) : ViewModel() {
 
     private val _estado = MutableStateFlow(ProfileUiState())
 
@@ -33,29 +36,81 @@ class ProfileViewModel(
         viewModelScope.launch {
             _estado.update { it.copy(isLoading = true, profileStatus = ProfileStatus.Loading) }
             try {
-                val usuario = usuarioRepository.getUsuarioById(id)
-                _estado.update {
-                    it.copy(
-                        nombre = it.nombre.copy(valor = usuario?.nombre ?: ""),
-                        apellidos = it.apellidos.copy(valor = usuario?.apellidos ?: ""),
-                        email = it.email.copy(valor = usuario?.email ?: ""),
-                        telefono = it.telefono.copy(valor = usuario?.telefono ?: ""),
-                        fechaNacimiento = it.fechaNacimiento.copy(valor = usuario?.fechaNacimiento ?: ""),
-                        region = it.region.copy(valor = usuario?.region ?: ""),
-                        comuna = it.comuna.copy(valor = usuario?.comuna ?: ""),
-                        direccion = it.direccion.copy(valor = usuario?.direccion ?: ""),
-                        avatar = usuario?.avatar,
-                        referralCode = usuario?.referralCode ?: "",
-                        points = usuario?.points ?: 0,
-                        isLoading = false,
-                        profileStatus = ProfileStatus.Loaded
+                // Cargar perfil desde el backend
+                val response = com.example.levelupprueba.data.remote.ApiConfig.usuarioService.getPerfil()
+                
+                if (response.isSuccessful && response.body() != null) {
+                    val usuarioDto = response.body()!!
+                    
+                    // Obtener código de referido desde el backend
+                    var codigoReferido = ""
+                    val usuarioIdApi = usuarioDto.id ?: usuarioDto.idUsuario
+                    try {
+                        val codigoResponse = com.example.levelupprueba.data.remote.ApiConfig.referidosService.getCodigoReferido(usuarioIdApi?.toLongOrNull() ?: 0L)
+                        if (codigoResponse.isSuccessful && codigoResponse.body() != null) {
+                            codigoReferido = codigoResponse.body()!!["codigoReferido"] ?: ""
+                        }
+                    } catch (e: Exception) {
+                        // Si falla obtener código de referido, continuar sin él
+                        android.util.Log.e("ProfileViewModel", "Error al obtener código de referido: ${e.message}")
+                    }
+                    
+                    val nombre = usuarioDto.nombre ?: ""
+                    val apellidos = usuarioDto.apellidos
+                        ?: usuarioDto.apellido
+                        ?: ""
+                    val email = usuarioDto.email ?: usuarioDto.correo ?: ""
+                    val telefono = usuarioDto.telefono ?: ""
+                    val fechaNacimiento = usuarioDto.fechaNacimiento ?: ""
+                    val region = usuarioDto.region ?: usuarioDto.pais ?: ""
+                    val comuna = usuarioDto.comuna ?: usuarioDto.ciudad ?: ""
+                    val direccion = usuarioDto.direccion ?: ""
+                    val avatar = MediaUrlResolver.resolve(usuarioDto.avatar ?: usuarioDto.avatarUrl)
+                    val puntos = usuarioDto.puntos ?: usuarioDto.puntosLevelUp ?: 0
+                    val usuarioIdLong = usuarioIdApi?.toLongOrNull() ?: 0L
+                    
+                    val notificaciones = try {
+                        notificacionesRepository.obtenerNotificacionesUsuario(usuarioIdLong)
+                    } catch (e: Exception) {
+                        android.util.Log.e("ProfileViewModel", "Error al obtener notificaciones: ${e.message}")
+                        emptyList()
+                    }
+
+                    _estado.update {
+                        it.copy(
+                            nombre = it.nombre.copy(valor = nombre),
+                            apellidos = it.apellidos.copy(valor = apellidos),
+                            email = it.email.copy(valor = email),
+                            telefono = it.telefono.copy(valor = telefono),
+                            fechaNacimiento = it.fechaNacimiento.copy(valor = fechaNacimiento),
+                            region = it.region.copy(valor = region),
+                            comuna = it.comuna.copy(valor = comuna),
+                            direccion = it.direccion.copy(valor = direccion),
+                            avatar = avatar,
+                            referralCode = codigoReferido,
+                            points = puntos,
+                            notificaciones = notificaciones,
+                            isLoading = false,
+                            profileStatus = ProfileStatus.Loaded
+                        )
+                    }
+                } else {
+                    val errorMessage = com.example.levelupprueba.data.remote.ErrorHandler.getErrorMessage(
+                        Exception("Error al cargar perfil: ${response.code()}")
                     )
+                    _estado.update {
+                        it.copy(
+                            isLoading = false,
+                            profileStatus = ProfileStatus.Error(errorMessage)
+                        )
+                    }
                 }
             } catch (e: Exception) {
+                val errorMessage = com.example.levelupprueba.data.remote.ErrorHandler.getErrorMessage(e)
                 _estado.update {
                     it.copy(
                         isLoading = false,
-                        profileStatus = ProfileStatus.Error(e.message ?: "Error al cargar perfil")
+                        profileStatus = ProfileStatus.Error(errorMessage)
                     )
                 }
             }
@@ -152,28 +207,36 @@ class ProfileViewModel(
             }
 
             try {
-                val usuarioActual = usuarioRepository.getUsuarioByEmail(estadoActual.email.valor)
-                val usuario = Usuario(
-                    id = usuarioActual?.id ?: "",
-                    nombre = nuevoEstado.nombre.valor,
-                    apellidos = nuevoEstado.apellidos.valor,
-                    email = nuevoEstado.email.valor,
-                    password = usuarioActual?.password ?: "",
-                    telefono = nuevoEstado.telefono.valor,
-                    fechaNacimiento = nuevoEstado.fechaNacimiento.valor,
-                    region = nuevoEstado.region.valor,
-                    comuna = nuevoEstado.comuna.valor,
-                    direccion = nuevoEstado.direccion.valor,
-                    referralCode = usuarioActual?.referralCode ?: "",
-                    points = usuarioActual?.points ?: 0,
-                    role = usuarioActual?.role ?: "cliente",
-                    avatar = nuevoEstado.avatar
+                // Actualizar perfil en el backend
+                val updateRequest = com.example.levelupprueba.data.remote.ActualizarPerfilRequest(
+                    nombre = nuevoEstado.nombre.valor.takeIf { it.isNotBlank() },
+                    telefono = nuevoEstado.telefono.valor.takeIf { it.isNotBlank() },
+                    direccion = nuevoEstado.direccion.valor.takeIf { it.isNotBlank() },
+                    avatar = nuevoEstado.avatar?.takeIf { it.isNotBlank() }
                 )
-                usuarioRepository.saveUsuario(usuario)
-                _estado.update { it.copy(profileStatus = ProfileStatus.Saved) }
+                
+                val response = com.example.levelupprueba.data.remote.ApiConfig.usuarioService.actualizarPerfil(updateRequest)
+                
+                if (response.isSuccessful && response.body() != null) {
+                    val usuarioDto = response.body()!!
+                    
+                    // Actualizar avatar en el estado
+                    _estado.update { 
+                        it.copy(
+                            avatar = MediaUrlResolver.resolve(usuarioDto.avatar ?: usuarioDto.avatarUrl),
+                            profileStatus = ProfileStatus.Saved
+                        )
+                    }
+                } else {
+                    val errorMessage = com.example.levelupprueba.data.remote.ErrorHandler.getErrorMessage(
+                        Exception("Error al actualizar perfil: ${response.code()}")
+                    )
+                    _estado.update { it.copy(profileStatus = ProfileStatus.Error(errorMessage)) }
+                }
 
             } catch (e: Exception) {
-                _estado.update { it.copy(profileStatus = ProfileStatus.Error("Error al guardar perfil")) }
+                val errorMessage = com.example.levelupprueba.data.remote.ErrorHandler.getErrorMessage(e)
+                _estado.update { it.copy(profileStatus = ProfileStatus.Error(errorMessage)) }
             }
 
         }

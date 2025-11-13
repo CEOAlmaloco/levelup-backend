@@ -37,6 +37,7 @@ fun LevelUpRegisterForm(
     val focusManager = LocalFocusManager.current
 
     // FocusRequesters
+    val runFocus = remember { FocusRequester() }
     val nombreFocus = remember { FocusRequester() }
     val apellidosFocus = remember { FocusRequester() }
     val fechaNacimientoFocus = remember { FocusRequester() }
@@ -50,6 +51,28 @@ fun LevelUpRegisterForm(
 
     Column {
         LevelUpFormSection(title = "Datos Personales", dimens = dimens) {
+            LevelUpOutlinedTextField(
+                value = estado.run.valor,
+                onValueChange = usuarioViewModel::onRunChange,
+                label = "RUN",
+                isError = estado.run.error != null,
+                isSuccess = estado.run.isSuccess,
+                supportingText = supportingTextOrError(
+                    error = estado.run.error,
+                    helperText = "Formato: 12345678-9 o 12345678-K",
+                    isSuccess = estado.run.isSuccess,
+                    fontSize = dimens.captionSize,
+                ),
+                modifier = Modifier.focusRequester(runFocus),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { nombreFocus.requestFocus() }
+                ),
+                dimens = dimens
+            )
             LevelUpOutlinedTextField(
                 value = estado.nombre.valor,
                 onValueChange = usuarioViewModel::onNombreChange,
@@ -258,7 +281,7 @@ fun LevelUpRegisterForm(
                 isSuccess = estado.password.isSuccess,
                 supportingText = supportingTextOrError(
                     error = estado.password.error,
-                    helperText = "La contraseña debe tener entre 4 y 10 caracteres",
+                    helperText = "La contraseña debe tener entre 8 y 100 caracteres, con al menos una mayúscula, una minúscula y un número",
                     isSuccess = estado.password.isSuccess,
                     fontSize = dimens.captionSize,
                 ),

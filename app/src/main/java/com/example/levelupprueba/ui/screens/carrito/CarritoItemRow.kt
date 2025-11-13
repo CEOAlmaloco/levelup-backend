@@ -79,9 +79,10 @@ fun CarritoItemRow(
 
             // Secundarios (precio / total línea)
             Spacer(Modifier.height(dimens.smallSpacing))
-            if (item.producto.descuento != null && item.producto.descuento > 0) {
+            val precioConDescuento = item.producto.precioConDescuento
+            if (item.producto.descuento != null && item.producto.descuento > 0 && precioConDescuento != null) {
                 Text(
-                    text = "Precio c/u: ${formatCLP(item.producto.precioConDescuento!!)}",
+                    text = "Precio c/u: ${formatCLP(precioConDescuento)}",
                     style = MaterialTheme.typography.bodySmall.copy(fontSize = dimens.bodySize),
                     color = TextMedium
                 )

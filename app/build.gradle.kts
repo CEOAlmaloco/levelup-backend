@@ -1,10 +1,47 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.10"
-    id("kotlin-kapt")
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.0.21"
+    id("com.google.devtools.ksp") version "2.0.21-1.0.28"
 }
+
+// === Configuración dinámica de endpoints ===
+val apiConfigDir = rootProject.file("config")
+val apiConfigSampleFile = apiConfigDir.resolve("api-config.sample.properties")
+val apiConfigFile = apiConfigDir.resolve("api-config.properties")
+
+val apiConfigProps = Properties().apply {
+    if (apiConfigSampleFile.exists()) {
+        apiConfigSampleFile.inputStream().use { load(it) }
+    }
+    if (apiConfigFile.exists()) {
+        apiConfigFile.inputStream().use { load(it) }
+    }
+}
+
+fun normalizeUrl(value: String, ensureTrailingSlash: Boolean = true): String {
+    val trimmed = value.trim()
+    if (!ensureTrailingSlash) return trimmed
+    return if (trimmed.endsWith("/")) trimmed else "$trimmed/"
+}
+
+fun configValue(key: String, defaultValue: String, ensureTrailingSlash: Boolean = false): String =
+    normalizeUrl(
+        value = apiConfigProps.getProperty(key)?.takeIf { it.isNotBlank() } ?: defaultValue,
+        ensureTrailingSlash = ensureTrailingSlash
+    )
+
+fun String.asBuildConfigString(): String =
+    "\"" + this.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+
+val debugGatewayUrl = configValue("gateway.url.debug", "http://10.0.2.2:8094/", ensureTrailingSlash = true)
+val deviceGatewayUrl = configValue("gateway.url.device", "http://192.168.1.100:8094/", ensureTrailingSlash = true)
+val releaseGatewayUrl = configValue("gateway.url.release", "http://ec2-54-161-72-45.compute-1.amazonaws.com:8094/", ensureTrailingSlash = true)
+val sharedApiKey = configValue("gateway.api.key", "levelup-2024-secret-api-key-change-in-production")
+val mediaBaseUrl = configValue("media.base.url", "https://levelup-gamer-products.s3.us-east-1.amazonaws.com/", ensureTrailingSlash = true)
 
 android {
     namespace = "com.example.levelupprueba"
@@ -21,13 +58,33 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Configuración para desarrollo local
+            buildConfigField("String", "API_BASE_URL", debugGatewayUrl.asBuildConfigString()) // Emulador / Docker
+            buildConfigField("String", "API_BASE_URL_DEVICE", deviceGatewayUrl.asBuildConfigString())
+            buildConfigField("String", "API_KEY", sharedApiKey.asBuildConfigString())
+            buildConfigField("String", "MEDIA_BASE_URL", mediaBaseUrl.asBuildConfigString())
+            buildConfigField("Boolean", "IS_PRODUCTION", "false")
+        }
+        
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Configuración para producción AWS
+            buildConfigField("String", "API_BASE_URL", releaseGatewayUrl.asBuildConfigString())
+            buildConfigField("String", "API_BASE_URL_DEVICE", releaseGatewayUrl.asBuildConfigString())
+            buildConfigField("String", "API_KEY", sharedApiKey.asBuildConfigString())
+            buildConfigField("String", "MEDIA_BASE_URL", mediaBaseUrl.asBuildConfigString())
+            buildConfigField("Boolean", "IS_PRODUCTION", "true")
         }
+    }
+    
+    buildFeatures {
+        compose = true
+        buildConfig = true // Habilitar BuildConfig para acceder a las constantes
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -36,14 +93,11 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
-    buildFeatures {
-        compose = true
-    }
 }
 
 dependencies {
     implementation("androidx.room:room-runtime:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")

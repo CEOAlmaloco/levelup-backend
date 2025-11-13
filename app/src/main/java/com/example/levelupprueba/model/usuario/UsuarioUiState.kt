@@ -2,6 +2,7 @@ package com.example.levelupprueba.model.usuario
 
 // Datos del formulario de registro
 data class UsuarioUiState(
+    val run: UsuarioCampo = UsuarioCampo(),
     val nombre: UsuarioCampo = UsuarioCampo(),
     val apellidos: UsuarioCampo = UsuarioCampo(),
     val email: UsuarioCampo = UsuarioCampo(),
