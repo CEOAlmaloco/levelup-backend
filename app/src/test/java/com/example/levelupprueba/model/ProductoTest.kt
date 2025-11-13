@@ -1,4 +1,4 @@
-package com.example.levelupprueba
+package com.example.levelupprueba.model
 
 import com.example.levelupprueba.data.repository.ProductoRepository
 import com.example.levelupprueba.model.producto.Review

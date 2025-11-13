@@ -29,6 +29,7 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -36,6 +37,7 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
     buildFeatures {
         compose = true
     }
@@ -44,11 +46,13 @@ android {
         unitTests {
             isIncludeAndroidResources = true
             all {
-                it.useJUnitPlatform() // habilita JUnit5 / Kotest para src/test (JVM unit tests)
+                it.useJUnitPlatform()  // JUnit 5
+                it.jvmArgs("-XX:+EnableDynamicAgentLoading")
             }
         }
     }
 }
+
 
 dependencies {
     implementation("androidx.room:room-runtime:2.6.1")
@@ -83,6 +87,7 @@ dependencies {
     testImplementation(libs.kotlinxCoroutinesTest)  // kotlinx-coroutines-test
     testImplementation(libs.kotestRunnerJunit5)     // Kotest runner
     testImplementation(libs.kotestAssertionsCore)   // Kotest assertions
+    testImplementation("ch.qos.logback:logback-classic:1.5.6")
 
 
     // Navigation
@@ -104,5 +109,6 @@ dependencies {
 
     // OSMDroid - Mapa OpenStreetMap (sin API key) ya q no se puede con JS como el otro tengo q hacer una cosa rara 
     implementation("org.osmdroid:osmdroid-android:6.1.18")
+    testImplementation(kotlin("test"))
 
 }
