@@ -12,7 +12,8 @@ foundation = "1.9.2"
 junit_jupiter = "5.9.3"            # <- JUnit5 (platform + API)
 mockk = "1.13.5"                   # <- MockK para mocks en Kotlin
 kotlinx_coroutines_test = "1.7.3"  # <- kotlinx-coroutines-test para testing de coroutines
-kotest = "5.7.2"                   # <- Kotest (runner + assertions)
+kotest = "5.7.2"
+uiTestJunit4 = "1.9.4"                   # <- Kotest (runner + assertions)
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -35,6 +36,7 @@ mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 kotlinxCoroutinesTest = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx_coroutines_test" }
 kotestRunnerJunit5 = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotest" }
 kotestAssertionsCore = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest" }
+androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4", version.ref = "uiTestJunit4" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

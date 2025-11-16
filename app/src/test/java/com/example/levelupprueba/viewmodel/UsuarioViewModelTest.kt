@@ -3,7 +3,16 @@ package com.example.levelupprueba.viewmodel
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.example.levelupprueba.data.repository.UsuarioRepository
+import com.example.levelupprueba.model.registro.RegisterStatus
+import com.example.levelupprueba.model.usuario.Usuario
+import io.mockk.Runs
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.just
 import io.mockk.mockk
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -35,7 +44,6 @@ class UsuarioViewModelTest {
 
         val estado = vm.estado.value
 
-        // Algunos errores importantes deberían estar marcados
         assertNotNull(estado.nombre.error)
         assertNotNull(estado.email.error)
         assertNotNull(estado.password.error)
@@ -44,7 +52,6 @@ class UsuarioViewModelTest {
     @RequiresApi(Build.VERSION_CODES.O)
     @Test
     fun `puedeRegistrar es true solo cuando campos obligatorios llenos y sin errores`() {
-        // Primero, datos válidos según UsuarioValidator
         vm.onNombreChange("Andrés")
         vm.onApellidosChange("Pérez")
         vm.onEmailChange("andres@gmail.com")
@@ -90,7 +97,7 @@ class UsuarioViewModelTest {
         // THEN: la función debe devolver true
         assertTrue(esValido)
 
-        // Y los campos no deben tener errores
+        // Los campos no deben tener errores
         val estado = vm.estado.value
         assertNull(estado.nombre.error)
         assertNull(estado.apellidos.error)
@@ -104,4 +111,8 @@ class UsuarioViewModelTest {
         assertNull(estado.direccion.error)
         assertNull(estado.terminos.error)
     }
+    // --- nuevos test
+
+
+
 }

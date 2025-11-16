@@ -6,7 +6,6 @@ import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.levelupprueba.AuthActivity
-import com.example.levelupprueba.data.local.UserDataStore
 import com.example.levelupprueba.data.local.clearUserSession
 import com.example.levelupprueba.data.local.saveUserSession
 import com.example.levelupprueba.data.repository.UsuarioRepository
