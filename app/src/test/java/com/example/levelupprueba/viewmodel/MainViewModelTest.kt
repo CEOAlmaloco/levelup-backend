@@ -9,6 +9,7 @@ import com.example.levelupprueba.navigation.NavigationEvents
 import com.example.levelupprueba.ui.components.GlobalSnackbarState
 import io.mockk.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.first
@@ -136,48 +137,40 @@ class MainViewModelTest {
     //        TESTS DE NAVEGACIÓN
     // ------------------------------
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `navigateTo emite evento correcto`() = runTest {
-        // Usar first() en lugar de collect para evitar corrutinas colgadas
+    fun `navigateTo emite evento correcto`(): TestResult = runTest {
         var eventoRecibido: NavigationEvents? = null
-
-        val job = launch {
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             eventoRecibido = vm.navigationEvent.first()
         }
 
         vm.navigateTo("home")
-        advanceUntilIdle()
-        job.join()
 
         assertEquals(NavigationEvents.NavigateTo("home"), eventoRecibido)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `navigateBack emite evento correcto`() = runTest {
+    fun `navigateBack emite evento correcto`(): TestResult = runTest {
         var eventoRecibido: NavigationEvents? = null
-
-        val job = launch {
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             eventoRecibido = vm.navigationEvent.first()
         }
-
         vm.navigateBack()
-        advanceUntilIdle()
-        job.join()
 
         assertEquals(NavigationEvents.NavigateBack, eventoRecibido)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `navigateUp emite evento correcto`() = runTest {
+    fun `navigateUp emite evento correcto`(): TestResult = runTest {
         var eventoRecibido: NavigationEvents? = null
-
-        val job = launch {
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             eventoRecibido = vm.navigationEvent.first()
         }
 
         vm.navigateUp()
-        advanceUntilIdle()
-        job.join()
 
         assertEquals(NavigationEvents.NavigateUp, eventoRecibido)
     }
