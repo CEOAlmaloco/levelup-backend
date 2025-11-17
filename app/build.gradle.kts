@@ -1,4 +1,7 @@
 import java.util.Properties
+import org.gradle.api.tasks.testing.Test
+import org.gradle.testing.jacoco.tasks.JacocoReport
+import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 
 plugins {
     alias(libs.plugins.android.application)
@@ -6,6 +9,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("org.jetbrains.kotlin.plugin.serialization") version "2.0.21"
     id("com.google.devtools.ksp") version "2.0.21-1.0.28"
+    id("jacoco")
 }
 
 // === Configuración dinámica de endpoints ===
@@ -42,6 +46,11 @@ val deviceGatewayUrl = configValue("gateway.url.device", "http://192.168.1.100:8
 val releaseGatewayUrl = configValue("gateway.url.release", "http://ec2-44-209-152-110.compute-1.amazonaws.com:8094/", ensureTrailingSlash = true)
 val sharedApiKey = configValue("gateway.api.key", "levelup-2024-secret-api-key-change-in-production")
 val mediaBaseUrl = configValue("media.base.url", "https://levelup-gamer-products.s3.us-east-1.amazonaws.com/", ensureTrailingSlash = true)
+
+// URLs específicas para el microservicio de carrito
+val debugCarritoUrl = configValue("carrito.url.debug", "http://10.0.2.2:8008/", ensureTrailingSlash = true)
+val deviceCarritoUrl = configValue("carrito.url.device", "http://192.168.1.100:8008/", ensureTrailingSlash = true)
+val releaseCarritoUrl = configValue("carrito.url.release", releaseGatewayUrl, ensureTrailingSlash = true)
 
 android {
     namespace = "com.example.levelupprueba"
@@ -83,6 +92,9 @@ android {
             buildConfigField("String", "API_KEY", sharedApiKey.asBuildConfigString())
             buildConfigField("String", "MEDIA_BASE_URL", mediaBaseUrl.asBuildConfigString())
             buildConfigField("Boolean", "IS_PRODUCTION", "false")
+            // URLs del carrito
+            buildConfigField("String", "CARRITO_BASE_URL", debugCarritoUrl.asBuildConfigString())
+            buildConfigField("String", "CARRITO_BASE_URL_DEVICE", deviceCarritoUrl.asBuildConfigString())
         }
 
         release {
@@ -99,6 +111,9 @@ android {
             buildConfigField("String", "API_KEY", sharedApiKey.asBuildConfigString())
             buildConfigField("String", "MEDIA_BASE_URL", mediaBaseUrl.asBuildConfigString())
             buildConfigField("Boolean", "IS_PRODUCTION", "true")
+            // URLs del carrito
+            buildConfigField("String", "CARRITO_BASE_URL", releaseCarritoUrl.asBuildConfigString())
+            buildConfigField("String", "CARRITO_BASE_URL_DEVICE", releaseCarritoUrl.asBuildConfigString())
         }
     }
 
@@ -185,4 +200,45 @@ dependencies {
     implementation("org.osmdroid:osmdroid-android:6.1.18")
     testImplementation(kotlin("test"))
 
+}
+
+// Configuración de JaCoCo para cobertura de tests
+tasks.withType<Test> {
+    configure<JacocoTaskExtension> {
+        isIncludeNoLocationClasses = true
+        excludes = listOf("jdk.internal.*")
+    }
+}
+
+tasks.register("jacocoTestReport", JacocoReport::class) {
+    dependsOn("testDebugUnitTest")
+    
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        csv.required.set(false)
+    }
+    
+    val fileFilter = listOf(
+        "**/R.class",
+        "**/R$*.class",
+        "**/BuildConfig.*",
+        "**/Manifest*.*",
+        "**/*Test*.*",
+        "android/**/*.*",
+        "**/*_Hilt*.*",
+        "**/*Module*.*",
+        "**/*Component*.*"
+    )
+    
+    val debugTree = fileTree("${project.buildDir}/tmp/kotlin-classes/debug") {
+        exclude(fileFilter)
+    }
+    val mainSrc = "${project.projectDir}/src/main/java"
+    
+    sourceDirectories.setFrom(files(mainSrc))
+    classDirectories.setFrom(files(debugTree))
+    executionData.setFrom(fileTree("${project.buildDir}/jacoco") {
+        include("testDebugUnitTest.exec")
+    })
 }

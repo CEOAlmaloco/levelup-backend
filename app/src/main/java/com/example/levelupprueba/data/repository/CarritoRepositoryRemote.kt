@@ -22,28 +22,31 @@ import com.example.levelupprueba.data.remote.ItemCarritoDto
 class CarritoRepositoryRemote : CarritoRepository {
 
     private val carritoService: CarritoApiService = ApiConfig.carritoService
+    @Volatile
+    private var carritoIdCache: Long? = null
 
     override suspend fun getCarrito(): Carrito = withContext(Dispatchers.IO) {
         try {
             val userId = ApiConfig.getUserId()
             if (userId == null) {
                 // Si no hay usuario autenticado, retornar carrito vacío
-                return@withContext Carrito(emptyList())
+                return@withContext Carrito(items = emptyList())
             }
 
             // Agregar header X-User-Id a la petición
             val response = carritoService.getCarritoActivo()
             
-            if (response.isSuccessful && response.body() != null) {
-                val carritoDto = response.body()!!
+            val carritoDto = response.body()
+            if (response.isSuccessful && carritoDto != null) {
+                carritoDto.id?.let { carritoIdCache = it }
                 mapCarritoDtoToCarrito(carritoDto)
             } else {
                 // Si no hay carrito activo, retornar carrito vacío
-                Carrito(emptyList())
+                Carrito(items = emptyList())
             }
         } catch (e: Exception) {
             // En caso de error, retornar carrito vacío
-            Carrito(emptyList())
+            Carrito(items = emptyList())
         }
     }
 
@@ -54,8 +57,13 @@ class CarritoRepositoryRemote : CarritoRepository {
                 throw Exception("Usuario no autenticado")
             }
 
+            val carritoId = ensureCarritoId()
+            val productoId = producto.id.toLongOrNull()
+                ?: throw Exception("ID de producto inválido: ${producto.id}")
+
             val request = AgregarItemRequest(
-                productoId = producto.id,
+                idCarrito = carritoId,
+                idProducto = productoId,
                 cantidad = cantidad
             )
 
@@ -63,6 +71,7 @@ class CarritoRepositoryRemote : CarritoRepository {
             
             if (response.isSuccessful && response.body() != null) {
                 val carritoDto = response.body()!!
+                carritoDto.id?.let { carritoIdCache = it }
                 mapCarritoDtoToCarrito(carritoDto)
             } else {
                 throw Exception("Error al agregar producto: ${response.message()}")
@@ -102,6 +111,7 @@ class CarritoRepositoryRemote : CarritoRepository {
             
             if (response.isSuccessful && response.body() != null) {
                 val carritoDto = response.body()!!
+                carritoDto.id?.let { carritoIdCache = it }
                 mapCarritoDtoToCarrito(carritoDto)
             } else {
                 throw Exception("Error al actualizar cantidad: ${response.message()}")
@@ -122,6 +132,7 @@ class CarritoRepositoryRemote : CarritoRepository {
             
             if (response.isSuccessful && response.body() != null) {
                 val carritoDto = response.body()!!
+                carritoDto.id?.let { carritoIdCache = it }
                 mapCarritoDtoToCarrito(carritoDto)
             } else {
                 throw Exception("Error al eliminar item: ${response.message()}")
@@ -142,13 +153,25 @@ class CarritoRepositoryRemote : CarritoRepository {
             val response = carritoService.vaciarCarrito()
             
             if (response.isSuccessful) {
-                Carrito(emptyList())
+                Carrito(items = emptyList())
             } else {
                 throw Exception("Error al vaciar carrito: ${response.message()}")
             }
         } catch (e: Exception) {
             throw Exception("Error en checkout: ${e.message}")
         }
+    }
+
+    private suspend fun ensureCarritoId(): Long = withContext(Dispatchers.IO) {
+        carritoIdCache?.let { return@withContext it }
+
+        val response = carritoService.getCarritoActivo()
+        val carritoDto = response.body()
+        if (response.isSuccessful && carritoDto?.id != null) {
+            carritoIdCache = carritoDto.id
+            return@withContext carritoDto.id
+        }
+        throw Exception("No se pudo obtener el carrito activo: código ${response.code()}")
     }
 
     /**
@@ -162,7 +185,13 @@ class CarritoRepositoryRemote : CarritoRepository {
                 cantidad = itemDto.cantidad
             )
         }
-        return Carrito(items = items)
+        return Carrito(
+            id = carritoDto.id,
+            usuarioId = carritoDto.usuarioId,
+            estado = carritoDto.estado,
+            items = items,
+            totalServidor = carritoDto.total
+        )
     }
 }
 

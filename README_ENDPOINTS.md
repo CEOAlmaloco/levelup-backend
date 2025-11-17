@@ -1,80 +1,62 @@
-# 📘 Endpoints y Flujos Clave – Kotlin App
+# Endpoints de la App
 
-Este documento resume los endpoints REST que consume la aplicación Kotlin y los pasos recomendados para ejecutar el flujo end‑to‑end contra los microservicios Spring Boot.
+Documentación de los endpoints que consume la aplicación móvil.
 
----
+## Microservicios
 
-## 🚀 Pasos de Ejecución
+### Auth (msvc-auth)
+- `POST /auth/login` - Login de usuario
+- `POST /auth/register` - Registro de usuario
+- `POST /auth/logout` - Cerrar sesión
 
-1. **Levantar los microservicios**  
-   ```bash
-   cd Backend_Java_Spring/Fullstack_Ecommerce
-   docker compose up -d
-   ```
-   - Verifica que todos los contenedores estén en `healthy` con `docker compose ps`.
-   - Si necesitas logs puntuales, usa `docker compose logs -f msvc-<nombre>`.
+### Productos (msvc-productos)
+- `GET /productos` - Lista de productos
+- `GET /productos/{id}` - Detalle de producto
+- `GET /productos/categoria/{categoriaId}` - Por categoría
+- `GET /productos/buscar?nombre=` - Búsqueda
+- `GET /productos/carrusel` - Imágenes del carrusel
+- `GET /productos/logo` - Logo de la app
 
-2. **Configurar la app Kotlin**  
-   ```bash
-   cd Kotlin_app/levelup-backend
-   ./gradlew clean assembleDebug
-   ```
-   - Para instalar en un emulador/dispositivo: `./gradlew installDebug`.
-   - Si trabajas desde Android Studio basta con ejecutar **Run > Run 'app'**.
+### Eventos (msvc-eventos)
+- `GET /eventos` - Lista de eventos
+- `GET /eventos/proximos` - Próximos eventos
+- `GET /eventos/{id}` - Detalle de evento
 
-3. **Variables clave dentro de la app**  
-   - `ApiConfig` inyecta automáticamente `X-API-Key`, `Authorization` y `X-User-Id` una vez que el usuario inicia sesión.
-   - La sesión se persiste en `UserSessionDataStore` (tokens, id de usuario, región, etc.).
+### Usuarios (msvc-usuario)
+- `GET /usuarios/perfil` - Perfil del usuario
+- `PUT /usuarios/perfil` - Actualizar perfil
+- `DELETE /usuarios/{id}` - Eliminar cuenta
+- `GET /usuarios` - Lista de usuarios (admin)
+- `PUT /usuarios/{id}/password` - Cambiar contraseña
 
----
+### Carrito (msvc-carrito)
+- `GET /carrito` - Obtener carrito
+- `POST /carrito/agregar` - Agregar producto
+- `PUT /carrito/actualizar` - Actualizar cantidad
+- `DELETE /carrito/{itemId}` - Eliminar item
 
-## 🔗 Endpoints por Módulo
+### Referidos (msvc-referidos)
+- `GET /puntos/usuario/{id}` - Puntos del usuario
+- `POST /puntos/usuario/{id}/inicio-sesion` - Bonificación diaria
+- `POST /puntos/usuario/{id}/canje-codigo` - Canjear código evento
+- `POST /puntos/usuario/{id}/canje` - Canjear puntos
+- `GET /referidos/codigo/{usuarioId}` - Código de referido
 
-### 🔐 LoginViewModel
-| Endpoint | Método | Descripción | Microservicio |
-|----------|--------|-------------|---------------|
-| `/auth/login` | POST | Autenticación y obtención de tokens | `msvc-auth` |
-| `/puntos/usuario/{id}/inicio-sesion` | POST | Bonificación diaria por inicio de sesión | `msvc-referidos` |
+### Contenido (msvc-contenido)
+- `GET /contenido/articulos/publicados` - Blogs publicados
+- `GET /contenido/articulos/destacados` - Blogs destacados
+- `GET /contenido/articulos/categoria/{categoria}` - Por categoría
 
-> Tras un login exitoso se ejecuta `saveUserSession`, se registran los tokens en `ApiConfig` y se dispara el flujo de puntos (`referidosService`).
+## API Externa
 
-### 🛒 ProductoRepository.kt
-| Endpoint | Método | Uso |
-|----------|--------|-----|
-| `/productos` | GET | Catálogo general |
-| `/productos/{id}` | GET | Ficha detallada |
-| `/productos/categoria/{categoriaId}` | GET | Filtrado por categoría |
-| `/productos/buscar?nombre=` | GET | Búsqueda por texto |
-| `/productos/disponibles` | GET | Productos activos |
-| `/resenia/producto/{productoId}` | GET | Reseñas asociadas |
-| `/resenia/{id}` | DELETE | Eliminar reseña (cuando procede) |
+- **OpenStreetMap**: Mapas para eventos (OSMDroid)
+- **S3 AWS**: Almacenamiento de imágenes
 
-> El mapeo de DTOs → modelos se centraliza en `ProductoMapper`. Las reseñas y productos relacionados se resuelven siempre vía microservicios (`msvc-productos` y `msvc-resenia`).
+## Configuración
 
-### 🧭 MainActivity & MainViewModel
-- **MainActivity** inicializa los viewmodels principales y configura navegación. No consume endpoints directamente, pero orquesta:
-  - `MainViewModel`: sincroniza sesión y avatar usando `GET /usuarios/perfil` (`msvc-usuario`).
-  - `CarritoViewModel`: delega en `CarritoRepositoryRemote` (`/carrito/**` en `msvc-carrito`).
-  - `ProfileViewModel`: gestiona perfil con `PUT /usuarios/perfil`, `DELETE /usuarios/{id}` y consultas a `referidosService`.
-  - `UsuariosViewModel`: usa `GET /usuarios` y `DELETE /usuarios/{id}` para la vista admin.
-  - `EventoViewModel`: mezcla `EventosApiService` (`/eventos/**`) y `ReferidosApiService` (`/puntos/usuario/{id}` y canjes).
-
-> El flujo central es: tokens ↔ `ApiConfig` ↔ viewmodels. Cualquier logout limpia `ApiConfig.clear()` y `UserSessionDataStore`.
-
-### 📦 Otros módulos relevantes
-- **CarritoRepositoryRemote**: `GET/POST/PUT/DELETE /carrito/**` (`msvc-carrito`).
-- **ProfileViewModel**: `GET /usuarios/perfil`, `PUT /usuarios/perfil`, `DELETE /usuarios/{id}`, `GET /referidos/codigo`, `GET /puntos/usuario/{id}`.
-- **EventoViewModel**: `GET /eventos`, `GET /eventos/proximos`, `POST /puntos/usuario/{id}/canje-codigo`, `POST /puntos/usuario/{id}/canje`.
-
----
-
-## ✅ Checklist de Consumo
-- [x] Inicio de sesión + refresco de puntos (Auth + Referidos)
-- [x] Catálogo, detalle y reseñas remotas (Productos + Reseñas)
-- [x] Perfil y usuarios administrados vía `msvc-usuario`
-- [x] Carrito 100% sincronizado con `msvc-carrito`
-- [x] Eventos + gamificación conectados (`msvc-eventos` + `msvc-referidos`)
-
-Si agregas un módulo nuevo, documenta su endpoint aquí para mantener la trazabilidad completa de la app móvil.  
-¡Nivel-Up listo para la defensa y para despliegue en AWS cuando corresponda! 💪
-
+Los endpoints se configuran en `config/api-config.properties`:
+- `gateway.url.debug` - URL para emulador
+- `gateway.url.device` - URL para dispositivo físico
+- `gateway.url.release` - URL de producción
+- `gateway.api.key` - API Key del gateway
+- `media.base.url` - URL base de imágenes S3

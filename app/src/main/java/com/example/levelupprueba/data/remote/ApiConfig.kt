@@ -42,6 +42,22 @@ object ApiConfig {
         if (url.isBlank()) BASE_URL else validateAndNormalizeUrl(url) ?: BASE_URL
     }.getOrElse { BASE_URL }
     
+    // URL base para el microservicio de carrito (puede ser diferente del gateway)
+    private val CARRITO_BASE_URL: String = runCatching {
+        val url = BuildConfig.CARRITO_BASE_URL
+        validateAndNormalizeUrl(url) ?: throw IllegalArgumentException("URL inválida para carrito: $url")
+    }.getOrElse { exception ->
+        Log.e("ApiConfig", "Error al obtener CARRITO_BASE_URL desde BuildConfig", exception)
+        // Fallback: usar la URL del gateway si no hay URL específica del carrito
+        BASE_URL
+    }
+    
+    // URL alternativa del carrito para dispositivo físico
+    private val CARRITO_BASE_URL_DEVICE: String = runCatching {
+        val url = BuildConfig.CARRITO_BASE_URL_DEVICE
+        if (url.isBlank()) CARRITO_BASE_URL else validateAndNormalizeUrl(url) ?: CARRITO_BASE_URL
+    }.getOrElse { CARRITO_BASE_URL }
+    
     // Timeout de conexión
     private const val TIMEOUT_SECONDS = 30L
     
@@ -261,7 +277,7 @@ object ApiConfig {
         .build()
     
     /**
-     * Instancia de Retrofit
+     * Instancia de Retrofit para el gateway (productos, eventos, blogs, etc.)
      * Con validación mejorada de URL base y fallback
      */
     private val retrofit: Retrofit by lazy {
@@ -272,6 +288,27 @@ object ApiConfig {
                 fallback.toHttpUrlOrNull()
                     ?: throw IllegalStateException("No se pudo inicializar Retrofit: URLs inválidas")
             }
+
+        Retrofit.Builder()
+            .baseUrl(httpUrl)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+    
+    /**
+     * Instancia de Retrofit específica para el microservicio de carrito
+     * Usa una URL base diferente (puede apuntar directamente al microservicio local)
+     */
+    private val carritoRetrofit: Retrofit by lazy {
+        val httpUrl = CARRITO_BASE_URL.toHttpUrlOrNull()
+            ?: run {
+                Log.e("ApiConfig", "CARRITO_BASE_URL inválida: $CARRITO_BASE_URL, usando BASE_URL como fallback")
+                BASE_URL.toHttpUrlOrNull()
+                    ?: throw IllegalStateException("No se pudo inicializar Retrofit del carrito: URLs inválidas")
+            }
+        
+        Log.d("ApiConfig", "Inicializando Retrofit del carrito con URL: $httpUrl")
 
         Retrofit.Builder()
             .baseUrl(httpUrl)
@@ -301,7 +338,7 @@ object ApiConfig {
     }
     
     val carritoService: CarritoApiService by lazy {
-        retrofit.create(CarritoApiService::class.java)
+        carritoRetrofit.create(CarritoApiService::class.java)
     }
     
     val eventosService: EventosApiService by lazy {

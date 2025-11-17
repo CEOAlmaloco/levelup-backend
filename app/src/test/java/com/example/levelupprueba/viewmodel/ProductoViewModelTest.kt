@@ -61,7 +61,7 @@ class ProductoViewModelTest {
 
     @Test
     fun `init carga productos, destacados e imagenes carrusel`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<ProductoRepository>()
@@ -72,7 +72,7 @@ class ProductoViewModelTest {
         // LLamamos al repositorio para destacados (¡faltaba este stub!)
         coEvery { repo.obtenerProductosDestacados() } returns data.filter { it.destacado }
         // LLamamos al repositorio para carrusel
-        every { repo.obtenerImagenesCarrusel() } returns listOf(
+        coEvery { repo.obtenerImagenesCarrusel() } returns listOf(
             ImagenCarrusel(1, "banner1", "Promo", "Descuentos"),
             ImagenCarrusel(2, "banner2", "Novedades", "Lanzamientos")
         )
@@ -96,12 +96,12 @@ class ProductoViewModelTest {
 
     @Test
     fun `cambiarCategoria y toggleSubcategoria filtran correctamente`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<ProductoRepository>()
         coEvery { repo.obtenerProductos() } returns productosFake()
-        every { repo.obtenerImagenesCarrusel() } returns emptyList()
+        coEvery { repo.obtenerImagenesCarrusel() } returns emptyList()
 
         val vm = ProductoViewModel(repo)
         advanceUntilIdle()
@@ -123,12 +123,12 @@ class ProductoViewModelTest {
 
     @Test
     fun `texto de busqueda, rango de precio, soloDisponibles y orden precio asc`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<ProductoRepository>()
         coEvery { repo.obtenerProductos() } returns productosFake()
-        every { repo.obtenerImagenesCarrusel() } returns emptyList()
+        coEvery { repo.obtenerImagenesCarrusel() } returns emptyList()
 
         val vm = ProductoViewModel(repo)
         advanceUntilIdle()
@@ -157,11 +157,11 @@ class ProductoViewModelTest {
 
     @Test
     fun `init termina con isLoading false y productos cargados`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<ProductoRepository>()
-        every { repo.obtenerImagenesCarrusel() } returns emptyList()
+        coEvery { repo.obtenerImagenesCarrusel() } returns emptyList()
         coEvery { repo.obtenerProductosDestacados() } returns emptyList()
         coEvery { repo.obtenerProductos() } returns productosFake()
 
@@ -181,11 +181,11 @@ class ProductoViewModelTest {
 
     @Test
     fun `init en error apaga isLoading y expone mensaje (ProductoViewModel)`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<ProductoRepository>()
-        every { repo.obtenerImagenesCarrusel() } returns emptyList()
+        coEvery { repo.obtenerImagenesCarrusel() } returns emptyList()
         coEvery { repo.obtenerProductosDestacados() } returns emptyList()
         coEvery { repo.obtenerProductos() } answers { throw RuntimeException("fallo productos") }
 
@@ -204,13 +204,13 @@ class ProductoViewModelTest {
 
     @Test
     fun `init carga una sola vez productos destacados y carrusel`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<ProductoRepository>()
         coEvery { repo.obtenerProductos() } returns productosFake()
         coEvery { repo.obtenerProductosDestacados() } returns productosFake().filter { it.destacado }
-        every { repo.obtenerImagenesCarrusel() } returns emptyList()
+        coEvery { repo.obtenerImagenesCarrusel() } returns emptyList()
 
         val vm = ProductoViewModel(repo)
         advanceUntilIdle()
@@ -218,7 +218,7 @@ class ProductoViewModelTest {
 
         coVerify(exactly = 1) { repo.obtenerProductos() }
         coVerify(exactly = 1) { repo.obtenerProductosDestacados() }
-        io.mockk.verify(exactly = 1) { repo.obtenerImagenesCarrusel() }
+        coVerify(exactly = 1) { repo.obtenerImagenesCarrusel() }
 
         val st = vm.estado.value
         assertFalse(st.isLoading)
@@ -229,11 +229,11 @@ class ProductoViewModelTest {
 
     @Test
     fun `init en error deja isLoading false, setea error y lista vacia`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<ProductoRepository>()
-        every { repo.obtenerImagenesCarrusel() } returns emptyList()
+        coEvery { repo.obtenerImagenesCarrusel() } returns emptyList()
         coEvery { repo.obtenerProductosDestacados() } returns emptyList()
         coEvery { repo.obtenerProductos() } answers { throw RuntimeException("fallo productos") }
 

@@ -1,5 +1,6 @@
 package com.example.levelupprueba.data.remote
 
+import com.google.gson.annotations.SerializedName
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -50,7 +51,10 @@ interface CarritoApiService {
  * Request para agregar item
  */
 data class AgregarItemRequest(
-    val productoId: String,
+    @SerializedName("idCarrito")
+    val idCarrito: Long,
+    @SerializedName("idProducto")
+    val idProducto: Long,
     val cantidad: Int
 )
 
@@ -65,13 +69,13 @@ data class ActualizarCantidadRequest(
  * DTO de Carrito
  */
 data class CarritoDto(
-    val id: String,
-    val usuarioId: String,
+    val id: Long?,
+    val usuarioId: Long?,
     val items: List<ItemCarritoDto>,
-    val total: Double,
-    val estado: String,
-    val createdAt: String,
-    val updatedAt: String
+    val total: Double?,
+    val estado: String?,
+    val createdAt: String?,
+    val updatedAt: String?
 )
 
 /**
@@ -79,7 +83,7 @@ data class CarritoDto(
  */
 data class ItemCarritoDto(
     val id: String,
-    val productoId: String,
+    val productoId: Long?,
     val producto: ProductoDto,
     val cantidad: Int,
     val precioUnitario: Double,
