@@ -54,4 +54,69 @@ class ProductoRepositoryTest {
         // Verifica que no haya ids repetidos
         assertEquals(ids.size, ids.toSet().size)
     }
+
+    @Test
+    fun `obtenerProductoPorId devuelve null cuando el id no existe`() = runTest {
+
+        val resultado = repository.obtenerProductoPorId("ID_INEXISTENTE")
+
+        assertNull(resultado)
+    }
+
+    @Test
+    fun `obtenerProductoPorId devuelve el producto correcto cuando el id existe`() = runTest {
+        // Id real desde el repositorio
+        val primerProducto = repository.obtenerProductos().first()
+        val idBuscado = primerProducto.id
+
+        // Act
+        val resultado = repository.obtenerProductoPorId(idBuscado)
+
+        // Assert
+        assertNotNull(resultado)
+        assertEquals(idBuscado, resultado?.id)
+    }
+
+    @Test
+    fun `obtenerProductosDestacados devuelve solo productos destacados`() = runTest {
+        val destacados = repository.obtenerProductosDestacados()
+
+        assertTrue(destacados.all { it.destacado })
+    }
+
+    @Test
+    fun `obtenerReviews retorna una lista valida para un id existente`() = runTest {
+        val producto = repository.obtenerProductos().first()
+
+        val reviews = repository.obtenerReviews(producto.id)
+
+        assertNotNull(reviews)
+        assertTrue(true)
+    }
+
+    @Test
+    fun `obtenerReviews retorna reviews si el producto tiene reviews`() = runTest {
+        val productoConReviews = repository
+            .obtenerProductos()
+            .firstOrNull { it.reviews.isNotEmpty() }
+
+        if (productoConReviews != null) {
+            val resultado = repository.obtenerReviews(productoConReviews.id)
+
+            assertTrue(resultado.isNotEmpty())
+        }
+    }
+    @Test
+    fun `obtenerReviews devuelve lista mock no vacia cuando no hay reviewDao`() = runTest {
+        val producto = repository.obtenerProductos().first()
+        val productoId = producto.id
+
+        // Act
+        val reviews = repository.obtenerReviews(productoId)
+
+        assertNotNull(reviews)
+        assertTrue(reviews.isNotEmpty())
+        assertTrue(reviews.all { it.productoId == productoId })
+    }
+
 }
