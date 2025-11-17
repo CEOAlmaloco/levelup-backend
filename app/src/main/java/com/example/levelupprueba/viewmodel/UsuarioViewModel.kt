@@ -5,8 +5,6 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.levelupprueba.data.local.UserDataStore
-import com.example.levelupprueba.data.repository.UsuarioRepository
 import com.example.levelupprueba.model.registro.RegisterStatus
 import com.example.levelupprueba.model.usuario.Usuario
 import com.example.levelupprueba.model.usuario.UsuarioUiState
@@ -16,12 +14,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.UUID
 
-class UsuarioViewModel(
-    private val usuarioRepository: UsuarioRepository,
-    private val eventoViewModel: EventoViewModel? = null
-): ViewModel() {
+class UsuarioViewModel : ViewModel() {
 
     // Estado interno mutable
     private val _estado = MutableStateFlow(UsuarioUiState())
@@ -402,14 +396,19 @@ class UsuarioViewModel(
                                         // Actualizar errores en los campos correspondientes basados en el mensaje del backend
                                         when (key) {
                                             "password" -> {
-                                                val passwordError = if (errorValue.contains("mayúscula") || errorValue.contains("minúscula") || errorValue.contains("número")) {
-                                                    com.example.levelupprueba.model.errors.UsuarioFieldErrors.PasswordInvalido
-                                                } else {
-                                                    com.example.levelupprueba.model.errors.FieldErrors.Obligatorio("contraseña")
+                                                val passwordError =
+                                                    if (errorValue.contains("4") || errorValue.contains("10") || errorValue.contains("mínimo") || errorValue.contains("caracter")) {
+                                                        com.example.levelupprueba.model.errors.UsuarioFieldErrors.PasswordInvalido
+                                                    } else if (errorValue.contains("mayúscula") || errorValue.contains("minúscula") || errorValue.contains("número")) {
+                                                        com.example.levelupprueba.model.errors.UsuarioFieldErrors.PasswordInvalido
+                                                    } else {
+                                                        com.example.levelupprueba.model.errors.FieldErrors.Obligatorio("contraseña")
+                                                    }
+                                                _estado.update {
+                                                    it.copy(
+                                                        password = it.password.copy(error = passwordError)
+                                                    )
                                                 }
-                                                _estado.update { it.copy(
-                                                    password = it.password.copy(error = passwordError)
-                                                ) }
                                             }
                                             "direccionUsuario" -> {
                                                 if (errorValue.contains("requerida")) {
@@ -424,16 +423,19 @@ class UsuarioViewModel(
                                                 ) }
                                             }
                                             "correoUsuario" -> {
-                                                val emailError = if (errorValue.contains("dominio") || errorValue.contains("@")) {
-                                                    com.example.levelupprueba.model.errors.UsuarioFieldErrors.EmailDominioNoPermitido
-                                                } else if (errorValue.contains("ya existe")) {
-                                                    com.example.levelupprueba.model.errors.UsuarioFieldErrors.EmailYaExiste
-                                                } else {
-                                                    com.example.levelupprueba.model.errors.UsuarioFieldErrors.EmailInvalido
+                                                val emailError = when {
+                                                    errorValue.contains("ya existe", ignoreCase = true) ->
+                                                        com.example.levelupprueba.model.errors.UsuarioFieldErrors.EmailYaExiste
+                                                    errorValue.contains("dominio", ignoreCase = true) ->
+                                                        com.example.levelupprueba.model.errors.UsuarioFieldErrors.EmailInvalido
+                                                    else ->
+                                                        com.example.levelupprueba.model.errors.UsuarioFieldErrors.EmailInvalido
                                                 }
-                                                _estado.update { it.copy(
-                                                    email = it.email.copy(error = emailError)
-                                                ) }
+                                                _estado.update {
+                                                    it.copy(
+                                                        email = it.email.copy(error = emailError)
+                                                    )
+                                                }
                                             }
                                         }
                                     }

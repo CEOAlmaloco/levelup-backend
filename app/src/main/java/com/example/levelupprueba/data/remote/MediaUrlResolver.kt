@@ -29,7 +29,10 @@ object MediaUrlResolver {
         if (raw.isNullOrBlank()) return ""
         val value = raw.trim()
 
-        detectBase64(value)?.let { return it }
+        detectBase64(value)?.let { 
+            android.util.Log.d("MediaUrlResolver", "Resolved Base64 image")
+            return it 
+        }
 
         if (value.startsWith("http://", ignoreCase = true) ||
             value.startsWith("https://", ignoreCase = true) ||
@@ -112,22 +115,36 @@ object MediaUrlResolver {
     }
 
     private fun detectBase64(value: String): String? {
-        if (value.startsWith("data:image", ignoreCase = true)) return value
+        if (value.startsWith("data:image", ignoreCase = true)) {
+            android.util.Log.d("MediaUrlResolver", "Detectado Base64 (prefijo data:image): ${value.take(50)}...")
+            return value
+        }
 
         val sanitized = value.replace("\\s".toRegex(), "")
         val looksLikeBase64 = sanitized.length > 120 && sanitized.length % 4 == 0 && base64Regex.matches(sanitized)
 
-        return if (looksLikeBase64) {
-            "data:image/png;base64,$sanitized"
-        } else {
-            null
+        if (looksLikeBase64) {
+            android.util.Log.d("MediaUrlResolver", "Detectado Base64 (patrón): ${value.take(50)}... (length: ${sanitized.length})")
+            return "data:image/png;base64,$sanitized"
         }
+        
+        // Log si parece Base64 pero no cumple todos los criterios
+        if (sanitized.length > 120 && base64Regex.matches(sanitized)) {
+            android.util.Log.w("MediaUrlResolver", "Cadena parece Base64 pero no cumple criterios (length: ${sanitized.length}, mod 4: ${sanitized.length % 4}): ${value.take(100)}...")
+        }
+        
+        return null
     }
 
     private fun buildUrl(path: String): String {
-        if (mediaBaseUrl.isBlank()) return path
+        if (mediaBaseUrl.isBlank()) {
+            android.util.Log.w("MediaUrlResolver", "mediaBaseUrl is blank, returning path as-is: $path")
+            return path
+        }
         val cleanPath = path.removePrefix("/")
-        return mediaBaseUrl + cleanPath
+        val fullUrl = mediaBaseUrl + cleanPath
+        android.util.Log.d("MediaUrlResolver", "Resolved S3 URL: $path -> $fullUrl")
+        return fullUrl
     }
 }
 

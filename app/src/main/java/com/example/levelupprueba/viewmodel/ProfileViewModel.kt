@@ -6,22 +6,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.levelupprueba.data.remote.ApiConfig
 import com.example.levelupprueba.data.remote.MediaUrlResolver
 import com.example.levelupprueba.data.repository.NotificacionesRepositoryRemote
-import com.example.levelupprueba.data.repository.UsuarioRepository
 import com.example.levelupprueba.model.profile.ProfileStatus
 import com.example.levelupprueba.model.profile.ProfileUiState
-import com.example.levelupprueba.model.usuario.Usuario
 import com.example.levelupprueba.model.usuario.UsuarioValidator
 import com.example.levelupprueba.ui.screens.profile.PerfilEditable
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ProfileViewModel(
-    private val usuarioRepository: UsuarioRepository,
     private val notificacionesRepository: NotificacionesRepositoryRemote = NotificacionesRepositoryRemote()
 ) : ViewModel() {
 
@@ -42,17 +39,18 @@ class ProfileViewModel(
                 if (response.isSuccessful && response.body() != null) {
                     val usuarioDto = response.body()!!
                     
-                    // Obtener código de referido desde el backend
-                    var codigoReferido = ""
+                    // Obtener código de referido (priorizar el que viene en el perfil)
                     val usuarioIdApi = usuarioDto.id ?: usuarioDto.idUsuario
-                    try {
-                        val codigoResponse = com.example.levelupprueba.data.remote.ApiConfig.referidosService.getCodigoReferido(usuarioIdApi?.toLongOrNull() ?: 0L)
-                        if (codigoResponse.isSuccessful && codigoResponse.body() != null) {
-                            codigoReferido = codigoResponse.body()!!["codigoReferido"] ?: ""
+                    var codigoReferido = usuarioDto.codigoReferido ?: ""
+                    if (codigoReferido.isBlank()) {
+                        try {
+                            val codigoResponse = com.example.levelupprueba.data.remote.ApiConfig.referidosService.getCodigoReferido(usuarioIdApi?.toLongOrNull() ?: 0L)
+                            if (codigoResponse.isSuccessful && codigoResponse.body() != null) {
+                                codigoReferido = codigoResponse.body()!!["codigoReferido"] ?: codigoReferido
+                            }
+                        } catch (e: Exception) {
+                            android.util.Log.e("ProfileViewModel", "Error al obtener código de referido: ${e.message}")
                         }
-                    } catch (e: Exception) {
-                        // Si falla obtener código de referido, continuar sin él
-                        android.util.Log.e("ProfileViewModel", "Error al obtener código de referido: ${e.message}")
                     }
                     
                     val nombre = usuarioDto.nombre ?: ""
@@ -166,8 +164,6 @@ class ProfileViewModel(
             actualizarPerfil(perfilEditable)
             actualizarAvatarGlobal(perfilEditable.avatar ?: "", mainViewModel)
 
-            delay(2000)
-
             val estadoActual = _estado.value
 
             val nuevoEstado = estadoActual.copy(
@@ -212,6 +208,8 @@ class ProfileViewModel(
                     nombre = nuevoEstado.nombre.valor.takeIf { it.isNotBlank() },
                     telefono = nuevoEstado.telefono.valor.takeIf { it.isNotBlank() },
                     direccion = nuevoEstado.direccion.valor.takeIf { it.isNotBlank() },
+                    region = nuevoEstado.region.valor.takeIf { it.isNotBlank() },
+                    comuna = nuevoEstado.comuna.valor.takeIf { it.isNotBlank() },
                     avatar = nuevoEstado.avatar?.takeIf { it.isNotBlank() }
                 )
                 
@@ -219,14 +217,40 @@ class ProfileViewModel(
                 
                 if (response.isSuccessful && response.body() != null) {
                     val usuarioDto = response.body()!!
+                    val resolvedNombre = usuarioDto.nombre ?: estadoActual.nombre.valor
+                    val resolvedApellidos = usuarioDto.apellido
+                        ?: usuarioDto.apellidos
+                        ?: estadoActual.apellidos.valor
+                    val resolvedTelefono = usuarioDto.telefono ?: estadoActual.telefono.valor
+                    val resolvedRegion = usuarioDto.region ?: estadoActual.region.valor
+                    val resolvedComuna = usuarioDto.comuna ?: estadoActual.comuna.valor
+                    val resolvedDireccion = usuarioDto.direccion ?: estadoActual.direccion.valor
+                    val resolvedAvatar = MediaUrlResolver.resolve(usuarioDto.avatar ?: usuarioDto.avatarUrl)
+                    val resolvedReferral = usuarioDto.codigoReferido ?: estadoActual.referralCode
+                    val resolvedPuntos = usuarioDto.puntosLevelUp
+                        ?: usuarioDto.puntos
+                        ?: estadoActual.points
                     
-                    // Actualizar avatar en el estado
+                    // Actualizar avatar global con la versión procesada
+                    actualizarAvatarGlobal(resolvedAvatar ?: "", mainViewModel)
+
                     _estado.update { 
                         it.copy(
-                            avatar = MediaUrlResolver.resolve(usuarioDto.avatar ?: usuarioDto.avatarUrl),
+                            nombre = it.nombre.copy(valor = resolvedNombre),
+                            apellidos = it.apellidos.copy(valor = resolvedApellidos),
+                            telefono = it.telefono.copy(valor = resolvedTelefono),
+                            region = it.region.copy(valor = resolvedRegion),
+                            comuna = it.comuna.copy(valor = resolvedComuna),
+                            direccion = it.direccion.copy(valor = resolvedDireccion),
+                            avatar = resolvedAvatar,
+                            referralCode = resolvedReferral,
+                            points = resolvedPuntos,
                             profileStatus = ProfileStatus.Saved
                         )
                     }
+
+                    // Refrescar datos del perfil desde el backend para asegurar consistencia
+                    cargarDatosUsuario(com.example.levelupprueba.data.remote.ApiConfig.getUserId().orEmpty())
                 } else {
                     val errorMessage = com.example.levelupprueba.data.remote.ErrorHandler.getErrorMessage(
                         Exception("Error al actualizar perfil: ${response.code()}")
@@ -246,15 +270,19 @@ class ProfileViewModel(
     fun eliminarUsuario(userId: String){
         viewModelScope.launch {
             _estado.update { it.copy(profileStatus = ProfileStatus.Deleting) }
-            delay(2000)
 
             try {
-                val usuario = usuarioRepository.getUsuarioById(userId)
-                if (usuario != null){
-                    usuarioRepository.deleteUsuario(usuario)
+                val response = ApiConfig.usuarioService.eliminarUsuario(userId)
+                if (response.isSuccessful) {
                     _estado.update { it.copy(profileStatus = ProfileStatus.Deleted) }
                 } else {
-                    _estado.update { it.copy(profileStatus = ProfileStatus.Error("Usuario no encontrado")) }
+                    _estado.update {
+                        it.copy(
+                            profileStatus = ProfileStatus.Error(
+                                "Error al eliminar usuario: ${response.code()}"
+                            )
+                        )
+                    }
                 }
             } catch (e: Exception){
                 _estado.update { it.copy(profileStatus = ProfileStatus.Error("Error al eliminar usuario: ${e.message}")) }

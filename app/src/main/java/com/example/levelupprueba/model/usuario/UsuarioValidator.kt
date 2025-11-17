@@ -37,30 +37,16 @@ object UsuarioValidator {
 
     fun validarEmail(email: String): FieldErrors? =
         when {
-            // Campo obligatorio
-            email.isBlank() ->
-                FieldErrors.Obligatorio("correo")
-
-            // Formato general del correo inválido
-            !EMAIL_REGEX.matches(email) ->
-                UsuarioFieldErrors.EmailInvalido
-
-            // Dominio no permitido (ajusta si en tu código usas otros dominios)
-            !email.endsWith("@gmail.com") && !email.endsWith("@duoc.cl") ->
-                UsuarioFieldErrors.EmailDominioNoPermitido
-
-            // Todo OK
+            email.isBlank() -> FieldErrors.Obligatorio("correo")
+            !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> UsuarioFieldErrors.EmailInvalido
             else -> null
         }
 
     fun validarPassword(password: String): FieldErrors? =
         when {
             password.isBlank() -> FieldErrors.Obligatorio("contraseña")
-            password.length < 8 -> FieldErrors.MinLength("contraseña", 8)
-            password.length > 100 -> FieldErrors.MaxLength("contraseña", 100)
-            !password.matches(Regex(".*[a-z].*")) -> UsuarioFieldErrors.PasswordSinMinuscula
-            !password.matches(Regex(".*[A-Z].*")) -> UsuarioFieldErrors.PasswordSinMayuscula
-            !password.matches(Regex(".*\\d.*")) -> UsuarioFieldErrors.PasswordSinNumero
+            password.length < 4 -> FieldErrors.MinLength("contraseña", 4)
+            password.length > 10 -> FieldErrors.MaxLength("contraseña", 10)
             else -> null
         }
 

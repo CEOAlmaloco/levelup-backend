@@ -27,19 +27,22 @@ class EventoRepositoryRemote {
      */
     suspend fun obtenerEventos(): List<Evento> = withContext(Dispatchers.IO) {
         try {
-            val response = eventosService.getEventos(page = 0, size = 100)
+            val response = eventosService.getEventos()
             
             if (response.isSuccessful && response.body() != null) {
-                val eventoResponsePage = response.body()!!
-                val eventos = eventoResponsePage.content.map { eventoDto ->
-                    mapEventoDtoToEvento(eventoDto)
-                }
+                val eventos = response.body()!!
+                    .map { eventoDto -> mapEventoDtoToEvento(eventoDto) }
                 Log.d("EventoRepository", "Eventos recibidos: ${eventos.size}")
                 eventos
             } else {
+                val errorBody = try {
+                    response.errorBody()?.string()
+                } catch (e: Exception) {
+                    "Error al leer errorBody: ${e.message}"
+                }
                 Log.w(
                     "EventoRepository",
-                    "Error al obtener eventos: code=${response.code()} body=${response.errorBody()?.string()}"
+                    "Error al obtener eventos: code=${response.code()} body=$errorBody"
                 )
                 // Si hay error, retornar lista vacía
                 emptyList()
@@ -65,9 +68,14 @@ class EventoRepositoryRemote {
                 Log.d("EventoRepository", "Eventos próximos recibidos: ${proximos.size}")
                 proximos
             } else {
+                val errorBody = try {
+                    response.errorBody()?.string()
+                } catch (e: Exception) {
+                    "Error al leer errorBody: ${e.message}"
+                }
                 Log.w(
                     "EventoRepository",
-                    "Error al obtener proximos eventos: code=${response.code()} body=${response.errorBody()?.string()}"
+                    "Error al obtener proximos eventos: code=${response.code()} body=$errorBody"
                 )
                 emptyList()
             }
@@ -87,9 +95,14 @@ class EventoRepositoryRemote {
             if (response.isSuccessful && response.body() != null) {
                 mapEventoDtoToEvento(response.body()!!)
             } else {
+                val errorBody = try {
+                    response.errorBody()?.string()
+                } catch (e: Exception) {
+                    "Error al leer errorBody: ${e.message}"
+                }
                 Log.w(
                     "EventoRepository",
-                    "Error al obtener evento $id: code=${response.code()} body=${response.errorBody()?.string()}"
+                    "Error al obtener evento $id: code=${response.code()} body=$errorBody"
                 )
                 null
             }
@@ -135,9 +148,14 @@ class EventoRepositoryRemote {
             if (response.isSuccessful && response.body() != null) {
                 response.body()!!
             } else {
+                val errorBody = try {
+                    response.errorBody()?.string()
+                } catch (e: Exception) {
+                    "Error al leer errorBody: ${e.message}"
+                }
                 Log.w(
                     "EventoRepository",
-                    "Error al obtener inscripciones: code=${response.code()} body=${response.errorBody()?.string()}"
+                    "Error al obtener inscripciones: code=${response.code()} body=$errorBody"
                 )
                 emptyList()
             }

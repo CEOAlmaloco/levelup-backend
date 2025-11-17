@@ -1,6 +1,5 @@
 package com.example.levelupprueba.data.repository
 
-import com.example.levelupprueba.data.local.ReviewDao
 import com.example.levelupprueba.data.remote.ApiConfig
 import com.example.levelupprueba.data.remote.ProductoMapper
 import com.example.levelupprueba.data.remote.ReseniaDto
@@ -15,40 +14,88 @@ import android.util.Log
 /**
  * Repositorio de productos que obtiene datos desde el backend Spring Boot usando Retrofit
  */
-class ProductoRepository(
-    private val reviewDao: ReviewDao? = null // Mantenemos ReviewDao para reviews locales
-) {
+class ProductoRepository {
     
     private val productosService = ApiConfig.productosService
     private val reseniaService = ApiConfig.reseniaService
     
     /**
-     * Obtiene imágenes del carrusel (hardcodeadas por ahora, se puede mover al backend)
+     * Obtiene imágenes del carrusel desde el backend
      */
-    fun obtenerImagenesCarrusel(): List<ImagenCarrusel> {
-        return listOf(
-            ImagenCarrusel(
-                id = 1,
-                imagenUrl = "carrusel",
-                titulo = "¡Nuevos lanzamientos!",
-                descripcion = "Descubre los últimos juegos y accesorios",
-                enlace = ""
-            ),
-            ImagenCarrusel(
-                id = 2,
-                imagenUrl = "carrusel",
-                titulo = "Ofertas especiales",
-                descripcion = "Hasta 50% de descuento en productos seleccionados",
-                enlace = ""
-            ),
-            ImagenCarrusel(
-                id = 3,
-                imagenUrl = "carrusel",
-                titulo = "Setup gamer completo",
-                descripcion = "Arma tu estación de juego perfecta",
-                enlace = ""
-            )
-        )
+    suspend fun obtenerImagenesCarrusel(): List<ImagenCarrusel> = withContext(Dispatchers.IO) {
+        try {
+            android.util.Log.d("ProductoRepository", "Obteniendo imágenes del carrusel desde el backend...")
+            val response = productosService.getCarrusel()
+            
+            if (response.isSuccessful && response.body() != null) {
+                val carruselDto = response.body()!!
+                android.util.Log.d("ProductoRepository", "Carrusel recibido: ${carruselDto.size} imágenes")
+                
+                val imagenes = carruselDto.mapNotNull { item ->
+                    val id = item["id"]?.toIntOrNull() ?: return@mapNotNull null
+                    val url = item["url"] ?: ""
+                    val titulo = item["titulo"] ?: item["nombre"] ?: ""
+                    val descripcion = item["descripcion"] ?: ""
+                    val enlace = item["enlace"] ?: ""
+                    
+                    android.util.Log.d("ProductoRepository", "Carrusel item $id: url=$url, titulo=$titulo")
+                    
+                    ImagenCarrusel(
+                        id = id,
+                        imagenUrl = url,
+                        titulo = titulo,
+                        descripcion = descripcion,
+                        enlace = enlace
+                    )
+                }
+                
+                android.util.Log.d("ProductoRepository", "Carrusel mapeado: ${imagenes.size} imágenes")
+                imagenes
+            } else {
+                android.util.Log.w("ProductoRepository", "Error al obtener carrusel: code=${response.code()}")
+                emptyList()
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("ProductoRepository", "Excepción al obtener carrusel: ${e.message}", e)
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+    
+    /**
+     * Obtiene la URL del logo desde el backend
+     * Intenta primero con la URL principal, si falla usa el fallback
+     */
+    suspend fun obtenerLogoUrl(): String = withContext(Dispatchers.IO) {
+        try {
+            android.util.Log.d("ProductoRepository", "Obteniendo logo desde el backend...")
+            val response = productosService.getLogo()
+            
+            if (response.isSuccessful && response.body() != null) {
+                val logoDto = response.body()!!
+                val logoUrl = logoDto["url"] ?: ""
+                val fallbackUrl = logoDto["fallback"] ?: ""
+                
+                android.util.Log.d("ProductoRepository", "Logo recibido: url=$logoUrl, fallback=$fallbackUrl")
+                
+                // Devolver la URL principal, el MediaUrlResolver puede manejar el fallback si es necesario
+                // O devolver ambas para que el frontend decida
+                if (logoUrl.isNotBlank()) {
+                    logoUrl
+                } else if (fallbackUrl.isNotBlank()) {
+                    fallbackUrl
+                } else {
+                    ""
+                }
+            } else {
+                android.util.Log.w("ProductoRepository", "Error al obtener logo: code=${response.code()}")
+                ""
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("ProductoRepository", "Excepción al obtener logo: ${e.message}", e)
+            e.printStackTrace()
+            ""
+        }
     }
     
     /**
@@ -85,28 +132,78 @@ class ProductoRepository(
      */
     suspend fun obtenerProductoPorId(id: String): Producto? = withContext(Dispatchers.IO) {
         try {
-            val idLong = id.toLongOrNull() ?: return@withContext null
+            android.util.Log.d("ProductoRepository", "Obteniendo producto por ID: $id")
+            val idLong = id.toLongOrNull()
+            if (idLong == null) {
+                android.util.Log.e("ProductoRepository", "Error: ID '$id' no es un número válido. El backend requiere un ID numérico (Long).")
+                return@withContext null
+            }
+            
+            android.util.Log.d("ProductoRepository", "Buscando producto con ID numérico: $idLong")
             val response = productosService.getProductoById(idLong)
+            
             if (response.isSuccessful && response.body() != null) {
                 val dto = response.body()!!
+                android.util.Log.d("ProductoRepository", "Producto encontrado: ${dto.nombreProducto ?: dto.titulo}")
                 ProductoMapper.mapProductoDto(dto)
             } else {
+                val errorBody = try {
+                    response.errorBody()?.string()
+                } catch (e: Exception) {
+                    "Error al leer errorBody: ${e.message}"
+                }
+                android.util.Log.e("ProductoRepository", "Error al obtener producto por ID $idLong: code=${response.code()}, message=${response.message()}, body=$errorBody")
                 null
             }
         } catch (e: Exception) {
+            android.util.Log.e("ProductoRepository", "Excepción al obtener producto por ID '$id': ${e.message}", e)
             e.printStackTrace()
             null
         }
     }
     
     /**
-     * Obtiene productos destacados (filtra por disponible = true y rating > 4.0)
+     * Obtiene productos destacados (filtra por disponible = true y (destacado = true O rating >= 4.0))
      */
     suspend fun obtenerProductosDestacados(): List<Producto> = withContext(Dispatchers.IO) {
         try {
             val productos = obtenerProductos()
-            productos.filter { it.disponible && it.rating >= 4.0f }
+            android.util.Log.d("ProductoRepository", "Total productos: ${productos.size}")
+            
+            // Log de productos para debugging
+            productos.forEach { producto ->
+                android.util.Log.d("ProductoRepository", 
+                    "Producto: ${producto.nombre}, disponible: ${producto.disponible}, destacado: ${producto.destacado}, rating: ${producto.rating}")
+            }
+            
+            // Priorizar productos marcados como destacados, luego los de alto rating
+            // Si no hay destacados, mostrar los de mejor rating (>= 3.5) o los primeros disponibles
+            // Nota: Si destacado es null, se considera false, pero usamos rating como fallback
+            val destacados = productos.filter { producto ->
+                producto.disponible && (
+                    producto.destacado == true || 
+                    producto.rating >= 3.5f
+                )
+            }
+            
+            android.util.Log.d("ProductoRepository", "Productos destacados encontrados: ${destacados.size}")
+            
+            if (destacados.isEmpty() && productos.isNotEmpty()) {
+                // Si no hay destacados, tomar los primeros 6 disponibles
+                val primerosDisponibles = productos.filter { it.disponible }.take(6)
+                android.util.Log.d("ProductoRepository", "No hay destacados, usando primeros disponibles: ${primerosDisponibles.size}")
+                return@withContext primerosDisponibles.sortedByDescending { it.rating }
+            }
+            
+            destacados.sortedByDescending { producto ->
+                // Ordenar: primero los destacados, luego por rating
+                when {
+                    producto.destacado -> 10f + producto.rating
+                    else -> producto.rating
+                }
+            }
         } catch (e: Exception) {
+            android.util.Log.e("ProductoRepository", "Error al obtener productos destacados: ${e.message}", e)
             e.printStackTrace()
             emptyList()
         }

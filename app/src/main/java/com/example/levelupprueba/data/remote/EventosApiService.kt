@@ -10,13 +10,12 @@ import retrofit2.http.*
 interface EventosApiService {
     
     /**
-     * Obtiene todos los eventos con paginación
+     * Obtiene todos los eventos
+     *
+     * El backend retorna un arreglo simple, sin metadatos de paginación.
      */
     @GET("eventos")
-    suspend fun getEventos(
-        @Query("page") page: Int = 0,
-        @Query("size") size: Int = 10
-    ): Response<EventoResponsePage>
+    suspend fun getEventos(): Response<List<EventoDto>>
     
     /**
      * Obtiene eventos próximos
@@ -165,15 +164,3 @@ data class InscripcionDto(
     val estado: String,
     val puntosGanados: Int? = null
 )
-
-/**
- * Respuesta paginada de eventos
- */
-data class EventoResponsePage(
-    val content: List<EventoDto>,
-    val totalElements: Int,
-    val totalPages: Int,
-    val number: Int,
-    val size: Int
-)
-

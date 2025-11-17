@@ -281,7 +281,7 @@ fun LevelUpRegisterForm(
                 isSuccess = estado.password.isSuccess,
                 supportingText = supportingTextOrError(
                     error = estado.password.error,
-                    helperText = "La contraseña debe tener entre 8 y 100 caracteres, con al menos una mayúscula, una minúscula y un número",
+                    helperText = "La contraseña debe tener entre 4 y 10 caracteres.",
                     isSuccess = estado.password.isSuccess,
                     fontSize = dimens.captionSize,
                 ),

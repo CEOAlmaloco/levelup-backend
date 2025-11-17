@@ -53,6 +53,12 @@ interface ReferidosApiService {
      */
     @GET("referidos/{id}/puntos")
     suspend fun getPuntosReferido(@Path("id") id: Long): Response<PuntosReferidoDto>
+
+    /**
+     * Obtiene el resumen de puntos para el usuario autenticado
+     */
+    @GET("puntos/usuario/{idUsuario}")
+    suspend fun getPuntosUsuario(@Path("idUsuario") idUsuario: Long): Response<PuntosUsuarioResponseDto>
     
     /**
      * Obtiene productos canjeables por puntos
@@ -78,6 +84,24 @@ interface ReferidosApiService {
     @POST("puntos/usuario/{idUsuario}/inicio-sesion")
     suspend fun otorgarPuntosInicioSesion(
         @Path("idUsuario") idUsuario: Long
+    ): Response<TransaccionPuntosResponseDto>
+
+    /**
+     * Canjea un código de evento para sumar puntos.
+     */
+    @POST("puntos/usuario/{idUsuario}/canje-codigo")
+    suspend fun canjearCodigoEvento(
+        @Path("idUsuario") idUsuario: Long,
+        @Body request: CanjeCodigoEventoRequest
+    ): Response<TransaccionPuntosResponseDto>
+
+    /**
+     * Canjea puntos por recompensas.
+     */
+    @POST("puntos/usuario/{idUsuario}/canje")
+    suspend fun canjearPuntos(
+        @Path("idUsuario") idUsuario: Long,
+        @Body request: CanjePuntosRequest
     ): Response<TransaccionPuntosResponseDto>
 }
 
@@ -106,6 +130,18 @@ data class PuntosReferidoDto(
     val puntos: Int,
     val puntosUsados: Int,
     val puntosDisponibles: Int
+)
+
+data class PuntosUsuarioResponseDto(
+    val id: Long? = null,
+    val idUsuario: Long? = null,
+    val puntosTotales: Int? = null,
+    val puntosDisponibles: Int? = null,
+    val puntosUsados: Int? = null,
+    val nivelUsuario: String? = null,
+    val codigoReferido: String? = null,
+    val fechaCreacion: String? = null,
+    val fechaActualizacion: String? = null
 )
 
 /**
@@ -162,6 +198,16 @@ data class EventoPuntosResponseDto(
     val idPedido: Long? = null,
     val fechaCreacion: String? = null,
     val activo: Boolean? = null
+)
+
+data class CanjeCodigoEventoRequest(
+    val codigoEvento: String
+)
+
+data class CanjePuntosRequest(
+    val puntosACanjear: Int,
+    val descripcion: String? = null,
+    val codigoReferencia: String? = null
 )
 
 /**

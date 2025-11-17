@@ -21,11 +21,15 @@ class ProductoViewModel(private val repository: ProductoRepository = ProductoRep
     private val _imagenesCarrusel = MutableStateFlow<List<ImagenCarrusel>>(emptyList())
     val imagenesCarrusel: StateFlow<List<ImagenCarrusel>> = _imagenesCarrusel//lo mismo de antes pero con imagenesCarrusel
 
+    private val _logoUrl = MutableStateFlow<String>("")
+    val logoUrl: StateFlow<String> = _logoUrl
+
     private var todosLosProductos: List<Producto> = emptyList()//se crea una lista de productos para que se actualice en tiempo real
 
     init {//se carga los productos y las imagenes del carrusel antes de que se muestre la pantalla
         cargarProductos()
         cargarImagenesCarrusel()
+        cargarLogo()
     }
 
     private fun cargarProductos() {//esta funcion se encarga de cargar los productos y los destacados
@@ -67,6 +71,18 @@ class ProductoViewModel(private val repository: ProductoRepository = ProductoRep
             } catch (e: Exception) {
                 // Si falla la carga, dejamos la lista vacia (ya inicializada)
                 _imagenesCarrusel.value = emptyList()
+            }
+        }
+    }
+
+    private fun cargarLogo() {
+        viewModelScope.launch {
+            try {
+                val url = repository.obtenerLogoUrl()
+                _logoUrl.value = url
+            } catch (e: Exception) {
+                // Si falla la carga, dejamos la URL vacía (se usará el drawable local como fallback)
+                _logoUrl.value = ""
             }
         }
     }

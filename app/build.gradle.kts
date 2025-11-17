@@ -39,7 +39,7 @@ fun String.asBuildConfigString(): String =
 
 val debugGatewayUrl = configValue("gateway.url.debug", "http://10.0.2.2:8094/", ensureTrailingSlash = true)
 val deviceGatewayUrl = configValue("gateway.url.device", "http://192.168.1.100:8094/", ensureTrailingSlash = true)
-val releaseGatewayUrl = configValue("gateway.url.release", "http://ec2-54-161-72-45.compute-1.amazonaws.com:8094/", ensureTrailingSlash = true)
+val releaseGatewayUrl = configValue("gateway.url.release", "http://ec2-44-209-152-110.compute-1.amazonaws.com:8094/", ensureTrailingSlash = true)
 val sharedApiKey = configValue("gateway.api.key", "levelup-2024-secret-api-key-change-in-production")
 val mediaBaseUrl = configValue("media.base.url", "https://levelup-gamer-products.s3.us-east-1.amazonaws.com/", ensureTrailingSlash = true)
 
@@ -57,6 +57,24 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        // Configuración de firma para desarrollo (usa debug keystore)
+        create("debugRelease") {
+            storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+        
+        // Para producción, crear un keystore real y configurarlo aquí
+        // create("release") {
+        //     storeFile = file("path/to/your/release.keystore")
+        //     storePassword = "your-store-password"
+        //     keyAlias = "your-key-alias"
+        //     keyPassword = "your-key-password"
+        // }
+    }
+
     buildTypes {
         debug {
             // Configuración para desarrollo local
@@ -68,6 +86,8 @@ android {
         }
 
         release {
+            // Usar signing config de debug para desarrollo (cambiar por release en producción)
+            signingConfig = signingConfigs.getByName("debugRelease")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

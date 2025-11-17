@@ -1,11 +1,11 @@
 package com.example.levelupprueba.data.repository
 
 import android.content.Context
-import com.example.levelupprueba.data.local.room.CarritoDatabase
+import com.example.levelupprueba.data.repository.CarritoRepositoryRemote
 
 /**
- * Entrega un CarritoRepository (Room) como singleton.
- * Así podemos usarlo desde cualquier screen sin cambiar firmas.
+ * Entrega un `CarritoRepository` singleton.
+ * Actualmente siempre sincroniza con el backend.
  */
 object CarritoProvider {
     @Volatile private var repo: CarritoRepository? = null
@@ -14,10 +14,13 @@ object CarritoProvider {
         val cached = repo
         if (cached != null) return cached
         return synchronized(this) {
-            val again = repo
-            if (again != null) again
-            else CarritoRepositoryRoom(CarritoDatabase.get(context).carritoDao())
-                .also { repo = it }
+            repo ?: createRepository().also { repo = it }
         }
+    }
+
+    private fun createRepository(): CarritoRepository {
+        // El carrito se sincroniza siempre con el backend; para usuarios no autenticados
+        // el backend responderá con carrito vacío o validará sesión según corresponda.
+        return CarritoRepositoryRemote()
     }
 }

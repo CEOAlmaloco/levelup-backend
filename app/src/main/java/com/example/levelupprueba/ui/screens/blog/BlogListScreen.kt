@@ -1,6 +1,7 @@
 package com.example.levelupprueba.ui.screens.blog
 
 // IMPORTAMOS LITERALMENTE TODO
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -133,31 +134,26 @@ fun BlogCard(blog: Blog) {//aca creamos la funcion para el blog card
                     .fillMaxWidth()
                     .height(200.dp)
             ) {
-                // Cargamos la imagen desde el backend (Base64 o URL)
+                // Usar MediaUrlResolver para resolver la URL de la imagen (S3, HTTP, Base64, drawable)
                 val context = LocalContext.current
-                val imageData = when {
-                    blog.imagenUrl.startsWith("data:image") || blog.imagenUrl.startsWith("data:image/") -> {
-                        // Si es Base64 con prefijo, usar directamente
-                        blog.imagenUrl
-                    }
-                    blog.imagenUrl.startsWith("http://") || blog.imagenUrl.startsWith("https://") -> {
-                        // Si es URL, usar la URL
-                        blog.imagenUrl
-                    }
-                    blog.imagenUrl.isNotBlank() && blog.imagenUrl.length > 100 -> {
-                        // Si parece ser Base64 puro (sin prefijo), agregar el prefijo
-                        "data:image/png;base64,${blog.imagenUrl}"
-                    }
-                    blog.imagenUrl.isNotBlank() -> {
-                        // Intentar buscar en drawable como fallback
-                        val imageResourceId = context.resources.getIdentifier(
-                            blog.imagenUrl,
-                            "drawable",
-                            context.packageName
-                        )
-                        if (imageResourceId != 0) imageResourceId else null
-                    }
-                    else -> null
+                val resolvedImageUrl = com.example.levelupprueba.data.remote.MediaUrlResolver.resolve(blog.imagenUrl)
+                
+                Log.d("BlogCard", "Blog: ${blog.titulo}")
+                Log.d("BlogCard", "Imagen original: ${blog.imagenUrl}")
+                Log.d("BlogCard", "Imagen resuelta: $resolvedImageUrl")
+                
+                // Si no se resolvió, intentar buscar en drawable como fallback
+                val imageData = if (resolvedImageUrl.isNotBlank()) {
+                    resolvedImageUrl
+                } else if (blog.imagenUrl.isNotBlank()) {
+                    val imageResourceId = context.resources.getIdentifier(
+                        blog.imagenUrl,
+                        "drawable",
+                        context.packageName
+                    )
+                    if (imageResourceId != 0) imageResourceId else null
+                } else {
+                    null
                 }
 
                 if (imageData != null) {
@@ -165,6 +161,8 @@ fun BlogCard(blog: Blog) {//aca creamos la funcion para el blog card
                         model = ImageRequest.Builder(context)
                             .data(imageData)
                             .crossfade(true)
+                            .error(android.R.drawable.ic_menu_report_image)
+                            .placeholder(android.R.drawable.ic_menu_gallery)
                             .build(),
                         contentDescription = blog.titulo,
                         contentScale = ContentScale.Crop,

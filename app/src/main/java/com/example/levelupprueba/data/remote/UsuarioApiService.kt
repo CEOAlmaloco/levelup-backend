@@ -92,6 +92,8 @@ data class ActualizarPerfilRequest(
     val nombre: String? = null,
     val telefono: String? = null,
     val direccion: String? = null,
+    val region: String? = null,
+    val comuna: String? = null,
     val avatar: String? = null
 )
 
