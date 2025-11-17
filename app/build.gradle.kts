@@ -66,7 +66,7 @@ android {
             buildConfigField("String", "MEDIA_BASE_URL", mediaBaseUrl.asBuildConfigString())
             buildConfigField("Boolean", "IS_PRODUCTION", "false")
         }
-        
+
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -81,11 +81,8 @@ android {
             buildConfigField("Boolean", "IS_PRODUCTION", "true")
         }
     }
-    
-    buildFeatures {
-        compose = true
-        buildConfig = true // Habilitar BuildConfig para acceder a las constantes
-    }
+
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -93,10 +90,26 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
+    buildFeatures {
+        compose = true
+        buildConfig = true // Habilitar BuildConfig para acceder a las constantes
+    }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            all {
+                it.useJUnitPlatform()  // JUnit 5
+                it.jvmArgs("-XX:+EnableDynamicAgentLoading")
+            }
+        }
+    }
 }
 
 dependencies {
     implementation("androidx.room:room-runtime:2.6.1")
+    implementation(libs.androidx.ui.test.junit4)
     ksp("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     implementation("androidx.navigation:navigation-compose:2.7.7")
@@ -116,12 +129,20 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.foundation)
     testImplementation(libs.junit)
+    testImplementation(libs.junitJupiter)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    testImplementation(libs.mockk)                  // MockK
+    testImplementation(libs.junitJupiter)           // JUnit5 (junit-jupiter)
+    testImplementation(libs.kotlinxCoroutinesTest)  // kotlinx-coroutines-test
+    testImplementation(libs.kotestRunnerJunit5)     // Kotest runner
+    testImplementation(libs.kotestAssertionsCore)   // Kotest assertions
+    testImplementation("ch.qos.logback:logback-classic:1.5.6")
+
 
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.7")
@@ -142,4 +163,6 @@ dependencies {
 
     // OSMDroid - Mapa OpenStreetMap (sin API key) ya q no se puede con JS como el otro tengo q hacer una cosa rara 
     implementation("org.osmdroid:osmdroid-android:6.1.18")
+    testImplementation(kotlin("test"))
+
 }

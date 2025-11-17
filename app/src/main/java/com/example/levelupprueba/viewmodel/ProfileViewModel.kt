@@ -173,7 +173,7 @@ class ProfileViewModel(
             val nuevoEstado = estadoActual.copy(
                 nombre = estadoActual.nombre.copy(error = UsuarioValidator.validarNombre(estadoActual.nombre.valor)),
                 apellidos = estadoActual.apellidos.copy(error = UsuarioValidator.validarApellidos(estadoActual.apellidos.valor)),
-                email = estadoActual.email.copy(error = UsuarioValidator.validarEmail(estadoActual.email.valor)),
+                //email = estadoActual.email.copy(error = UsuarioValidator.validarEmail(estadoActual.email.valor)),
                 telefono = estadoActual.telefono.copy(error = UsuarioValidator.validarTelefono(estadoActual.telefono.valor)),
                 fechaNacimiento = estadoActual.fechaNacimiento.copy(error = UsuarioValidator.validarFechaNacimiento(estadoActual.fechaNacimiento.valor)),
                 region = estadoActual.region.copy(error = UsuarioValidator.validarRegion(estadoActual.region.valor)),

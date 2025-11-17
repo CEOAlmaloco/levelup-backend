@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class MainViewModel(
@@ -36,7 +37,7 @@ class MainViewModel(
 
     init {
         viewModelScope.launch {
-            getUserSessionFlow(context).collect { session ->
+            getUserSessionFlow(context).collectLatest { session ->
                 _userSessionFlow.value = session
                 if (session.accessToken.isNotBlank() && session.userId > 0) {
                     com.example.levelupprueba.data.remote.ApiConfig.setAuthToken(session.accessToken)
