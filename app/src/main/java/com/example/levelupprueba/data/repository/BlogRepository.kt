@@ -120,15 +120,22 @@ private fun ArticuloResponse.toBlog(): Blog {
     }
     
     // Resolver imagen priorizando URLs remotas (S3) sobre Base64
+    // Misma estructura que ProductoMapper: priorizar imagenUrl (URL completa de S3)
     val candidateImages = listOf(
-        imagenUrl,
+        imagenUrl,              // Primera prioridad: URL completa de S3 desde backend
         imagenPreviewUrl,
         imagenMiniaturaUrl,
         imagenStorageUrl,
-        imagenArticulo
+        imagenArticulo          // Última prioridad: compatibilidad con formato antiguo
     )
     
     val resolvedImagen = MediaUrlResolver.resolveFirst(candidateImages)
+    
+    // Log para debugging (similar a ProductoMapper)
+    Log.d("BlogRepository", "Resolviendo imagen para blog: $resolvedTitulo")
+    Log.d("BlogRepository", "  - imagenUrl: $imagenUrl")
+    Log.d("BlogRepository", "  - imagenArticulo: ${imagenArticulo?.take(100)}...")
+    Log.d("BlogRepository", "  - imagen resuelta: $resolvedImagen")
     
     val isDestacadoResolved = destacado ?: esDestacado ?: false
     
