@@ -29,7 +29,7 @@
 
 ### 3. **UsuarioApiService** ✅
 - **Estado**: ✅ Completo
-- **Repositorio**: `UsuarioRepository` (usa Room local, puede sincronizar con backend)
+- **Consumidores principales**: `ProfileViewModel`, `UsuariosViewModel`, `MainViewModel`, `ChangePasswordViewModel`
 - **Endpoints**:
   - `GET /usuarios/perfil` - Obtener perfil del usuario
   - `GET /usuarios/{id}` - Obtener usuario por ID
@@ -76,6 +76,17 @@
   - `GET /resenia/mis-resenias` - Obtener mis reseñas
 - **Backend**: `msvc-resenia` ✅
 
+### 7. **ReferidosApiService** ✅
+- **Estado**: ✅ Completo
+- **Consumidores principales**: `ProfileViewModel`, `EventoViewModel`, `LoginViewModel`
+- **Endpoints**:
+  - `GET /referidos/codigo?idUsuario={id}` - Obtener código de referido
+  - `GET /puntos/usuario/{id}` - Obtener puntos del usuario
+  - `POST /puntos/usuario/{id}/inicio-sesion` - Otorgar puntos por inicio de sesión
+  - `POST /puntos/usuario/{id}/canje-codigo` - Canjear código de evento
+  - `POST /puntos/usuario/{id}/canje` - Canjear puntos por recompensa
+- **Backend**: `msvc-referidos` ✅
+
 ## 🔧 Configuración Centralizada
 
 ### ApiConfig.kt
@@ -104,19 +115,13 @@
 ### 2. **CarritoRepositoryRemote** ✅
 - **Fuente**: Backend (Retrofit)
 - **Métodos**: Todos los métodos usan Retrofit
-- **Nota**: `CarritoRepositoryRoom` existe para uso local, pero `CarritoRepositoryRemote` es la implementación principal
 
 ### 3. **EventoRepositoryRemote** ✅
 - **Fuente**: Backend (Retrofit)
 - **Métodos**: Todos los métodos usan Retrofit
 - **Nota**: `EventoRepository` (antigua implementación con datos hardcodeados) puede mantenerse como fallback
 
-### 4. **UsuarioRepository** ⚠️
-- **Fuente**: Room (local)
-- **Estado**: Usa Room local, pero puede sincronizar con backend usando `UsuarioApiService`
-- **Nota**: Puede mejorarse para sincronizar con backend cuando sea necesario
-
-### 5. **BlogRepository** ℹ️
+### 4. **BlogRepository** ℹ️
 - **Fuente**: Datos hardcodeados
 - **Estado**: No hay backend para blogs, se mantiene con datos hardcodeados
 - **Nota**: OK mantener así, no hay microservicio de blogs

@@ -7,11 +7,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.levelupprueba.AuthActivity
-import com.example.levelupprueba.data.local.UserDataStore
 import com.example.levelupprueba.data.local.clearUserSession
 import com.example.levelupprueba.data.local.getUserSession
 import com.example.levelupprueba.data.local.saveUserSession
-import com.example.levelupprueba.data.repository.UsuarioRepository
 import com.example.levelupprueba.model.auth.LoginStatus
 import com.example.levelupprueba.model.auth.LoginUiState
 import com.example.levelupprueba.model.auth.LoginValidator
@@ -23,9 +21,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 // ViewModel que gestiona el estado y la logica del formulario de login
-class LoginViewModel(
-    private val usuarioRepository: UsuarioRepository
-) : ViewModel(){
+class LoginViewModel : ViewModel(){
     //Estado interno mutable: se guarda el estado actual del formulario
     private val _estado = MutableStateFlow(LoginUiState())
     //Estado expuesto: la UI observa este estado para mostrar los valores y errores

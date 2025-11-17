@@ -21,9 +21,14 @@ class BlogRepository {
                 Log.d("BlogRepository", "Blogs publicados recibidos: ${blogs.size}")
                 blogs
             } else {
+                val errorBody = try {
+                    response.errorBody()?.string()
+                } catch (e: Exception) {
+                    "Error al leer errorBody: ${e.message}"
+                }
                 Log.w(
                     "BlogRepository",
-                    "Error al obtener blogs publicados: code=${response.code()} body=${response.errorBody()?.string()}"
+                    "Error al obtener blogs publicados: code=${response.code()} body=$errorBody"
                 )
                 emptyList()
             }
@@ -46,9 +51,14 @@ class BlogRepository {
                 Log.d("BlogRepository", "Blogs destacados recibidos: ${blogs.size}")
                 blogs
             } else {
+                val errorBody = try {
+                    response.errorBody()?.string()
+                } catch (e: Exception) {
+                    "Error al leer errorBody: ${e.message}"
+                }
                 Log.w(
                     "BlogRepository",
-                    "Error al obtener blogs destacados: code=${response.code()} body=${response.errorBody()?.string()}"
+                    "Error al obtener blogs destacados: code=${response.code()} body=$errorBody"
                 )
                 emptyList()
             }
@@ -71,9 +81,14 @@ class BlogRepository {
                 Log.d("BlogRepository", "Blogs por categoría '$categoria' recibidos: ${blogs.size}")
                 blogs
             } else {
+                val errorBody = try {
+                    response.errorBody()?.string()
+                } catch (e: Exception) {
+                    "Error al leer errorBody: ${e.message}"
+                }
                 Log.w(
                     "BlogRepository",
-                    "Error al obtener blogs por categoría '$categoria': code=${response.code()} body=${response.errorBody()?.string()}"
+                    "Error al obtener blogs por categoría '$categoria': code=${response.code()} body=$errorBody"
                 )
                 emptyList()
             }

@@ -183,16 +183,16 @@ implementation("org.osmdroid:osmdroid-android:6.1.18")
 ```
 app/src/main/java/com/example/levelupprueba/
 ├── data/
-│   ├── local/                 # Room Database
-│   │   ├── AppDatabase.kt
-│   │   ├── UsuarioDao.kt
-│   │   └── ReviewDao.kt
-│   ├── remote/                # API Services
+│   ├── local/                 # Almacenamiento ligero (DataStore de sesión)
+│   │   └── UserSessionDataStore.kt
+│   ├── remote/                # Servicios Retrofit (Auth, Usuarios, Productos, Referidos, etc.)
+│   │   ├── ApiConfig.kt
 │   │   └── UsuarioApiService.kt
-│   └── repository/            # Repository Pattern
-│       ├── UsuarioRepository.kt
+│   └── repository/            # Integraciones con microservicios
 │       ├── ProductoRepository.kt
-│       └── EventoRepository.kt
+│       ├── EventoRepositoryRemote.kt
+│       ├── CarritoRepositoryRemote.kt
+│       └── NotificacionesRepositoryRemote.kt
 ├── model/                     # Data Models
 │   ├── auth/                  # Authentication
 │   ├── usuario/               # User Models

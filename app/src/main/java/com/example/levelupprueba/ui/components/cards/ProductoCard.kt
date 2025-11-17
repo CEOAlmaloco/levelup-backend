@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.levelupprueba.data.remote.MediaUrlResolver
 import com.example.levelupprueba.model.producto.Producto
 import com.example.levelupprueba.ui.components.LevelUpProductBadge
 import com.example.levelupprueba.ui.components.buttons.LevelUpButton
@@ -66,31 +67,25 @@ fun ProductoCard(
             ) {
                 val context = LocalContext.current
                 
-                // Determinar si es URL (S3 o HTTP), Base64, o drawable resource
-                val imageData = when {
-                    // Si es URL completa (S3 o HTTP)
-                    producto.imagenUrl.startsWith("http://") || producto.imagenUrl.startsWith("https://") -> {
-                        producto.imagenUrl
-                    }
-                    // Si es Base64
-                    producto.imagenUrl.startsWith("data:image") -> {
-                        producto.imagenUrl
-                    }
-                    // Si parece ser Base64 puro (sin prefijo), agregar el prefijo
-                    producto.imagenUrl.isNotBlank() && producto.imagenUrl.length > 100 -> {
-                        "data:image/png;base64,${producto.imagenUrl}"
-                    }
-                    // Si es una referencia S3 (key), intentar construir URL o buscar en drawable como fallback
-                    producto.imagenUrl.isNotBlank() -> {
-                        // Intentar buscar en drawable como fallback
-                        val imageResourceId = context.resources.getIdentifier(
-                            producto.imagenUrl,
-                            "drawable",
-                            context.packageName
-                        )
-                        if (imageResourceId != 0) imageResourceId else null
-                    }
-                    else -> null
+                // Usar MediaUrlResolver para resolver la URL de la imagen (S3, HTTP, Base64, etc.)
+                val resolvedImageUrl = MediaUrlResolver.resolve(producto.imagenUrl)
+                android.util.Log.d("ProductoCard", "Producto: ${producto.nombre}")
+                android.util.Log.d("ProductoCard", "Imagen original: ${producto.imagenUrl}")
+                android.util.Log.d("ProductoCard", "Imagen resuelta: $resolvedImageUrl")
+                
+                // Si no se resolvió, intentar buscar en drawable como fallback
+                val imageData = if (resolvedImageUrl.isNotBlank()) {
+                    resolvedImageUrl
+                } else if (producto.imagenUrl.isNotBlank()) {
+                    // Fallback: buscar en drawable resources
+                    val imageResourceId = context.resources.getIdentifier(
+                        producto.imagenUrl,
+                        "drawable",
+                        context.packageName
+                    )
+                    if (imageResourceId != 0) imageResourceId else null
+                } else {
+                    null
                 }
 
                 if (imageData != null) {
@@ -98,6 +93,8 @@ fun ProductoCard(
                         model = ImageRequest.Builder(context)
                             .data(imageData)
                             .crossfade(true)
+                            .error(android.R.drawable.ic_menu_report_image)
+                            .placeholder(android.R.drawable.ic_menu_gallery)
                             .build(),
                         contentDescription = producto.nombre,
                         contentScale = ContentScale.Crop,
@@ -213,10 +210,12 @@ fun ProductoCard(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val rating = producto.ratingPromedio
+                    // Usar ratingPromedio si es > 0, sino usar rating base
+                    val rating = if (producto.ratingPromedio > 0f) producto.ratingPromedio else producto.rating
+                    val ratingInt = rating.toInt()
                     repeat(5) { i ->
                         Icon(
-                            imageVector = if (i < rating.toInt()) Icons.Default.Star else Icons.Outlined.StarOutline,
+                            imageVector = if (i < ratingInt) Icons.Default.Star else Icons.Outlined.StarOutline,
                             contentDescription = "Rating",
                             tint = SemanticColors.AccentYellow,
                             modifier = Modifier.size(dimens.smallIconSize)

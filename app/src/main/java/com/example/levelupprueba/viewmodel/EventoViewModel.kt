@@ -4,15 +4,15 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.levelupprueba.data.local.UserDataStore
 import com.example.levelupprueba.data.local.getUserSessionFlow
-import com.example.levelupprueba.data.repository.UsuarioRepository
-import com.example.levelupprueba.model.evento.Evento
+import com.example.levelupprueba.data.remote.ApiConfig
+import com.example.levelupprueba.data.remote.CanjeCodigoEventoRequest
+import com.example.levelupprueba.data.remote.CanjePuntosRequest
+import com.example.levelupprueba.data.remote.PuntosUsuarioResponseDto
 import com.example.levelupprueba.data.repository.EventoRepositoryRemote
+import com.example.levelupprueba.model.evento.Evento
 import com.example.levelupprueba.model.evento.EventoUiState
 import com.example.levelupprueba.model.evento.RecompensaCanje
-import com.example.levelupprueba.model.usuario.Usuario
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -21,26 +21,28 @@ import kotlinx.coroutines.launch
 
 /* Este viewmodel se encarga de la logica de la pantalla de eventos  UI 
 */
-class EventoViewModel(//creamo la instancia del repositorio 
-    private val repository: EventoRepositoryRemote = EventoRepositoryRemote(),// creamos la variable para acceder a evento repository (usa Retrofit)
-    private val usuarioRepository: UsuarioRepository? = null
+class EventoViewModel(
+    private val repository: EventoRepositoryRemote = EventoRepositoryRemote()
 ) : ViewModel() {
 
     private val _estado = MutableStateFlow(EventoUiState())//creamos el estado mutable para que se actualice en tiempo real
     val estado: StateFlow<EventoUiState> = _estado//creamos el estado para que se pueda acceder a el desde cualquier parte de la aplicacion
 
-    var userDataStore: UserDataStore? = null//creamos la variable para acceder a user data store
-    private var context: Context? = null//creamos la variable para acceder a context
+    private var context: Context? = null
+    private var usuarioId: Long? = null
 
     /* el context  se usa para acceder a recursos archivos preferencias bases de datos.
     entonces con esto lo q hacemos es hacer una variable global para que se pueda acceder a ella desde cualquier parte de la aplicacion.
     luego llamamos a una funcion para cargar los puntos del usuario.
      */
     fun inicializar(ctx: Context) {
-        context = ctx
-        userDataStore = UserDataStore(ctx)
+        context = ctx.applicationContext
         cargarDatosIniciales()
-        cargarPuntosUsuario()
+        viewModelScope.launch {
+            val session = getUserSessionFlow(context!!).first()
+            usuarioId = session.userId.takeIf { it > 0 }
+            cargarPuntosUsuario()
+        }
     }
 
     /**
@@ -78,58 +80,29 @@ class EventoViewModel(//creamo la instancia del repositorio
     cargamo los puntos del usuario actual desde DataStore.
      */
     private fun cargarPuntosUsuario() {
-        viewModelScope.launch {//lanzamos la corrutina 
-            try { 
-                delay(500)
-                val usuario = obtenerUsuarioActual()
-                Log.d("EventoViewModel", "Puntos actuales del usuario: ${usuario?.points ?: 0}")
-                _estado.update { 
-                    it.copy(puntosUsuario = usuario?.points ?: 0) // si no hay usuario se muestra 0 puntos
+        val id = usuarioId ?: run {
+            _estado.update { it.copy(puntosUsuario = 0) }
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                val response = ApiConfig.referidosService.getPuntosUsuario(id)
+                if (response.isSuccessful && response.body() != null) {
+                    val puntosDto = response.body()!!
+                    val puntosDisponibles = puntosDto.puntosDisponibles ?: puntosDto.puntosTotales ?: 0
+                    Log.d("EventoViewModel", "Puntos actuales del usuario: $puntosDisponibles")
+                    _estado.update { it.copy(puntosUsuario = puntosDisponibles) }
+                } else {
+                    Log.w(
+                        "EventoViewModel",
+                        "No se pudieron cargar los puntos: ${response.code()} ${response.message()}"
+                    )
+                    _estado.update { it.copy(puntosUsuario = 0) }
                 }
             } catch (e: Exception) {
                 Log.w("EventoViewModel", "No se pudieron cargar los puntos del usuario", e)
-                // user no logueado o error
-            }
-        }
-    }
-
-    /**
-     * Obtiene el usuario actual desde la base de datos SQLite o DataStore usando la sesión.
-     * lo usamos para tener la validacion de usuario logueado y tener seguridad
-     * creo q igual lo podemos globalizar esta funcion en el viewmodel principal
-     */
-    private suspend fun obtenerUsuarioActual(): Usuario? {
-        val ctx = context ?: return null
-        
-        val session = getUserSessionFlow(ctx).first()
-        if (session.userId == 0L) return null
-        
-        // Priorizar base de datos SQLite si esta disponible
-        return if (usuarioRepository != null) {
-            usuarioRepository.getUsuarioById(session.userId.toString())
-        } else {
-            // Fallback a DataStore si no hay repository
-            val dataStore = userDataStore ?: return null
-            val usuarios = dataStore.getUsuarios()
-            usuarios.find { it.id == session.userId.toString() }
-        }
-    }
-
-    /* cuando cajeamos codigo o recompensa actualizamos el usuario en la base de datos */
-    private suspend fun actualizarUsuario(usuarioActualizado: Usuario) {
-        // Priorizar base de datos SQLite si está disponible
-        if (usuarioRepository != null) {
-            usuarioRepository.updateUsuario(usuarioActualizado)
-        } else {
-            // Fallback a DataStore si no hay repository
-            val dataStore = userDataStore ?: return
-            
-            val usuarios = dataStore.getUsuarios().toMutableList()//ya q era inmutable la lista lo convertimos a mutable
-            val idx = usuarios.indexOfFirst { it.id == usuarioActualizado.id }//buscamos el primer indice del usuario por la id pero el actualizado no el antiguo 
-            
-            if (idx != -1) {//creo q era string LUEGO REVISAR 
-                usuarios[idx] = usuarioActualizado
-                dataStore.saveUsuarios(usuarios)
+                _estado.update { it.copy(puntosUsuario = 0) }
             }
         }
     }
@@ -162,53 +135,35 @@ class EventoViewModel(//creamo la instancia del repositorio
 
         viewModelScope.launch {//lanzamos la corrutina de canje
             try {
-                // verificar nuevamente al user con la funcion obtener usuario actual
-                val usuario = obtenerUsuarioActual()
-                if (usuario == null) {//le tiramo error si trata de canjear sin user logueado
+                val id = usuarioId
+                if (id == null) {
                     _estado.update {
                         it.copy(mensajeCodigo = "Debes iniciar sesión para canjear un código")
                     }
                     return@launch // return @ launch es para que se detenga la corrutina osea se maneja async y no por tiempo de espera
                 }
 
-                delay(500)// tiempo entre validaciones para evitar spam
-                
-                // luego validamos el codigo en el repository para simular el backend pero a nivel de frontend???¡¡¿¿??
-                val codigoEvento = repository.validarCodigo(codigo)// llamamo a la funcion con el codigo 
-                
-                if (codigoEvento == null) {
+                val response = ApiConfig.referidosService.canjearCodigoEvento(
+                    id,
+                    CanjeCodigoEventoRequest(codigoEvento = codigo.uppercase())
+                )
+
+                if (response.isSuccessful) {
+                    val puntosGanados = response.body()?.puntos ?: 0
+                    cargarPuntosUsuario()
                     _estado.update {
-                        it.copy(mensajeCodigo = "Código inválido o expirado")
+                        it.copy(
+                            codigoIngresado = "",
+                            mensajeCodigo = "Código canjeado: +$puntosGanados pts"
+                        )
                     }
-                    return@launch
-                }//corrutina async para validar el codigo en el repository
-
-                // validamo q el redemcodes no contenga el codigo ya canjeado para evitar duplicados
-                if (usuario.redeemedCodes.contains(codigo.uppercase())) {
-                    _estado.update {
-                        it.copy(mensajeCodigo = "Este código ya fue canjeado en tu cuenta")
+                } else {
+                    val mensajeError = when (response.code()) {
+                        404 -> "Código inválido o expirado"
+                        409 -> "Este código ya fue canjeado"
+                        else -> "No fue posible canjear el código (${response.code()})"
                     }
-                    return@launch
-                }
-
-                // ahora podemos canjear el codigo sumando los puntos al usuario y agregando el codigo a la lista de canjeados
-                val codigosActualizados = usuario.redeemedCodes + codigo.uppercase()
-                val nuevosPuntos = usuario.points + codigoEvento.puntos
-                val usuarioActualizado = usuario.copy(
-                    points = nuevosPuntos,
-                    redeemedCodes = codigosActualizados
-                )//generamos la copia del original para guardar la actualizaciom 
-
-                // datastore luego pasarlo a SQL LITE 
-                actualizarUsuario(usuarioActualizado)
-
-                // luego actualizamos el estado para que se muestre el nuevo puntaje y el codigo canjeado
-                _estado.update {
-                    it.copy(
-                        puntosUsuario = nuevosPuntos,
-                        codigoIngresado = "",
-                        mensajeCodigo = "Código canjeado: +${codigoEvento.puntos} pts"
-                    )
+                    _estado.update { it.copy(mensajeCodigo = mensajeError) }
                 }
             } catch (e: Exception) {
                 _estado.update {
@@ -222,30 +177,44 @@ class EventoViewModel(//creamo la instancia del repositorio
 
     /* cuando le damos click en canjear recompensa se actualiza el estado para que se muestre el mensaje de recompensa ingresada */
     /* y se actualiza el usuario en la bd*/
-    fun canjearRecompensa(recompensa: RecompensaCanje): Boolean {//la funcion recibe el parametro recompensa que retorna un booleano
-        viewModelScope.launch {//lanzamos la corrutina de canje
+    fun canjearRecompensa(recompensa: RecompensaCanje) {
+        val id = usuarioId
+        if (id == null) {
+            _estado.update {
+                it.copy(mensajeCodigo = "Debes iniciar sesión para canjear puntos")
+            }
+            return
+        }
+
+        viewModelScope.launch {
             try {
-                // verificar nuevamente al user con la funcion obtener usuario actual
-                val usuario = obtenerUsuarioActual()
-                if (usuario == null) {//le tiramo error si trata de canjear sin user logueado
+                val puntosActuales = _estado.value.puntosUsuario
+                if (puntosActuales < recompensa.costo) {
                     _estado.update {
-                        it.copy(mensajeCodigo = "Debes iniciar sesión para canjear puntos")
+                        it.copy(mensajeCodigo = "No tienes puntos suficientes para esta recompensa")
                     }
                     return@launch
                 }
 
-                val puntosActuales = usuario.points
-                
-                if (puntosActuales >= recompensa.costo) {//si los puntos actuales son mayores o iguales al costo de la recompensa entonces podemos canjear
-                    val nuevosPuntos = puntosActuales - recompensa.costo//restamos los puntos actuales al costo de la recompensa
-                    val usuarioActualizado = usuario.copy(points = nuevosPuntos)//generamos la copia del original para guardar la actualizaciom 
-                    
-                    // datastore luego pasarlo a SQL LITE 
-                    actualizarUsuario(usuarioActualizado)
-                    
-                    // luego actualizamos el estado para que se muestre el nuevo puntaje en el UI 
+                val response = ApiConfig.referidosService.canjearPuntos(
+                    id,
+                    CanjePuntosRequest(
+                        puntosACanjear = recompensa.costo,
+                        descripcion = recompensa.descripcion,
+                        codigoReferencia = recompensa.id
+                    )
+                )
+
+                if (response.isSuccessful) {
+                    cargarPuntosUsuario()
                     _estado.update {
-                        it.copy(puntosUsuario = nuevosPuntos)
+                        it.copy(mensajeCodigo = "Recompensa canjeada correctamente")
+                    }
+                } else {
+                    _estado.update {
+                        it.copy(
+                            mensajeCodigo = "No fue posible canjear la recompensa (${response.code()})"
+                        )
                     }
                 }
             } catch (e: Exception) {
@@ -253,10 +222,7 @@ class EventoViewModel(//creamo la instancia del repositorio
                     it.copy(error = "Error al canjear recompensa: ${e.message}")
                 }
             }
-        } 
-        // retornamos el nuevo puntaje actualizado si es mayor o igual al costo de la recompensa como ultima validacion
-        val puntosActuales = _estado.value.puntosUsuario
-        return puntosActuales >= recompensa.costo
+        }
     }
 
     /* cuando le damos click en limpiar mensaje se actualiza el estado para que se muestre el mensaje de recompensa ingresada */

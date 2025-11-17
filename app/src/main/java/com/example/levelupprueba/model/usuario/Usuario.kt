@@ -1,24 +1,19 @@
 package com.example.levelupprueba.model.usuario
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
-@Entity(tableName = "usuarios")
 data class Usuario(
-    @PrimaryKey val id: String,
+    val id: String,
     val nombre: String,
-    val apellidos: String,
+    val apellidos: String = "",
     val email: String,
-    val password: String,
-    val telefono: String?,
-    val fechaNacimiento: String?,
-    val region: String?,
-    val comuna: String?,
-    val direccion: String?,
-    val referralCode: String,
+    val telefono: String? = null,
+    val fechaNacimiento: String? = null,
+    val region: String? = null,
+    val comuna: String? = null,
+    val direccion: String? = null,
+    val referralCode: String? = null,
     val points: Int = 0,
-    val redeemedCodes: List<String> = emptyList(),//agregado
-    val referredBy: String? = null, // ID del usuario que refirio a este usuario //agregado
-    val role: String,
-    val avatar: String?
+    val redeemedCodes: List<String> = emptyList(),
+    val referredBy: String? = null,
+    val role: String = "",
+    val avatar: String? = null
 )

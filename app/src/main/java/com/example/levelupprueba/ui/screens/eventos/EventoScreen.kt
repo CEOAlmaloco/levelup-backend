@@ -137,7 +137,7 @@ fun EventoScreen(
                 recompensas = estado.recompensas,
                 puntosUsuario = estado.puntosUsuario,
                 onCanjear = { recompensa ->
-                    val exito = viewModel.canjearRecompensa(recompensa)
+                    viewModel.canjearRecompensa(recompensa)
                 },
                 dimens = dimens
             )

@@ -4,37 +4,43 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
 
-
 /* Interfaz de API para autenticación
- * Endpoints: /api/v1/auth/
-
- */
+ * 
+ * Nota: Los endpoints usan rutas relativas sin el prefijo /api/v1/
+ * porque el API Gateway (puerto 8094) reescribe automáticamente:
+ * - /auth/** → /api/v1/auth/**
+ * 
+ * Endpoints finales en el backend:
+ * - POST /api/v1/auth/login
+ * - POST /api/v1/auth/register
+ * - POST /api/v1/auth/refresh
+  - POST /api/v1/auth/logout *//**/**/**/
 interface AuthApiService {
     
     /**
      * Login de usuario
-     * POST /api/v1/auth/login
+     * Gateway reescribe: /auth/login → /api/v1/auth/login
      */
     @POST("auth/login")
     suspend fun login(@Body request: LoginRequest): Response<AuthResponse>
     
     /**
      * Registro de usuario
-     * POST /api/v1/auth/register
+     * Gateway reescribe: /auth/register → /api/v1/auth/register
      */
     @POST("auth/register")
     suspend fun register(@Body request: RegisterRequest): Response<AuthResponse>
     
     /**
      * Refresca el token JWT
-     * POST /api/v1/auth/refresh
+     * Gateway reescribe: /auth/refresh → /api/v1/auth/refresh
      */
     @POST("auth/refresh")
     suspend fun refreshToken(@Body request: RefreshTokenRequest): Response<AuthResponse>
     
     /**
      * Cerrar sesión
-     * POST /api/v1/auth/logout
+     * Gateway reescribe: /auth/logout → /api/v1/auth/logout
      */
     @POST("auth/logout")
     suspend fun logout(): Response<Map<String, String>>

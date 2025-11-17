@@ -49,7 +49,6 @@ import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.ui.theme.SemanticColors
 import com.example.levelupprueba.viewmodel.CarritoViewModel
 import com.example.levelupprueba.viewmodel.ProductoDetalleViewModel
-import com.example.levelupprueba.data.local.getUserSessionFlow
 import kotlinx.coroutines.flow.first
 import java.text.NumberFormat
 import java.util.*
@@ -68,29 +67,15 @@ fun ProductoDetalleScreen(
     onNavigateBack: () -> Unit = {}, //callback para volver atras
     contentPadding: PaddingValues,
     isLoggedIn: Boolean,
-    userDisplayName: String
+    userDisplayName: String,
+    userId: Long? = null
 ) {
     val estado by viewModel.estado.collectAsState() //traemos el estado del viewmodel, el by es para q se actualice solo
     val dimens = LocalDimens.current //traemos las dimensiones del tema para q sea responsive
     val carrito by carritoViewModel.carrito.collectAsState()
     val context = LocalContext.current
-    var userId: Long? by remember { mutableStateOf(null) }
-
     LaunchedEffect(productoId) { //esto se ejecuta cuando cambia el productoId, es como el useEffect de react
         viewModel.cargarProducto(productoId) //cargamos el producto con el id q nos llega
-    }
-    
-    LaunchedEffect(isLoggedIn) {
-        if (isLoggedIn) {
-            try {
-                val session = getUserSessionFlow(context).first()
-                userId = session.userId
-            } catch (e: Exception) {
-                userId = null
-            }
-        } else {
-            userId = null
-        }
     }
 
     Box(
@@ -244,30 +229,27 @@ private fun SeccionVisual(
 ) {
     val context = LocalContext.current
     
-    // Determinar si es URL (S3 o HTTP), Base64, o drawable resource
-    val imageData = when {
-        // Si es URL completa (S3 o HTTP)
-        imagenUrl.startsWith("http://") || imagenUrl.startsWith("https://") -> {
-            imagenUrl
-        }
-        // Si es Base64
-        imagenUrl.startsWith("data:image") -> {
-            imagenUrl
-        }
-        // Si parece ser Base64 puro (sin prefijo), agregar el prefijo
-        imagenUrl.isNotBlank() && imagenUrl.length > 100 -> {
-            "data:image/png;base64,$imagenUrl"
-        }
-        // Si es una referencia S3 (key) o drawable, intentar buscar en drawable como fallback
-        imagenUrl.isNotBlank() -> {
-            val imageResourceId = context.resources.getIdentifier(
-                imagenUrl,
-                "drawable",
-                context.packageName
-            )
-            if (imageResourceId != 0) imageResourceId else null
-        }
-        else -> null
+    // Logs para debugging
+    android.util.Log.d("ProductoDetalleScreen", "SeccionVisual - Nombre: $nombre")
+    android.util.Log.d("ProductoDetalleScreen", "SeccionVisual - Imagen original: $imagenUrl")
+    
+    // Usar MediaUrlResolver para resolver la URL de la imagen (S3, HTTP, Base64, etc.)
+    val resolvedImageUrl = com.example.levelupprueba.data.remote.MediaUrlResolver.resolve(imagenUrl)
+    android.util.Log.d("ProductoDetalleScreen", "SeccionVisual - Imagen resuelta: $resolvedImageUrl")
+    
+    // Si no se resolvió, intentar buscar en drawable como fallback
+    val imageData = if (resolvedImageUrl.isNotBlank()) {
+        resolvedImageUrl
+    } else if (imagenUrl.isNotBlank()) {
+        // Fallback: buscar en drawable resources
+        val imageResourceId = context.resources.getIdentifier(
+            imagenUrl,
+            "drawable",
+            context.packageName
+        )
+        if (imageResourceId != 0) imageResourceId else null
+    } else {
+        null
     }
 
     Card( //envolvemos la imagen en un card para q tenga sombra y bordes redondeados, usamos Card de material3 pq LevelUpCard tiene padding interno
@@ -321,6 +303,11 @@ private fun SeccionInformacion(
     val subcategoriaDisplay = producto.subcategoriaNombre ?: producto.subcategoria?.nombre
     val subcategoriaTexto = subcategoriaDisplay?.let { "$categoriaDisplay - $it" } ?: categoriaDisplay
 
+    // Logs para debugging
+    android.util.Log.d("ProductoDetalleScreen", "SeccionInformacion - Producto: ${producto.nombre}")
+    android.util.Log.d("ProductoDetalleScreen", "SeccionInformacion - Rating: ${producto.rating}, RatingPromedio: ${producto.ratingPromedio}")
+    android.util.Log.d("ProductoDetalleScreen", "SeccionInformacion - Descripción: ${producto.descripcion.take(50)}...")
+
     LevelUpSpacedColumn( //usamos LevelUpSpacedColumn para espaciado automatico
         spacing = dimens.fieldSpacing, //espaciado entre campos
         horizontalAlignment = Alignment.Start
@@ -349,14 +336,16 @@ private fun SeccionInformacion(
         Row( //el rating con las estrellas y el numero
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Usar ratingPromedio si es > 0, sino usar rating base (igual que ProductoCard)
+            val rating = if (producto.ratingPromedio > 0f) producto.ratingPromedio else producto.rating
             ProductoRatingStars( //componente q hicimos para mostrar las estrellas
-                rating = producto.ratingPromedio, //el rating promedio calculado desde las reviews
+                rating = rating, //el rating con fallback
                 starSize = dimens.iconSize, //tamaño de icono pequeño del tema
                 tint = SemanticColors.AccentYellow
             )
             Spacer(modifier = Modifier.width(dimens.smallSpacing))
             Text( //el numero del rating al lado de las estrellas
-                text = String.format("%.1f", producto.ratingPromedio), //formateamos a 1 decimal
+                text = String.format("%.1f", rating), //formateamos a 1 decimal
                 style = MaterialTheme.typography.bodyMedium.copy(fontSize = dimens.bodySize),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -632,6 +621,7 @@ private fun SeccionReviews(
                 onAgregarReview = onAgregarReview,
                 dimens = dimens,
                 usuarioNombre = usuarioNombre,
+                userId = userId,
                 isLoggedIn = isLoggedIn,
             ) //el formulario para agregar una review
         }
@@ -662,6 +652,7 @@ private fun SeccionReviews(
 private fun FormularioReview(
     onAgregarReview: (Float, String, String, Long?) -> Unit, //callback para enviar la review
     usuarioNombre: String,
+    userId: Long?,
     isLoggedIn: Boolean,
     dimens: com.example.levelupprueba.ui.theme.Dimens //dimensiones del tema
 ) {
@@ -699,7 +690,12 @@ private fun FormularioReview(
                 LevelUpButton( //boton para enviar la review
                     onClick = {
                         if (comentario.isNotBlank()) { //validamos q no este vacio
-                            onAgregarReview(rating, comentario, usuarioNombre, null) //enviamos la review al viewmodel (userId se pasa desde arriba)
+                            onAgregarReview(
+                                rating,
+                                comentario,
+                                usuarioNombre.ifBlank { "Usuario" },
+                                userId
+                            ) //enviamos la review al viewmodel con el id del usuario
                             comentario = "" //limpiamos el form
                             rating = 5f //volvemos al rating por defecto
                         } //TODO: agregar validacion de q el usuario este logueado

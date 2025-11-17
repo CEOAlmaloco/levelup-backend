@@ -108,7 +108,8 @@ fun MainNavGraph(
                 contentPadding = innerPadding,
                 userDisplayName = userDisplayName ?: "Invitado",
                 isLoggedIn = isLoggedIn,
-                carritoViewModel = carritoViewModel
+                carritoViewModel = carritoViewModel,
+                userId = userSessionId?.toLongOrNull()
             )
         }
 

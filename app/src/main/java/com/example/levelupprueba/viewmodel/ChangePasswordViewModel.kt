@@ -2,19 +2,17 @@ package com.example.levelupprueba.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.levelupprueba.data.repository.UsuarioRepository
+import com.example.levelupprueba.data.remote.ApiConfig
+import com.example.levelupprueba.data.remote.CambiarPasswordRequest
 import com.example.levelupprueba.model.password.PasswordStatus
 import com.example.levelupprueba.model.password.PasswordUiState
 import com.example.levelupprueba.model.usuario.UsuarioValidator
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class ChangePasswordViewModel(
-    private val usuarioRepository: UsuarioRepository
-) : ViewModel() {
+class ChangePasswordViewModel : ViewModel() {
     private val _estado = MutableStateFlow(PasswordUiState())
     val estado: StateFlow<PasswordUiState> = _estado
 
@@ -116,16 +114,15 @@ class ChangePasswordViewModel(
 
         viewModelScope.launch {
             _status.value = PasswordStatus.Saving
-            delay(2000) // simular backend
-
             try {
-                val ok = usuarioRepository.changePasswordUsuario(
-                    email = email,
-                    currentPassword = _estado.value.actual.valor,
-                    newPassword = _estado.value.nueva.valor
+                val response = ApiConfig.usuarioService.cambiarPassword(
+                    CambiarPasswordRequest(
+                        passwordActual = _estado.value.actual.valor,
+                        passwordNueva = _estado.value.nueva.valor
+                    )
                 )
 
-                _status.value = if (ok) {
+                _status.value = if (response.isSuccessful) {
                     PasswordStatus.Success
                 } else {
                     PasswordStatus.Error("La contraseña actual es incorrecta")

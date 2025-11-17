@@ -1,18 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- Configuración para desarrollo: permite HTTP (cleartext) para el emulador Android -->
+    <!-- 
+        Configuración de seguridad de red
+        En producción, solo se permite HTTPS. En desarrollo, se permite HTTP para:
+        - Emulador Android (10.0.2.2)
+        - Dispositivos físicos en red local (192.168.x.x, 10.x.x.x)
+        - Localhost
+    -->
+    
+    <!-- Configuración para desarrollo: permite HTTP (cleartext) solo para dominios específicos -->
     <domain-config cleartextTrafficPermitted="true">
         <!-- Emulador Android: 10.0.2.2 es el alias para localhost de la máquina host -->
         <domain includeSubdomains="true">10.0.2.2</domain>
-        <!-- También permitir localhost para desarrollo en dispositivo físico -->
+        
+        <!-- Localhost para desarrollo en dispositivo físico -->
         <domain includeSubdomains="true">localhost</domain>
         <domain includeSubdomains="true">127.0.0.1</domain>
+        
+        <!-- IPs locales comunes para desarrollo (redes privadas) -->
+        <!-- 192.168.x.x (redes domésticas/empresariales) -->
+        <domain includeSubdomains="true">192.168.1.100</domain>
+        <domain includeSubdomains="true">192.168.0.1</domain>
+        
+        <!-- 10.x.x.x (redes privadas) -->
+        <domain includeSubdomains="true">10.0.0.0</domain>
+        
+        <!-- AWS EC2 para desarrollo (si se usa HTTP temporalmente) -->
+        <!-- Nota: En producción debería usar HTTPS -->
+        <domain includeSubdomains="true">ec2-44-209-152-110.compute-1.amazonaws.com</domain>
+        <domain includeSubdomains="true">ec2-54-161-72-45.compute-1.amazonaws.com</domain>
+        <!-- IP directa de AWS (por si el DNS no resuelve) -->
+        <domain includeSubdomains="true">44.209.152.110</domain>
     </domain-config>
     
-    <!-- Configuración base: por defecto no permitir cleartext en producción -->
+    <!-- Configuración base: por defecto NO permitir cleartext en producción -->
+    <!-- Esto asegura que solo los dominios explícitos arriba pueden usar HTTP -->
     <base-config cleartextTrafficPermitted="false">
         <trust-anchors>
+            <!-- Certificados del sistema -->
             <certificates src="system" />
+            <!-- Certificados de usuario (útil para desarrollo con certificados autofirmados) -->
+            <certificates src="user" />
         </trust-anchors>
     </base-config>
 </network-security-config>

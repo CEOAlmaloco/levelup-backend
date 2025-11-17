@@ -87,6 +87,18 @@ interface ProductosApiService {
      */
     @DELETE("productos/{id}")
     suspend fun eliminarProducto(@Path("id") id: Long): Response<Unit>
+    
+    /**
+     * Obtiene imágenes del carrusel
+     */
+    @GET("productos/carrusel")
+    suspend fun getCarrusel(): Response<List<Map<String, String>>>
+    
+    /**
+     * Obtiene el logo desde el backend
+     */
+    @GET("productos/logo")
+    suspend fun getLogo(): Response<Map<String, String>>
 }
 
 /**

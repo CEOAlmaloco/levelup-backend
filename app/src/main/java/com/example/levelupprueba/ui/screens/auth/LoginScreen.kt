@@ -110,12 +110,47 @@ fun LoginScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ){
 
-                        Image(
-                            painter = painterResource(id = R.drawable.levelup_logo),
-                            contentDescription = "Logo LevelUp",
-                            modifier = Modifier
-                                .size(dimens.imageHeight / 2)
-                        )
+                        // Obtener logo desde el ViewModel si está disponible
+                        val productoViewModel = remember { com.example.levelupprueba.viewmodel.ProductoViewModel() }
+                        val logoUrl by productoViewModel.logoUrl.collectAsState()
+                        val resolvedLogoUrl = com.example.levelupprueba.data.remote.MediaUrlResolver.resolve(logoUrl)
+                        val fallbackLogoUrl = com.example.levelupprueba.data.remote.MediaUrlResolver.resolve("img/levelup_logo.png")
+                        
+                        // Intentar primero con la URL principal, luego con el fallback, finalmente drawable local
+                        val logoModel = when {
+                            resolvedLogoUrl.isNotBlank() -> {
+                                coil.request.ImageRequest.Builder(LocalContext.current)
+                                    .data(resolvedLogoUrl)
+                                    .crossfade(true)
+                                    .error(R.drawable.levelup_logo)
+                                    .placeholder(R.drawable.levelup_logo)
+                                    .build()
+                            }
+                            fallbackLogoUrl.isNotBlank() -> {
+                                coil.request.ImageRequest.Builder(LocalContext.current)
+                                    .data(fallbackLogoUrl)
+                                    .crossfade(true)
+                                    .error(R.drawable.levelup_logo)
+                                    .placeholder(R.drawable.levelup_logo)
+                                    .build()
+                            }
+                            else -> null
+                        }
+                        
+                        if (logoModel != null) {
+                            coil.compose.AsyncImage(
+                                model = logoModel,
+                                contentDescription = "Logo LevelUp",
+                                contentScale = androidx.compose.ui.layout.ContentScale.Fit,
+                                modifier = Modifier.size(dimens.imageHeight / 2)
+                            )
+                        } else {
+                            Image(
+                                painter = painterResource(id = R.drawable.levelup_logo),
+                                contentDescription = "Logo LevelUp",
+                                modifier = Modifier.size(dimens.imageHeight / 2)
+                            )
+                        }
 
                         Spacer(modifier = Modifier.height(dimens.sectionSpacing))
 

@@ -17,6 +17,14 @@ object ProductoMapper {
      * Mapea un ProductoDto del backend a un Producto del modelo Kotlin
      */
     fun mapProductoDto(dto: ProductoDto): Producto {
+        // Log para debugging
+        android.util.Log.d("ProductoMapper", "Mapeando producto: ${dto.nombreProducto ?: dto.titulo}")
+        android.util.Log.d("ProductoMapper", "  - rating: ${dto.rating}, ratingPromedio: ${dto.ratingPromedio}")
+        android.util.Log.d("ProductoMapper", "  - destacado: ${dto.destacado}")
+        android.util.Log.d("ProductoMapper", "  - imagenUrl: ${dto.imagenUrl}")
+        android.util.Log.d("ProductoMapper", "  - imagenS3Key: ${dto.imagenS3Key}")
+        android.util.Log.d("ProductoMapper", "  - imagen: ${dto.imagen?.take(100)}...")
+        
         // Priorizar imagenUrl del backend (URL completa de S3 construida)
         // Si no existe, usar imagenS3Key (referencia S3) o imagen (compatibilidad con Base64)
         val imagenUrl = MediaUrlResolver.resolveFirst(
@@ -26,6 +34,8 @@ object ProductoMapper {
                 dto.imagen
             )
         )
+        
+        android.util.Log.d("ProductoMapper", "  - imagenUrl resuelta: $imagenUrl")
         
         // Parsear galería de imágenes desde los campos disponibles
         val imagenesUrls: List<String> = run {
@@ -69,6 +79,7 @@ object ProductoMapper {
         
         // Obtener descripción (priorizar descripcionProducto del backend)
         val descripcion = dto.descripcionProducto ?: dto.descripcion ?: ""
+        android.util.Log.d("ProductoMapper", "  - descripcion: ${descripcion.take(50)}...")
         
         // Obtener precio (priorizar precioProducto del backend)
         val precio = dto.precioProducto ?: dto.precio ?: 0.0
@@ -84,7 +95,11 @@ object ProductoMapper {
         val descuento = descuentoOrigen?.toInt()
         val precioConDescuento = dto.precioConDescuento
         val enOferta = dto.enOferta ?: (descuentoOrigen != null && descuentoOrigen > 0.0)
-        val ratingPromedio = (dto.ratingPromedio ?: dto.rating)?.toFloat() ?: 0f
+        // Usar ratingPromedio si existe, sino usar rating base
+        // Si ratingPromedio es 0.0 pero rating tiene valor, usar rating
+        val ratingBase = dto.rating?.toFloat() ?: 0f
+        val ratingPromedio = dto.ratingPromedio?.toFloat() ?: ratingBase
+        val ratingFinal = if (ratingPromedio > 0f) ratingPromedio else ratingBase
         val reviews = dto.reviews?.mapNotNull { mapReseniaDto(it, id) } ?: emptyList()
         
         return Producto(
@@ -99,7 +114,7 @@ object ProductoMapper {
             categoriaNombre = categoriaNombre,
             subcategoria = subcategoria,
             subcategoriaNombre = subcategoriaNombre,
-            rating = ratingPromedio,
+            rating = ratingFinal,
             ratingPromedioBackend = ratingPromedio,
             disponible = disponible,
             destacado = dto.destacado ?: false,
