@@ -140,15 +140,11 @@ class CarritoRepositoryRemote(
                 return@withContext eliminarItem(itemId)
             }
 
-            // Convertir itemId de String a Long
-            val itemIdLong = itemId.toLongOrNull()
-                ?: throw Exception("ID de item inválido: $itemId")
-
             // El backend espera un Map<String, Int>
             val request = ActualizarCantidadRequest(cantidad = nuevaCantidad)
 
-            Log.d("CarritoRepository", "Enviando petición PUT /carrito/items/$itemIdLong - Nueva cantidad: $nuevaCantidad")
-            val response = carritoService.actualizarCantidad(itemIdLong, request)
+            Log.d("CarritoRepository", "Enviando petición PUT /carrito/items/$itemId - Nueva cantidad: $nuevaCantidad")
+            val response = carritoService.actualizarCantidad(itemId, request)
             Log.d("CarritoRepository", "Respuesta recibida - Code: ${response.code()}, Success: ${response.isSuccessful}")
             
             if (response.isSuccessful && response.body() != null) {
@@ -181,12 +177,8 @@ class CarritoRepositoryRemote(
                 throw Exception("Usuario no autenticado")
             }
 
-            // Convertir itemId de String a Long
-            val itemIdLong = itemId.toLongOrNull()
-                ?: throw Exception("ID de item inválido: $itemId")
-
-            Log.d("CarritoRepository", "Enviando petición DELETE /carrito/items/$itemIdLong")
-            val response = carritoService.eliminarItem(itemIdLong)
+            Log.d("CarritoRepository", "Enviando petición DELETE /carrito/items/$itemId")
+            val response = carritoService.eliminarItem(itemId)
             Log.d("CarritoRepository", "Respuesta recibida - Code: ${response.code()}, Success: ${response.isSuccessful}")
             
             if (response.isSuccessful && response.body() != null) {
@@ -320,8 +312,12 @@ class CarritoRepositoryRemote(
             .filter { it.activo == true } // Solo items activos
             .mapNotNull { itemDto ->
             try {
-                // Usar idItem si existe, sino id, sino convertir a String
-                val itemId = (itemDto.idItem ?: itemDto.id)?.toString() ?: ""
+                // Usar idItem si existe, sino id, convertir a String
+                val itemId = when {
+                    itemDto.idItem != null -> itemDto.idItem.toString()
+                    itemDto.id != null -> itemDto.id.toString()
+                    else -> ""
+                }
                 
                 // Intentar obtener el producto del DTO completo si existe
                 val producto = itemDto.producto?.let { ProductoMapper.mapProductoDto(it) }
