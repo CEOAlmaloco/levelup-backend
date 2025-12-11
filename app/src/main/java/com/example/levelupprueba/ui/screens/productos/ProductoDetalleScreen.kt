@@ -8,6 +8,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
@@ -48,6 +49,7 @@ import com.example.levelupprueba.ui.theme.LocalDimens
 import com.example.levelupprueba.ui.theme.SemanticColors
 import com.example.levelupprueba.viewmodel.CarritoViewModel
 import com.example.levelupprueba.viewmodel.ProductoDetalleViewModel
+import kotlinx.coroutines.flow.first
 import java.text.NumberFormat
 import java.util.*
 
@@ -65,12 +67,13 @@ fun ProductoDetalleScreen(
     onNavigateBack: () -> Unit = {}, //callback para volver atras
     contentPadding: PaddingValues,
     isLoggedIn: Boolean,
-    userDisplayName: String
+    userDisplayName: String,
+    userId: Long? = null
 ) {
     val estado by viewModel.estado.collectAsState() //traemos el estado del viewmodel, el by es para q se actualice solo
     val dimens = LocalDimens.current //traemos las dimensiones del tema para q sea responsive
     val carrito by carritoViewModel.carrito.collectAsState()
-
+    val context = LocalContext.current
     LaunchedEffect(productoId) { //esto se ejecuta cuando cambia el productoId, es como el useEffect de react
         viewModel.cargarProducto(productoId) //cargamos el producto con el id q nos llega
     }
@@ -114,9 +117,10 @@ fun ProductoDetalleScreen(
                     mostrarFormularioReview = estado.mostrarFormularioReview, //si mostramos el formulario de review o no
                     imagenSeleccionada = estado.imagenSeleccionada, //la imagen seleccionada del carrusel (por si agregamos mas imagenes dsp)
                     onToggleFormularioReview = { viewModel.toggleFormularioReview() }, //callback para mostrar/ocultar el formulario
-                    onAgregarReview = { rating, comentario, usuario -> //callback para agregar una review
-                        viewModel.agregarReview(rating, comentario, usuario) //le pasamos los parametros al viewmodel
+                    onAgregarReview = { rating, comentario, usuario, idUsuario -> //callback para agregar una review
+                        viewModel.agregarReview(rating, comentario, usuario, idUsuario) //le pasamos los parametros al viewmodel
                     },
+                    userId = userId,
                     onProductoRelacionadoClick = onProductoClick, //callback para cuando le dan click a un producto relacionado
                     userDisplayName = userDisplayName,
                     isLoggedIn = isLoggedIn
@@ -137,10 +141,11 @@ private fun ProductoDetalleContent( //esta funcion tiene TODO el contenido del d
     mostrarFormularioReview: Boolean, //si mostramos el formulario de review
     imagenSeleccionada: Int, //la imagen seleccionada (por si agregamos mas imagenes)
     onToggleFormularioReview: () -> Unit, //cuando le dan al boton de calificar
-    onAgregarReview: (Float, String, String) -> Unit, //cuando envian una review
+    onAgregarReview: (Float, String, String, Long?) -> Unit, //cuando envian una review
     onProductoRelacionadoClick: (String) -> Unit, //cuando le dan click a un producto relacionado
     userDisplayName: String,
-    isLoggedIn: Boolean
+    isLoggedIn: Boolean,
+    userId: Long?
 ) {
     val dimens = LocalDimens.current //dimensiones del tema
     val context = LocalContext.current //el contexto de android, lo necesitamos para compartir y eso
@@ -205,6 +210,7 @@ private fun ProductoDetalleContent( //esta funcion tiene TODO el contenido del d
                 mostrarFormulario = mostrarFormularioReview,
                 onToggleFormulario = onToggleFormularioReview,
                 onAgregarReview = onAgregarReview,
+                userId = userId,
                 dimens = dimens,
                 usuarioNombre = userDisplayName,
                 isLoggedIn = isLoggedIn
@@ -217,16 +223,34 @@ private fun ProductoDetalleContent( //esta funcion tiene TODO el contenido del d
 //SECCION VISUAL - LA IMAGEN GRANDE DEL PRODUCTO
 @Composable //esta funcion muestra la imagen principal del producto en un card bonito
 private fun SeccionVisual(
-    imagenUrl: String, //el nombre de la imagen q esta en drawable
+    imagenUrl: String, //URL de S3, Base64, o referencia a drawable
     nombre: String, //el nombre del producto para accesibilidad
     dimens: com.example.levelupprueba.ui.theme.Dimens //dimensiones del tema
 ) {
     val context = LocalContext.current
-    val imageResourceId = context.resources.getIdentifier( //buscamos la imagen en drawable
-        imagenUrl, //el nombre de la imagen sin extension
-        "drawable", //buscamos en la carpeta drawable
-        context.packageName //del package de la app
-    ) //esto es medio feo pq tenemos q tener las imagenes en drawable, despues lo cambiamos a urls remotas TODO
+    
+    // Logs para debugging
+    android.util.Log.d("ProductoDetalleScreen", "SeccionVisual - Nombre: $nombre")
+    android.util.Log.d("ProductoDetalleScreen", "SeccionVisual - Imagen original: $imagenUrl")
+    
+    // Usar MediaUrlResolver para resolver la URL de la imagen (S3, HTTP, Base64, etc.)
+    val resolvedImageUrl = com.example.levelupprueba.data.remote.MediaUrlResolver.resolve(imagenUrl)
+    android.util.Log.d("ProductoDetalleScreen", "SeccionVisual - Imagen resuelta: $resolvedImageUrl")
+    
+    // Si no se resolvió, intentar buscar en drawable como fallback
+    val imageData = if (resolvedImageUrl.isNotBlank()) {
+        resolvedImageUrl
+    } else if (imagenUrl.isNotBlank()) {
+        // Fallback: buscar en drawable resources
+        val imageResourceId = context.resources.getIdentifier(
+            imagenUrl,
+            "drawable",
+            context.packageName
+        )
+        if (imageResourceId != 0) imageResourceId else null
+    } else {
+        null
+    }
 
     Card( //envolvemos la imagen en un card para q tenga sombra y bordes redondeados, usamos Card de material3 pq LevelUpCard tiene padding interno
         modifier = Modifier
@@ -238,15 +262,31 @@ private fun SeccionVisual(
             containerColor = Color.White
         )
     ) {
-        AsyncImage( //usamos coil para cargar las imagenes de forma asincrona
-            model = ImageRequest.Builder(context)
-                .data(imageResourceId) //le pasamos el id de la imagen
-                .crossfade(true) //animacion de fade cuando carga
-                .build(),
-            contentDescription = nombre, //para accesibilidad
-            contentScale = ContentScale.Fit, //recorta la imagen para q llene todo el espacio
-            modifier = Modifier.fillMaxSize()
-        )
+        if (imageData != null) {
+            AsyncImage( //usamos coil para cargar las imagenes de forma asincrona
+                model = ImageRequest.Builder(context)
+                    .data(imageData) //le pasamos la URL de S3, Base64, o drawable resource
+                    .crossfade(true) //animacion de fade cuando carga
+                    .build(),
+                contentDescription = nombre, //para accesibilidad
+                contentScale = ContentScale.Fit, //recorta la imagen para q llene todo el espacio
+                modifier = Modifier.fillMaxSize()
+            )
+        } else {
+            // Placeholder si no hay imagen
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Sin imagen",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }
 //FIN SECCION VISUAL
@@ -259,9 +299,14 @@ private fun SeccionInformacion(
 ) {
 
     // Categoría - Subcategoría
-    val subcategoriaTexto = producto.subcategoria?.let { sub ->
-        "${producto.categoria.nombre} - ${sub.nombre}"
-    } ?: producto.categoria.nombre
+    val categoriaDisplay = producto.categoriaNombre ?: producto.categoria.nombre
+    val subcategoriaDisplay = producto.subcategoriaNombre ?: producto.subcategoria?.nombre
+    val subcategoriaTexto = subcategoriaDisplay?.let { "$categoriaDisplay - $it" } ?: categoriaDisplay
+
+    // Logs para debugging
+    android.util.Log.d("ProductoDetalleScreen", "SeccionInformacion - Producto: ${producto.nombre}")
+    android.util.Log.d("ProductoDetalleScreen", "SeccionInformacion - Rating: ${producto.rating}, RatingPromedio: ${producto.ratingPromedio}")
+    android.util.Log.d("ProductoDetalleScreen", "SeccionInformacion - Descripción: ${producto.descripcion.take(50)}...")
 
     LevelUpSpacedColumn( //usamos LevelUpSpacedColumn para espaciado automatico
         spacing = dimens.fieldSpacing, //espaciado entre campos
@@ -269,21 +314,21 @@ private fun SeccionInformacion(
     ) {
 
         LevelUpBadge( //el codigo del producto chiquitito
-            text = producto.id,
+            text = producto.codigo ?: producto.id,
             textColor = MaterialTheme.colorScheme.onSurface.copy(0.60f),
-            backgroundColor = MaterialTheme.colorScheme.surface.copy(0.80f),
+            backgroundColor = MaterialTheme.colorScheme.surface.copy(0.80f)
         )
 
         Text( //el nombre del producto bien grande y bold
             text = producto.nombre,
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.headlineMedium.copy(fontSize = dimens.titleSize),
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
         )
 
         Text( //La categoria y subcategoria del producto.
             text = subcategoriaTexto,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyMedium.copy(fontSize = dimens.subtitleSize),
             fontWeight = FontWeight.Normal,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -291,15 +336,17 @@ private fun SeccionInformacion(
         Row( //el rating con las estrellas y el numero
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Usar ratingPromedio si es > 0, sino usar rating base (igual que ProductoCard)
+            val rating = if (producto.ratingPromedio > 0f) producto.ratingPromedio else producto.rating
             ProductoRatingStars( //componente q hicimos para mostrar las estrellas
-                rating = producto.ratingPromedio, //el rating promedio calculado desde las reviews
-                starSize = dimens.smallIconSize, //tamaño de icono pequeño del tema
+                rating = rating, //el rating con fallback
+                starSize = dimens.iconSize, //tamaño de icono pequeño del tema
                 tint = SemanticColors.AccentYellow
             )
             Spacer(modifier = Modifier.width(dimens.smallSpacing))
             Text( //el numero del rating al lado de las estrellas
-                text = String.format("%.1f", producto.ratingPromedio), //formateamos a 1 decimal
-                style = MaterialTheme.typography.bodyMedium,
+                text = String.format("%.1f", rating), //formateamos a 1 decimal
+                style = MaterialTheme.typography.bodyMedium.copy(fontSize = dimens.bodySize),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -308,11 +355,11 @@ private fun SeccionInformacion(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Precio actual: con descuento si existe, sino el normal
-            val precioFinal = if ((producto.descuento ?: 0) > 0) producto.precioConDescuento!! else producto.precio
+            val precioFinal = if ((producto.descuento ?: 0) > 0) producto.precioConDescuento ?: producto.precio else producto.precio
 
             Text(
                 text = NumberFormat.getCurrencyInstance(Locale("es", "CL")).format(precioFinal),
-                style = MaterialTheme.typography.headlineLarge,
+                style = MaterialTheme.typography.headlineLarge.copy(fontSize = dimens.titleSize),
                 fontWeight = FontWeight.Bold,
                 color = if ((producto.descuento ?: 0) > 0) SemanticColors.AccentGreenSoft else MaterialTheme.colorScheme.onBackground,
                 fontSize = 32.sp
@@ -330,14 +377,15 @@ private fun SeccionInformacion(
                     text = NumberFormat.getCurrencyInstance(Locale("es", "CL")).format(producto.precio),
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textDecoration = TextDecoration.LineThrough
+                        textDecoration = TextDecoration.LineThrough,
+                        fontSize = dimens.captionSize
                     )
                 )
             }
         }
 
         Text( //la descripcion del producto
-            text = producto.descripcion,
+            text = producto.descripcion.takeIf { it.isNotBlank() } ?: "Descripción no disponible",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface,
             lineHeight = 24.sp //espaciado entre lineas para q se lea mejor
@@ -362,31 +410,31 @@ private fun SeccionOrigen(
         ) {
             Text( //el titulo de la seccion
                 text = "Origen del producto",
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium.copy(fontSize = dimens.titleSize),
                 fontWeight = FontWeight.Bold
             )
 
             Row { //fabricante en bold y el valor normal
                 Text(
                     text = "Fabricante: ",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = dimens.subtitleSize),
                     fontWeight = FontWeight.Bold
                 )
                 Text( //el nombre del fabricante
                     text = fabricante,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = dimens.bodySize)
                 )
             }
 
             Row { //distribuidor en bold y el valor normal
                 Text(
                     text = "Distribuidor: ",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = dimens.subtitleSize),
                     fontWeight = FontWeight.Bold
                 )
                 Text( //el nombre del distribuidor
                     text = distribuidor,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = dimens.bodySize)
                 )
             }
         }
@@ -514,7 +562,8 @@ private fun SeccionReviews(
     ratingPromedio: Float, //el rating promedio calculado
     mostrarFormulario: Boolean, //si mostramos el formulario de agregar review
     onToggleFormulario: () -> Unit, //callback para mostrar/ocultar el formulario
-    onAgregarReview: (Float, String, String) -> Unit, //callback para agregar una review
+    onAgregarReview: (Float, String, String, Long?) -> Unit, //callback para agregar una review
+    userId: Long?,
     dimens: com.example.levelupprueba.ui.theme.Dimens, //dimensiones del tema
     usuarioNombre: String,
     isLoggedIn: Boolean
@@ -535,7 +584,7 @@ private fun SeccionReviews(
             ) {
                 Text(
                     text = "Reseñas y calificaciones",
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.headlineSmall.copy(fontSize = dimens.titleSize),
                     fontWeight = FontWeight.Bold
                 )
 
@@ -557,7 +606,7 @@ private fun SeccionReviews(
                 Spacer(modifier = Modifier.width(dimens.smallSpacing))
                 Text( //el numero del rating al lado
                     text = String.format("%.1f", ratingPromedio),
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleLarge.copy(fontSize = dimens.subtitleSize),
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -572,6 +621,7 @@ private fun SeccionReviews(
                 onAgregarReview = onAgregarReview,
                 dimens = dimens,
                 usuarioNombre = usuarioNombre,
+                userId = userId,
                 isLoggedIn = isLoggedIn,
             ) //el formulario para agregar una review
         }
@@ -582,7 +632,7 @@ private fun SeccionReviews(
             ) {
                 Text( //mensaje motivando a ser el primero en opinar
                     text = "Sin reseñas aún. ¡Sé el primero en opinar!",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = dimens.bodySize),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -600,8 +650,9 @@ private fun SeccionReviews(
 @OptIn(ExperimentalMaterial3Api::class) //usamos apis experimentales
 @Composable //este es el formulario q aparece cuando le dan al boton de calificar
 private fun FormularioReview(
-    onAgregarReview: (Float, String, String) -> Unit, //callback para enviar la review
+    onAgregarReview: (Float, String, String, Long?) -> Unit, //callback para enviar la review
     usuarioNombre: String,
+    userId: Long?,
     isLoggedIn: Boolean,
     dimens: com.example.levelupprueba.ui.theme.Dimens //dimensiones del tema
 ) {
@@ -639,7 +690,12 @@ private fun FormularioReview(
                 LevelUpButton( //boton para enviar la review
                     onClick = {
                         if (comentario.isNotBlank()) { //validamos q no este vacio
-                            onAgregarReview(rating, comentario, usuarioNombre) //enviamos la review al viewmodel
+                            onAgregarReview(
+                                rating,
+                                comentario,
+                                usuarioNombre.ifBlank { "Usuario" },
+                                userId
+                            ) //enviamos la review al viewmodel con el id del usuario
                             comentario = "" //limpiamos el form
                             rating = 5f //volvemos al rating por defecto
                         } //TODO: agregar validacion de q el usuario este logueado
@@ -723,13 +779,13 @@ private fun SeccionCompartir(
         ) {
             Text(
                 text = "Soporte y Compartir",
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium.copy(fontSize = dimens.titleSize),
                 fontWeight = FontWeight.Bold
             )
             
             Text(
                 text = "¿Necesitas ayuda con este producto?",
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium.copy(fontSize = dimens.bodySize),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             

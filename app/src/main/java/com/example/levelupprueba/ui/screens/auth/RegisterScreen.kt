@@ -40,6 +40,9 @@ fun RegisterScreen(
     viewModel: UsuarioViewModel,
     mainViewModel: MainViewModel
 ){
+    // Contexto para el registro
+    val context = androidx.compose.ui.platform.LocalContext.current
+    
     // Observa el estado del formulario y errores en tiempo real desde el ViewModel
     val estado by viewModel.estado.collectAsState()
 
@@ -140,7 +143,7 @@ fun RegisterScreen(
                                     // Valida el formulario usando el ViewModel
                                     if (viewModel.validarRegistro()) {
                                         coroutineScope.launch {
-                                            viewModel.registrarUsuario()
+                                            viewModel.registrarUsuario(context)
                                         }
                                     }
                                 },

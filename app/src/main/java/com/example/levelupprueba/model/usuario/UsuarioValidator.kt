@@ -11,17 +11,34 @@ import java.time.format.DateTimeParseException
 
 object UsuarioValidator {
 
+    fun validarRun(run: String): FieldErrors? =
+        when {
+            run.isBlank() -> FieldErrors.Obligatorio("RUN")
+            else -> {
+                // Remover guiones y espacios para validar
+                val runLimpio = run.replace("-", "").replace(" ", "").uppercase()
+                if (!runLimpio.matches(Regex("^[0-9]{7,8}[0-9K]$"))) {
+                    UsuarioFieldErrors.RunInvalido
+                } else {
+                    null
+                }
+            }
+        }
+
     fun validarNombre(nombre: String): FieldErrors? =
         if (nombre.isBlank()) FieldErrors.Obligatorio("nombre") else null
 
     fun validarApellidos(apellidos: String): FieldErrors? =
         if (apellidos.isBlank()) FieldErrors.Obligatorio("apellidos") else null
 
+    // Expresión regular básica para validar formato de correo
+    private val EMAIL_REGEX =
+        Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")
+
     fun validarEmail(email: String): FieldErrors? =
         when {
             email.isBlank() -> FieldErrors.Obligatorio("correo")
             !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> UsuarioFieldErrors.EmailInvalido
-            !email.endsWith("@gmail.com") && !email.endsWith("@duoc.cl") -> UsuarioFieldErrors.EmailDominioNoPermitido
             else -> null
         }
 

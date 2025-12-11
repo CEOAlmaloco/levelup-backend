@@ -1,6 +1,7 @@
 package com.example.levelupprueba.ui.screens.blog
 
 // IMPORTAMOS LITERALMENTE TODO
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -133,23 +134,55 @@ fun BlogCard(blog: Blog) {//aca creamos la funcion para el blog card
                     .fillMaxWidth()
                     .height(200.dp)
             ) {
-                // Cargamos la imagen con Coil
+                // Usar MediaUrlResolver para resolver la URL de la imagen (S3, HTTP, Base64, drawable)
                 val context = LocalContext.current
-                val imageResourceId = context.resources.getIdentifier(
-                    blog.imagenUrl,
-                    "drawable",
-                    context.packageName
-                )
+                val resolvedImageUrl = com.example.levelupprueba.data.remote.MediaUrlResolver.resolve(blog.imagenUrl)
+                
+                Log.d("BlogCard", "Blog: ${blog.titulo}")
+                Log.d("BlogCard", "Imagen original: ${blog.imagenUrl}")
+                Log.d("BlogCard", "Imagen resuelta: $resolvedImageUrl")
+                
+                // Si no se resolvió, intentar buscar en drawable como fallback
+                val imageData = if (resolvedImageUrl.isNotBlank()) {
+                    resolvedImageUrl
+                } else if (blog.imagenUrl.isNotBlank()) {
+                    val imageResourceId = context.resources.getIdentifier(
+                        blog.imagenUrl,
+                        "drawable",
+                        context.packageName
+                    )
+                    if (imageResourceId != 0) imageResourceId else null
+                } else {
+                    null
+                }
 
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(imageResourceId)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = blog.titulo,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
+                if (imageData != null) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(imageData)
+                            .crossfade(true)
+                            .error(android.R.drawable.ic_menu_report_image)
+                            .placeholder(android.R.drawable.ic_menu_gallery)
+                            .build(),
+                        contentDescription = blog.titulo,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    // Placeholder si no hay imagen
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Sin imagen",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
 
                 // Etiqueta de categoría
                 Card(

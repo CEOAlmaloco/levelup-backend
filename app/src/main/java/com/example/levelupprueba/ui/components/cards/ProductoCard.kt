@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.levelupprueba.data.remote.MediaUrlResolver
 import com.example.levelupprueba.model.producto.Producto
 import com.example.levelupprueba.ui.components.LevelUpProductBadge
 import com.example.levelupprueba.ui.components.buttons.LevelUpButton
@@ -65,21 +66,55 @@ fun ProductoCard(
                     .background(MaterialTheme.colorScheme.onBackground)
             ) {
                 val context = LocalContext.current
-                val imageResId = context.resources.getIdentifier(
-                    producto.imagenUrl,
-                    "drawable",
-                    context.packageName
-                )
+                
+                // Usar MediaUrlResolver para resolver la URL de la imagen (S3, HTTP, Base64, etc.)
+                val resolvedImageUrl = MediaUrlResolver.resolve(producto.imagenUrl)
+                android.util.Log.d("ProductoCard", "Producto: ${producto.nombre}")
+                android.util.Log.d("ProductoCard", "Imagen original: ${producto.imagenUrl}")
+                android.util.Log.d("ProductoCard", "Imagen resuelta: $resolvedImageUrl")
+                
+                // Si no se resolvió, intentar buscar en drawable como fallback
+                val imageData = if (resolvedImageUrl.isNotBlank()) {
+                    resolvedImageUrl
+                } else if (producto.imagenUrl.isNotBlank()) {
+                    // Fallback: buscar en drawable resources
+                    val imageResourceId = context.resources.getIdentifier(
+                        producto.imagenUrl,
+                        "drawable",
+                        context.packageName
+                    )
+                    if (imageResourceId != 0) imageResourceId else null
+                } else {
+                    null
+                }
 
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(imageResId)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = producto.nombre,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
+                if (imageData != null) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(imageData)
+                            .crossfade(true)
+                            .error(android.R.drawable.ic_menu_report_image)
+                            .placeholder(android.R.drawable.ic_menu_gallery)
+                            .build(),
+                        contentDescription = producto.nombre,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    // Placeholder si no hay imagen
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Sin imagen",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
 
                 // Badge de disponibilidad/agotado en la esquina superior derecha
                 LevelUpProductBadge(
@@ -106,7 +141,7 @@ fun ProductoCard(
                 LevelUpProductBadge(
                     modifier = Modifier
                         .align(Alignment.BottomStart),
-                    text = producto.id,
+                    text = producto.codigo ?: "SKU ${producto.id}",
                     backgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
                     contentColor = MaterialTheme.colorScheme.onSurface,
                     font = FontWeight.Medium
@@ -150,9 +185,9 @@ fun ProductoCard(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 // Categoría - Subcategoría
-                val subcategoriaTexto = producto.subcategoria?.let { sub ->
-                    "${producto.categoria.nombre} - ${sub.nombre}"
-                } ?: producto.categoria.nombre
+                val categoriaDisplay = producto.categoriaNombre ?: producto.categoria.nombre
+                val subcategoriaDisplay = producto.subcategoriaNombre ?: producto.subcategoria?.nombre
+                val subcategoriaTexto = subcategoriaDisplay?.let { "$categoriaDisplay - $it" } ?: categoriaDisplay
 
                 Text(
                     text = subcategoriaTexto,
@@ -175,10 +210,12 @@ fun ProductoCard(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val rating = producto.ratingPromedio
+                    // Usar ratingPromedio si es > 0, sino usar rating base
+                    val rating = if (producto.ratingPromedio > 0f) producto.ratingPromedio else producto.rating
+                    val ratingInt = rating.toInt()
                     repeat(5) { i ->
                         Icon(
-                            imageVector = if (i < rating.toInt()) Icons.Default.Star else Icons.Outlined.StarOutline,
+                            imageVector = if (i < ratingInt) Icons.Default.Star else Icons.Outlined.StarOutline,
                             contentDescription = "Rating",
                             tint = SemanticColors.AccentYellow,
                             modifier = Modifier.size(dimens.smallIconSize)
@@ -196,18 +233,22 @@ fun ProductoCard(
                 Spacer(modifier = Modifier.height(dimens.mediumSpacing))
 
                 // Precio (con o sin descuento)
-                Text(
-                    text = NumberFormat.getCurrencyInstance(Locale("es", "CL"))
-                        .format(producto.precioConDescuento ?: producto.precio),
-                    style = MaterialTheme.typography.titleLarge.copy(fontSize = dimens.titleSize),
-                    fontWeight = FontWeight.Bold,
-                    color = SemanticColors.AccentGreenSoft
-                )
-
-                // Precio original tachado si hay descuento
+                val precioActual = producto.precioConDescuento ?: producto.precio
                 if ((producto.descuento ?: 0) > 0) {
                     Text(
+                        text = "Precio ahora",
+                        style = MaterialTheme.typography.labelMedium.copy(fontSize = dimens.captionSize),
+                        color = SemanticColors.AccentGreenSoft
+                    )
+                    Text(
                         text = NumberFormat.getCurrencyInstance(Locale("es", "CL"))
+                            .format(precioActual),
+                        style = MaterialTheme.typography.titleLarge.copy(fontSize = dimens.titleSize),
+                        fontWeight = FontWeight.Bold,
+                        color = SemanticColors.AccentGreenSoft
+                    )
+                    Text(
+                        text = "Precio antes: " + NumberFormat.getCurrencyInstance(Locale("es", "CL"))
                             .format(producto.precio),
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -217,6 +258,13 @@ fun ProductoCard(
                         modifier = Modifier.padding(top = 2.dp)
                     )
                 } else {
+                    Text(
+                        text = NumberFormat.getCurrencyInstance(Locale("es", "CL"))
+                            .format(precioActual),
+                        style = MaterialTheme.typography.titleLarge.copy(fontSize = dimens.titleSize),
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                     Spacer(modifier = Modifier.height(21.dp))
                 }
                 Spacer(modifier = Modifier.height(dimens.mediumSpacing))

@@ -3,13 +3,13 @@ package com.example.levelupprueba.viewmodel
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.levelupprueba.AuthActivity
-import com.example.levelupprueba.data.local.UserDataStore
 import com.example.levelupprueba.data.local.clearUserSession
+import com.example.levelupprueba.data.local.getUserSession
 import com.example.levelupprueba.data.local.saveUserSession
-import com.example.levelupprueba.data.repository.UsuarioRepository
 import com.example.levelupprueba.model.auth.LoginStatus
 import com.example.levelupprueba.model.auth.LoginUiState
 import com.example.levelupprueba.model.auth.LoginValidator
@@ -21,9 +21,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 // ViewModel que gestiona el estado y la logica del formulario de login
-class LoginViewModel(
-    private val usuarioRepository: UsuarioRepository
-) : ViewModel(){
+class LoginViewModel : ViewModel(){
     //Estado interno mutable: se guarda el estado actual del formulario
     private val _estado = MutableStateFlow(LoginUiState())
     //Estado expuesto: la UI observa este estado para mostrar los valores y errores
@@ -86,33 +84,75 @@ class LoginViewModel(
     ){
         viewModelScope.launch {
             _loginEstado.value = LoginStatus.Loading
-            delay(2000)
             try {
-
-                //Consulta usuarios desde Room
-                val usuarios = usuarioRepository.getAllUsuarios()
-                // Buscar usuario por email o nombre, y comparar password
-                val usuario = usuarios.find {
-                    (it.email.equals(emailOrName.trim(), ignoreCase = true) ||
-                            it.nombre.equals(emailOrName.trim(), ignoreCase = true)) &&
-                            it.password == password
-                }
-
-                if (usuario != null) {
-                    _loginEstado.value = LoginStatus.Success
+                // Llamar al backend para autenticación
+                val loginRequest = com.example.levelupprueba.data.remote.LoginRequest(
+                    correoUsuario = emailOrName.trim(),
+                    password = password
+                )
+                
+                val response = com.example.levelupprueba.data.remote.ApiConfig.authService.login(loginRequest)
+                
+                if (response.isSuccessful && response.body() != null) {
+                    val authResponse = response.body()!!
+                    val usuarioInfo = authResponse.usuario
+                    
+                    // Crear sesión con tokens
                     val session = UserSession(
-                        displayName = usuario.nombre.split(" ")[0],
+                        displayName = usuarioInfo.nombre.split(" ").firstOrNull() ?: usuarioInfo.nombre,
                         loginAt = System.currentTimeMillis(),
-                        userId = usuario.id,
-                        role = usuario.role
+                        userId = usuarioInfo.id,
+                        role = usuarioInfo.tipoUsuario.lowercase(),
+                        accessToken = authResponse.accessToken,
+                        refreshToken = authResponse.refreshToken,
+                        expiresIn = authResponse.expiresIn,
+                        email = usuarioInfo.correo,
+                        nombre = usuarioInfo.nombre,
+                        apellidos = usuarioInfo.apellidos,
+                        tipoUsuario = usuarioInfo.tipoUsuario,
+                        descuentoDuoc = usuarioInfo.descuentoDuoc,
+                        region = usuarioInfo.region,
+                        comuna = usuarioInfo.comuna
                     )
+                    
+                    // Guardar sesión en local storage
                     saveUserSession(context, session)
+                    
+                    // Configurar token en ApiConfig para futuras peticiones
+                    com.example.levelupprueba.data.remote.ApiConfig.setAuthToken(authResponse.accessToken)
+                    com.example.levelupprueba.data.remote.ApiConfig.setUserId(usuarioInfo.id.toString())
+
+                    // Otorgar puntos por inicio de sesión (microservicio referidos)
+                    try {
+                        val puntosResponse = com.example.levelupprueba.data.remote.ApiConfig.referidosService
+                            .otorgarPuntosInicioSesion(usuarioInfo.id)
+                        if (!puntosResponse.isSuccessful) {
+                            Log.w(
+                                "LoginViewModel",
+                                "No se pudieron otorgar puntos por inicio de sesión: ${puntosResponse.code()}"
+                            )
+                        }
+                    } catch (pointsError: Exception) {
+                        Log.e(
+                            "LoginViewModel",
+                            "Error al otorgar puntos por inicio de sesión",
+                            pointsError
+                        )
+                    }
+                    
+                    // Actualizar MainViewModel
                     mainViewModel.setUserSession(session)
+                    
+                    _loginEstado.value = LoginStatus.Success
                 } else {
-                    _loginEstado.value = LoginStatus.Error("Credenciales inválidas")
+                    val errorMessage = com.example.levelupprueba.data.remote.ErrorHandler.getErrorMessage(
+                        Exception("Error de autenticación: ${response.code()}")
+                    )
+                    _loginEstado.value = LoginStatus.Error(errorMessage)
                 }
             } catch (e: Exception) {
-                _loginEstado.value = LoginStatus.Error("Ocurrió un error: ${e.message}")
+                val errorMessage = com.example.levelupprueba.data.remote.ErrorHandler.getErrorMessage(e)
+                _loginEstado.value = LoginStatus.Error(errorMessage)
             }
         }
     }
@@ -140,16 +180,30 @@ class LoginViewModel(
 
     fun logout(context: Context, mainViewModel: MainViewModel){
         viewModelScope.launch {
-            clearUserSession(context) // Borrar datos de usuario
-            mainViewModel.setUserSession(null) // Borrar datos de usuario en MainViewModel
+            try {
+                // Llamar al backend para cerrar sesión
+                val session = getUserSession(context)
+                if (session != null && session.accessToken.isNotEmpty()) {
+                    // Configurar token antes de llamar al logout
+                    com.example.levelupprueba.data.remote.ApiConfig.setAuthToken(session.accessToken)
+                    com.example.levelupprueba.data.remote.ApiConfig.authService.logout()
+                }
+            } catch (e: Exception) {
+                // Si falla el logout en el backend, continuar con el logout local
+                android.util.Log.e("LoginViewModel", "Error al cerrar sesión en backend: ${e.message}")
+            } finally {
+                // Limpiar sesión local
+                clearUserSession(context)
+                com.example.levelupprueba.data.remote.ApiConfig.clear()
+                mainViewModel.setUserSession(null)
 
-            // Iniciar la actividad de autenticación en WelcomeScreen
-            val intent = Intent(context, AuthActivity::class.java) // Cambiar a AuthActivity
-            intent.putExtra("startDestination", "welcome") // Establecer la pantalla de inicio
-            // Borrar todas las actividades de la pila
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            context.startActivity(intent) // Se inicia la actividad
-            (context as? Activity)?.finish() // Se finaliza la actividad de ahora (MainActivity)
+                // Iniciar la actividad de autenticación en WelcomeScreen
+                val intent = Intent(context, AuthActivity::class.java)
+                intent.putExtra("startDestination", "welcome")
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                context.startActivity(intent)
+                (context as? Activity)?.finish()
+            }
         }
     }
 }

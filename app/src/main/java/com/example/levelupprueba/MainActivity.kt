@@ -15,10 +15,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
-import com.example.levelupprueba.data.local.AppDatabase
-import com.example.levelupprueba.data.local.room.CarritoDatabase
-import com.example.levelupprueba.data.repository.CarritoRepositoryRoom
-import com.example.levelupprueba.data.repository.UsuarioRepository
+import com.example.levelupprueba.data.repository.CarritoProvider
+import com.example.levelupprueba.data.repository.NotificacionesRepositoryRemote
+import com.example.levelupprueba.navigation.NavigationEvents
 import com.example.levelupprueba.ui.screens.main.MainScreen
 import com.example.levelupprueba.ui.theme.LevelUpPruebaTheme
 import com.example.levelupprueba.viewmodel.BlogViewModel
@@ -34,20 +33,19 @@ import com.example.levelupprueba.viewmodel.ChangePasswordViewModel
 import com.example.levelupprueba.viewmodel.ChangePasswordViewModelFactory
 import com.example.levelupprueba.viewmodel.ProductoViewModel
 import com.example.levelupprueba.viewmodel.ProductoDetalleViewModel
-import com.example.levelupprueba.viewmodel.ProductoDetalleViewModelFactory
 import com.example.levelupprueba.viewmodel.ProfileViewModel
 import com.example.levelupprueba.viewmodel.ProfileViewModelFactory
 import com.example.levelupprueba.viewmodel.UsuarioViewModel
-import com.example.levelupprueba.viewmodel.UsuarioViewModelFactory
+import com.example.levelupprueba.viewmodel.UsuariosViewModel
+import com.example.levelupprueba.viewmodel.UsuariosViewModelFactory
 
 
-//Todo lo que pongamos dentro de setcontent sera la interfaz
-class MainActivity : ComponentActivity() {
+
+class   MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         // Detecta si es tablet usando smallestScreenWidthDp
         val isTablet = resources.configuration.smallestScreenWidthDp >= 600
 
@@ -65,32 +63,28 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
 
             val context = LocalContext.current
-            val database = AppDatabase.getInstance(context) //traemos la instancia de la bd completa
-            val usuarioDao = database.usuarioDao() //obtenemos el dao de usuarios
-            val reviewDao = database.reviewDao() //obtenemos el dao de reviews para los productos
-            val carritoDao = CarritoDatabase.get(context).carritoDao()
-            val carritoRepo = CarritoRepositoryRoom(carritoDao)
-            val usuarioRepository = UsuarioRepository(usuarioDao)
+            val carritoRepo = CarritoProvider.get(context)
+            val notificacionesRepository = NotificacionesRepositoryRemote()
 
             // Factories - las fabricas para crear viewmodels con parametros personalizados
-            val mainViewModelFactory = MainViewModelFactory(context, usuarioRepository)
-            val eventoViewModelFactory = EventoViewModelFactory(usuarioRepository)
-            val loginViewModelFactory = LoginViewModelFactory(usuarioRepository)
-            val productoDetalleViewModelFactory = ProductoDetalleViewModelFactory(reviewDao) //factory con el reviewDao
+            val mainViewModelFactory = MainViewModelFactory(context)
+            val usuariosViewModelFactory = UsuariosViewModelFactory()
+            val eventoViewModelFactory = EventoViewModelFactory()
+            val loginViewModelFactory = LoginViewModelFactory()
             val carritoViewModelFactory = CarritoViewModelFactory(carritoRepo)
-            val profileViewModelFactory = ProfileViewModelFactory(usuarioRepository)
-            val changePasswordViewModelFactory = ChangePasswordViewModelFactory(usuarioRepository)
+            val profileViewModelFactory = ProfileViewModelFactory(notificacionesRepository)
+            val changePasswordViewModelFactory = ChangePasswordViewModelFactory()
 
             // ViewModels - aca creamos los viewmodels, algunos con factory y otros sin factory
             val eventoViewModel: EventoViewModel = viewModel(factory = eventoViewModelFactory)
-            val usuarioViewModelFactory = UsuarioViewModelFactory(usuarioRepository, eventoViewModel)
-            val usuarioViewModel: UsuarioViewModel = viewModel(factory = usuarioViewModelFactory)
+            val usuarioViewModel: UsuarioViewModel = viewModel()
+            val usuariosViewModel: UsuariosViewModel = viewModel(factory = usuariosViewModelFactory)
             val mainViewModel: MainViewModel = viewModel(factory = mainViewModelFactory)
             val loginViewModel: LoginViewModel = viewModel(factory = loginViewModelFactory)
             val blogViewModel: BlogViewModel = viewModel()
             val productoViewModel: ProductoViewModel = viewModel()
             val carritoViewModel: CarritoViewModel = viewModel(factory = carritoViewModelFactory)
-            val productoDetalleViewModel: ProductoDetalleViewModel = viewModel(factory = productoDetalleViewModelFactory) //ahora usa SQLite
+            val productoDetalleViewModel: ProductoDetalleViewModel = viewModel()
             val profileViewModel: ProfileViewModel = viewModel(factory = profileViewModelFactory)
             val changePasswordViewModel: ChangePasswordViewModel = viewModel(factory = changePasswordViewModelFactory)
 
@@ -105,16 +99,9 @@ class MainActivity : ComponentActivity() {
 
                 mainViewModel.navigationEvent.collect { event ->
                     when (event) {
-                        is com.example.levelupprueba.navigation.NavigationEvents.NavigateTo -> {
-                            navController.navigate(event.route)
-                        }
-                        is com.example.levelupprueba.navigation.NavigationEvents.NavigateBack -> {
-                            navController.popBackStack()
-                        }
-                        is com.example.levelupprueba.navigation.NavigationEvents.NavigateUp -> {
-                            navController.navigateUp()
-                        }
-                        null -> {}
+                        is NavigationEvents.NavigateTo -> navController.navigate(event.route)
+                        is NavigationEvents.NavigateBack -> navController.popBackStack()
+                        else -> navController.navigateUp()
                     }
                 }
             }
@@ -131,6 +118,7 @@ class MainActivity : ComponentActivity() {
                     mainViewModel = mainViewModel,
                     navController = navController,
                     usuarioViewModel = usuarioViewModel,
+                    usuariosViewModel = usuariosViewModel,
                     loginViewModel = loginViewModel,
                     blogViewModel = blogViewModel,
                     productoViewModel = productoViewModel,

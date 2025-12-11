@@ -26,9 +26,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.levelupprueba.data.remote.MediaUrlResolver
 import com.example.levelupprueba.model.producto.ImagenCarrusel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.example.levelupprueba.R
 
 @Composable
 fun CarruselComponent(
@@ -158,16 +160,32 @@ fun CarruselItem(
             .clip(RoundedCornerShape(16.dp))
     ) {
         val context = LocalContext.current
-        val imageResourceId = context.resources.getIdentifier(
-            imagen.imagenUrl,
-            "drawable",
-            context.packageName
-        )
+        
+        // Usar MediaUrlResolver para resolver la URL (S3, HTTP, Base64, drawable)
+        val resolvedUrl = MediaUrlResolver.resolve(imagen.imagenUrl)
+        
+        android.util.Log.d("CarruselItem", "Imagen carrusel original: ${imagen.imagenUrl}")
+        android.util.Log.d("CarruselItem", "Imagen carrusel resuelta: $resolvedUrl")
+        
+        // Si no se resolvió como URL, intentar como drawable
+        val imageModel = if (resolvedUrl.isNotBlank() && 
+            (resolvedUrl.startsWith("http://") || resolvedUrl.startsWith("https://") || resolvedUrl.startsWith("data:image"))) {
+            resolvedUrl
+        } else {
+            val imageResourceId = context.resources.getIdentifier(
+                imagen.imagenUrl,
+                "drawable",
+                context.packageName
+            )
+            if (imageResourceId != 0) imageResourceId else R.drawable.levelup_logo
+        }
 
         AsyncImage(
             model = ImageRequest.Builder(context)
-                .data(imageResourceId)
+                .data(imageModel)
                 .crossfade(true)
+                .error(R.drawable.levelup_logo)
+                .placeholder(R.drawable.levelup_logo)
                 .build(),
             contentDescription = imagen.titulo,
             contentScale = ContentScale.Crop,

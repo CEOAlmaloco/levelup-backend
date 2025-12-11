@@ -4,7 +4,8 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.levelupprueba.data.local.getUserSessionFlow
-import com.example.levelupprueba.data.repository.UsuarioRepository
+import com.example.levelupprueba.data.remote.ApiConfig
+import com.example.levelupprueba.data.remote.MediaUrlResolver
 import com.example.levelupprueba.model.auth.UserSession
 import kotlinx.coroutines.flow.StateFlow
 import com.example.levelupprueba.navigation.NavigationEvents
@@ -13,11 +14,13 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class MainViewModel(
-    private val usuarioRepository: UsuarioRepository,
-    context: Context) : ViewModel() {
+    context: Context
+) : ViewModel() {
+    private val appContext = context.applicationContext
     private val _navigationEvent = MutableSharedFlow<NavigationEvents>()
     val navigationEvent: SharedFlow<NavigationEvents> = _navigationEvent
 
@@ -35,13 +38,14 @@ class MainViewModel(
 
     init {
         viewModelScope.launch {
-            getUserSessionFlow(context).collect { session ->
+            getUserSessionFlow(appContext).collect { session ->
                 _userSessionFlow.value = session
-                // Si hay sesión, carga el avatar del usuario de Room
-                if (session.userId.isNotBlank()) {
-                    val usuario = usuarioRepository.getUsuarioById(session.userId)
-                    _avatar.value = usuario?.avatar
+                if (session.accessToken.isNotBlank() && session.userId > 0) {
+                    ApiConfig.setAuthToken(session.accessToken)
+                    ApiConfig.setUserId(session.userId.toString())
+                    cargarAvatarRemoto()
                 } else {
+                    ApiConfig.clear()
                     _avatar.value = null
                 }
             }
@@ -50,10 +54,18 @@ class MainViewModel(
 
     fun setUserSession(session: UserSession?) {
         _userSessionFlow.value = session
+        if (session != null && session.accessToken.isNotBlank() && session.userId > 0) {
+            ApiConfig.setAuthToken(session.accessToken)
+            ApiConfig.setUserId(session.userId.toString())
+            viewModelScope.launch { cargarAvatarRemoto() }
+        } else {
+            ApiConfig.clear()
+            _avatar.value = null
+        }
     }
 
     fun updateAvatar(path: String?) {
-        _avatar.value = path
+        _avatar.value = path?.let { MediaUrlResolver.resolve(it) }
     }
 
     suspend fun navigateTo(route: String) {
@@ -81,5 +93,18 @@ class MainViewModel(
     }
     fun clearSnackbar() {
         _globalSnackbarState.value = GlobalSnackbarState.Idle
+    }
+
+    private suspend fun cargarAvatarRemoto() {
+        try {
+            val response = ApiConfig.usuarioService.getPerfil()
+            if (response.isSuccessful) {
+                val usuarioDto = response.body()
+                val resolvedAvatar = usuarioDto?.avatar ?: usuarioDto?.avatarUrl
+                _avatar.value = resolvedAvatar?.let { MediaUrlResolver.resolve(it) }
+            }
+        } catch (_: Exception) {
+            // Ignoramos errores de avatar para no interrumpir la sesión del usuario.
+        }
     }
 }

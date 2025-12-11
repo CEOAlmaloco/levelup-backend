@@ -10,6 +10,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.NavType
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.rememberCoroutineScope
+import com.example.levelupprueba.ui.screens.admin.users.AdminUsuariosScreen
 import com.example.levelupprueba.ui.screens.home.HomeScreenProductos
 import com.example.levelupprueba.ui.screens.productos.ProductosScreen
 import com.example.levelupprueba.ui.screens.productos.ProductoDetalleScreen
@@ -29,6 +30,7 @@ fun MainNavGraph(
     startDestination: String,
     mainViewModel: MainViewModel,
     usuarioViewModel: UsuarioViewModel,
+    usuariosViewModel: UsuariosViewModel,
     loginViewModel: LoginViewModel,
     blogViewModel: BlogViewModel,
     productoViewModel: ProductoViewModel,
@@ -106,7 +108,8 @@ fun MainNavGraph(
                 contentPadding = innerPadding,
                 userDisplayName = userDisplayName ?: "Invitado",
                 isLoggedIn = isLoggedIn,
-                carritoViewModel = carritoViewModel
+                carritoViewModel = carritoViewModel,
+                userId = userSessionId?.toLongOrNull()
             )
         }
 
@@ -132,8 +135,6 @@ fun MainNavGraph(
         composable(Screen.Perfil.route) {
             when {
                 isLoading -> {
-                    // tu overlay interno ya es manejado en MainScreen/ProfileStatusHandler,
-                    // aquí puedes mostrar un placeholder o simplemente la pantalla si no está cargando
                 }
                 isLoggedIn -> {
                     ProfileScreen(
@@ -157,6 +158,13 @@ fun MainNavGraph(
                 contentPadding = innerPadding,
             )
         } // Fin carritoScreen
+
+        composable(Screen.GestionUsuarios.route){
+            AdminUsuariosScreen(
+                viewModel = usuariosViewModel,
+                contentPadding = innerPadding
+            )
+        }
     }
 }
 

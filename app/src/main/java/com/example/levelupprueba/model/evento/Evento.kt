@@ -11,6 +11,15 @@ data class Evento(
     val puntos: Int = 0,
     val latitud: Double = 0.0,
     val longitud: Double = 0.0,
-    val descripcion: String = ""
+    val descripcion: String = "",
+    val categoria: String = "",
+    val capacidadMaxima: Int = 0,
+    val participantesActuales: Int = 0,
+    val cuposDisponibles: Int = 0,
+    val precio: Double = 0.0,
+    val estado: String = "",
+    val imagenUrl: String = "",
+    val bannerUrl: String? = null,
+    val imagenesUrls: List<String> = emptyList()
 )
 

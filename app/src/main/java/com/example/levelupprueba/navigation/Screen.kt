@@ -17,7 +17,9 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
 
     object Carrito : Screen("carrito", "Carrito", Icons.Filled.ShoppingCart)
 
+    object GestionUsuarios : Screen("gestion_usuarios", "Usuarios", Icons.Filled.Group)
+
     object Screens {
-        val all = listOf(Home, Productos, Blog, Eventos, Perfil, Carrito)
+        val all = listOf(Home, Productos, Blog, Eventos, Perfil, Carrito, GestionUsuarios)
     }
 }

@@ -14,10 +14,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
-import com.example.levelupprueba.data.local.AppDatabase
-import com.example.levelupprueba.data.local.UserDataStore
-import com.example.levelupprueba.data.repository.UsuarioRepository
-import com.example.levelupprueba.model.usuario.Usuario
 import com.example.levelupprueba.navigation.AuthNavigation
 import com.example.levelupprueba.ui.theme.LevelUpPruebaTheme
 import com.example.levelupprueba.viewmodel.LoginViewModel
@@ -25,7 +21,6 @@ import com.example.levelupprueba.viewmodel.LoginViewModelFactory
 import com.example.levelupprueba.viewmodel.MainViewModel
 import com.example.levelupprueba.viewmodel.MainViewModelFactory
 import com.example.levelupprueba.viewmodel.UsuarioViewModel
-import com.example.levelupprueba.viewmodel.UsuarioViewModelFactory
 import kotlinx.coroutines.launch
 
 
@@ -56,18 +51,13 @@ class AuthActivity : ComponentActivity() {
 
             val context = LocalContext.current
 
-            // DAO y Repository
-            val usuarioDao = AppDatabase.getInstance(context).usuarioDao()
-            val usuarioRepository = UsuarioRepository(usuarioDao)
-
             // Instanciar Factories
-            val mainViewModelFactory = MainViewModelFactory(context, usuarioRepository)
-            val usuarioViewModelFactory = UsuarioViewModelFactory(usuarioRepository)
-            val loginViewModelFactory = LoginViewModelFactory(usuarioRepository)
+            val mainViewModelFactory = MainViewModelFactory(context)
+            val loginViewModelFactory = LoginViewModelFactory()
 
             // Instanciar ViewModels
             val mainViewModel: MainViewModel = viewModel(factory = mainViewModelFactory)
-            val usuarioViewModel: UsuarioViewModel = viewModel(factory = usuarioViewModelFactory)
+            val usuarioViewModel: UsuarioViewModel = viewModel()
             val loginViewModel: LoginViewModel = viewModel(factory = loginViewModelFactory)
 
             LaunchedEffect(Unit) {

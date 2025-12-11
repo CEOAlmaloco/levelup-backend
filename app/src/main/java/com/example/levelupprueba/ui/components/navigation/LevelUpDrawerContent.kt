@@ -54,6 +54,7 @@ fun LevelUpDrawerContent(
                 "Productos" -> onNavigate(Screen.Productos.route)
                 "Blog" -> onNavigate(Screen.Blog.route)
                 "Eventos" -> onNavigate(Screen.Eventos.route)
+                "Usuarios" -> onNavigate(Screen.GestionUsuarios.route)
                 else -> Unit
             }
         },

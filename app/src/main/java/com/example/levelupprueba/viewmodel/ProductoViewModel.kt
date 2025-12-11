@@ -21,20 +21,26 @@ class ProductoViewModel(private val repository: ProductoRepository = ProductoRep
     private val _imagenesCarrusel = MutableStateFlow<List<ImagenCarrusel>>(emptyList())
     val imagenesCarrusel: StateFlow<List<ImagenCarrusel>> = _imagenesCarrusel//lo mismo de antes pero con imagenesCarrusel
 
+    private val _logoUrl = MutableStateFlow<String>("")
+    val logoUrl: StateFlow<String> = _logoUrl
+
     private var todosLosProductos: List<Producto> = emptyList()//se crea una lista de productos para que se actualice en tiempo real
 
     init {//se carga los productos y las imagenes del carrusel antes de que se muestre la pantalla
         cargarProductos()
         cargarImagenesCarrusel()
+        cargarLogo()
     }
 
     private fun cargarProductos() {//esta funcion se encarga de cargar los productos y los destacados
         viewModelScope.launch {// el scope es un contenedor para las corrutinas y la launch es para lanzar la corrutina
+            android.util.Log.d("ProductoViewModel", "Iniciando carga de productos...")
             _estado.update { it.copy(isLoading = true, error = null) }//se actualiza el estado para que se muestre el loading y el error
             try {
-                delay(500)//se simula el delay de la api
-                todosLosProductos = repository.obtenerProductos()//se obtienen los productos
+                todosLosProductos = repository.obtenerProductos()//se obtienen los productos desde el backend
+                android.util.Log.d("ProductoViewModel", "Productos obtenidos: ${todosLosProductos.size}")
                 val destacados = repository.obtenerProductosDestacados()//se obtienen los productos destacados
+                android.util.Log.d("ProductoViewModel", "Productos destacados obtenidos: ${destacados.size}")
                 //se actualiza el estado para que se muestre los productos y los destacados
                 _estado.update {
                     it.copy(
@@ -43,7 +49,10 @@ class ProductoViewModel(private val repository: ProductoRepository = ProductoRep
                         isLoading = false//y seteamos el loading y el error a false pq ya cargo
                     )
                 }
+                android.util.Log.d("ProductoViewModel", "Estado actualizado correctamente")
             } catch (e: Exception) {
+                android.util.Log.e("ProductoViewModel", "Error al cargar productos: ${e.message}", e)
+                e.printStackTrace()
                 _estado.update {
                     it.copy(
                         isLoading = false,
@@ -62,6 +71,18 @@ class ProductoViewModel(private val repository: ProductoRepository = ProductoRep
             } catch (e: Exception) {
                 // Si falla la carga, dejamos la lista vacia (ya inicializada)
                 _imagenesCarrusel.value = emptyList()
+            }
+        }
+    }
+
+    private fun cargarLogo() {
+        viewModelScope.launch {
+            try {
+                val url = repository.obtenerLogoUrl()
+                _logoUrl.value = url
+            } catch (e: Exception) {
+                // Si falla la carga, dejamos la URL vacía (se usará el drawable local como fallback)
+                _logoUrl.value = ""
             }
         }
     }
