@@ -17,6 +17,7 @@ import kotlinx.coroutines.withContext
 // Importar DTOs del paquete remote (clases de nivel superior, no anidadas)
 import com.example.levelupprueba.data.remote.AgregarItemRequest
 import com.example.levelupprueba.data.remote.ActualizarCantidadRequest
+import com.example.levelupprueba.data.remote.CarritoCreationRequest
 import com.example.levelupprueba.data.remote.CarritoDto
 import com.example.levelupprueba.data.remote.ItemCarritoDto
 
@@ -257,8 +258,18 @@ class CarritoRepositoryRemote(
         }
 
         // Si no está en ningún lado, obtener del backend
+        val userId = ApiConfig.getUserId()
+        if (userId == null) {
+            throw Exception("Usuario no autenticado")
+        }
+
+        val userIdLong = userId.toLongOrNull()
+            ?: throw Exception("ID de usuario inválido: $userId")
+
+        Log.d("CarritoRepository", "Intentando obtener carrito activo del backend")
         val response = carritoService.getCarritoActivo()
         val carritoDto = response.body()
+        
         if (response.isSuccessful && carritoDto != null) {
             val carritoId = carritoDto.idCarrito ?: carritoDto.id
             if (carritoId != null) {
@@ -268,6 +279,35 @@ class CarritoRepositoryRemote(
                 return@withContext carritoId
             }
         }
+
+        // Si no hay carrito activo (código 400 o 404), crear uno nuevo
+        if (response.code() == 400 || response.code() == 404) {
+            Log.d("CarritoRepository", "No hay carrito activo (código ${response.code()}), creando uno nuevo")
+            try {
+                val createRequest = CarritoCreationRequest(
+                    idUsuario = userIdLong,
+                    codigoPromocional = null,
+                    notasCarrito = null
+                )
+                val createResponse = carritoService.crearCarrito(createRequest)
+                
+                if (createResponse.isSuccessful && createResponse.body() != null) {
+                    val nuevoCarritoDto = createResponse.body()!!
+                    val nuevoCarritoId = nuevoCarritoDto.idCarrito ?: nuevoCarritoDto.id
+                    if (nuevoCarritoId != null) {
+                        carritoIdCache = nuevoCarritoId
+                        saveCarritoId(context, nuevoCarritoId) // Persistir en DataStore
+                        Log.d("CarritoRepository", "Carrito nuevo creado exitosamente - ID: $nuevoCarritoId")
+                        return@withContext nuevoCarritoId
+                    }
+                }
+                throw Exception("No se pudo crear el carrito: código ${createResponse.code()}")
+            } catch (e: Exception) {
+                Log.e("CarritoRepository", "Error al crear carrito nuevo: ${e.message}", e)
+                throw Exception("No se pudo crear el carrito: ${e.message}")
+            }
+        }
+        
         throw Exception("No se pudo obtener el carrito activo: código ${response.code()}")
     }
 

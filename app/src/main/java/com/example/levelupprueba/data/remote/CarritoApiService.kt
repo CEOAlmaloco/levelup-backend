@@ -20,6 +20,13 @@ interface CarritoApiService {
     suspend fun getCarritoActivo(): Response<CarritoDto>
     
     /**
+     * Crea un nuevo carrito para el usuario
+     * Requiere header X-User-Id (se agrega automáticamente en ApiConfig)
+     */
+    @POST("carrito")
+    suspend fun crearCarrito(@Body request: CarritoCreationRequest): Response<CarritoDto>
+    
+    /**
      * Agrega un item al carrito
      */
     @POST("carrito/items")
@@ -30,7 +37,7 @@ interface CarritoApiService {
      */
     @PUT("carrito/items/{itemId}")
     suspend fun actualizarCantidad(
-        @Path("itemId") itemId: Long,
+        @Path("itemId") itemId: String,
         @Body request: ActualizarCantidadRequest
     ): Response<CarritoDto>
     
@@ -38,7 +45,7 @@ interface CarritoApiService {
      * Elimina un item del carrito
      */
     @DELETE("carrito/items/{itemId}")
-    suspend fun eliminarItem(@Path("itemId") itemId: Long): Response<CarritoDto>
+    suspend fun eliminarItem(@Path("itemId") itemId: String): Response<CarritoDto>
     
     /**
      * Vacía el carrito
@@ -46,6 +53,18 @@ interface CarritoApiService {
     @DELETE("carrito/vaciar")
     suspend fun vaciarCarrito(): Response<Unit>
 }
+
+/**
+ * Request para crear carrito
+ */
+data class CarritoCreationRequest(
+    @SerializedName("idUsuario")
+    val idUsuario: Long,
+    @SerializedName("codigoPromocional")
+    val codigoPromocional: String? = null,
+    @SerializedName("notasCarrito")
+    val notasCarrito: String? = null
+)
 
 /**
  * Request para agregar item
