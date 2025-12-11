@@ -88,23 +88,70 @@ data class ActualizarCantidadRequest(
  * DTO de Carrito
  */
 data class CarritoDto(
-    val id: Long?,
-    val usuarioId: Long?,
-    val items: List<ItemCarritoDto>,
-    val total: Double?,
-    val estado: String?,
-    val createdAt: String?,
-    val updatedAt: String?
+    @SerializedName("idCarrito")
+    val idCarrito: Long? = null,
+    @SerializedName("id")
+    val id: Long? = null,
+    @SerializedName("idUsuario")
+    val idUsuario: Long? = null,
+    @SerializedName("usuarioId")
+    val usuarioId: Long? = null,
+    @SerializedName("items")
+    val items: List<ItemCarritoDto>? = null,
+    @SerializedName("total")
+    val total: Double? = null,
+    @SerializedName("totalCarrito")
+    val totalCarrito: Double? = null,
+    @SerializedName("totalFinal")
+    val totalFinal: Double? = null,
+    @SerializedName("estado")
+    val estado: String? = null,
+    @SerializedName("estadoCarrito")
+    val estadoCarrito: String? = null,
+    @SerializedName("createdAt")
+    val createdAt: String? = null,
+    @SerializedName("updatedAt")
+    val updatedAt: String? = null,
+    @SerializedName("fechaCreacion")
+    val fechaCreacion: String? = null,
+    @SerializedName("fechaActualizacion")
+    val fechaActualizacion: String? = null
 )
 
 /**
  * DTO de Item del Carrito
  */
 data class ItemCarritoDto(
-    val id: String,
-    val productoId: Long?,
-    val producto: ProductoDto,
-    val cantidad: Int,
-    val precioUnitario: Double,
-    val subtotal: Double
+    @SerializedName("idItem")
+    val idItem: Long? = null,
+    @SerializedName("id")
+    val id: Long? = null,
+    @SerializedName("idCarrito")
+    val idCarrito: Long? = null,
+    @SerializedName("idProducto")
+    val idProducto: Long? = null,
+    @SerializedName("productoId")
+    val productoId: Long? = null,
+    @SerializedName("nombreProducto")
+    val nombreProducto: String? = null,
+    @SerializedName("descripcionProducto")
+    val descripcionProducto: String? = null,
+    @SerializedName("producto")
+    val producto: ProductoDto? = null,
+    @SerializedName("cantidad")
+    val cantidad: Int = 0,
+    @SerializedName("precioUnitario")
+    val precioUnitario: Double? = null,
+    @SerializedName("subtotal")
+    val subtotal: Double? = null,
+    @SerializedName("totalItem")
+    val totalItem: Double? = null,
+    @SerializedName("descuentoAplicado")
+    val descuentoAplicado: Double? = null,
+    @SerializedName("impuestoAplicado")
+    val impuestoAplicado: Double? = null,
+    @SerializedName("estadoItem")
+    val estadoItem: String? = null,
+    @SerializedName("activo")
+    val activo: Boolean? = null
 )
