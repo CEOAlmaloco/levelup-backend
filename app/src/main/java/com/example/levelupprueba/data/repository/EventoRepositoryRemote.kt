@@ -47,8 +47,16 @@ class EventoRepositoryRemote {
                 // Si hay error, retornar lista vacía
                 emptyList()
             }
+        } catch (e: java.net.SocketTimeoutException) {
+            Log.e("EventoRepository", "Timeout al conectar con el servidor de eventos. El microservicio puede no estar corriendo.", e)
+            // Retornar lista vacía en caso de timeout (servicio no disponible)
+            emptyList()
+        } catch (e: java.net.ConnectException) {
+            Log.e("EventoRepository", "No se pudo conectar con el servidor de eventos. Verifica que el microservicio esté corriendo.", e)
+            // Retornar lista vacía en caso de error de conexión
+            emptyList()
         } catch (e: Exception) {
-            Log.e("EventoRepository", "Excepción al obtener eventos", e)
+            Log.e("EventoRepository", "Excepción al obtener eventos: ${e.javaClass.simpleName} - ${e.message}", e)
             // En caso de excepción, retornar lista vacía
             emptyList()
         }
@@ -79,8 +87,14 @@ class EventoRepositoryRemote {
                 )
                 emptyList()
             }
+        } catch (e: java.net.SocketTimeoutException) {
+            Log.e("EventoRepository", "Timeout al conectar con el servidor de eventos. El microservicio puede no estar corriendo.", e)
+            emptyList()
+        } catch (e: java.net.ConnectException) {
+            Log.e("EventoRepository", "No se pudo conectar con el servidor de eventos. Verifica que el microservicio esté corriendo.", e)
+            emptyList()
         } catch (e: Exception) {
-            Log.e("EventoRepository", "Excepción al obtener proximos eventos", e)
+            Log.e("EventoRepository", "Excepción al obtener proximos eventos: ${e.javaClass.simpleName} - ${e.message}", e)
             emptyList()
         }
     }

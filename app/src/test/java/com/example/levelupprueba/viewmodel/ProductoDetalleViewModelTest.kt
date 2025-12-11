@@ -29,7 +29,7 @@ class ProductoDetalleViewModelTest {
 
     @Test
     fun `cargarProducto exitoso compone detalle con reviews y relacionados`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<ProductoRepository>()
@@ -68,7 +68,7 @@ class ProductoDetalleViewModelTest {
 
     @Test
     fun `cargarProducto con error expone mensaje y deja producto null`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<ProductoRepository>()
@@ -94,7 +94,7 @@ class ProductoDetalleViewModelTest {
 
     @Test
     fun `cargarProducto sin reviews ni relacionados funciona sin error`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<ProductoRepository>()

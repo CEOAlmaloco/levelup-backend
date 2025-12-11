@@ -14,13 +14,13 @@ object CarritoProvider {
         val cached = repo
         if (cached != null) return cached
         return synchronized(this) {
-            repo ?: createRepository().also { repo = it }
+            repo ?: createRepository(context).also { repo = it }
         }
     }
 
-    private fun createRepository(): CarritoRepository {
+    private fun createRepository(context: Context): CarritoRepository {
         // El carrito se sincroniza siempre con el backend; para usuarios no autenticados
         // el backend responderá con carrito vacío o validará sesión según corresponda.
-        return CarritoRepositoryRemote()
+        return CarritoRepositoryRemote(context.applicationContext)
     }
 }

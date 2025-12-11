@@ -110,18 +110,20 @@ class ProductoDetalleViewModel(
                 val exito = repository.agregarReview(productoId, nuevaReview, idUsuario) //guardamos en el backend
                 
                 if (exito) { //si se guardo bien, actualizamos el estado
-                    val reviewsActualizadas = repository.obtenerReviews(productoId) //traemos las reviews actualizadas de la bd
+                    // Traer las reviews actualizadas de la bd (es suspend, así que está bien dentro de launch)
+                    val reviewsActualizadas = repository.obtenerReviews(productoId)
                     _estado.update { 
                         it.copy(
                             producto = it.producto?.copy(
                                 reviews = reviewsActualizadas //actualizamos las reviews del producto
                             ),
-                            mostrarFormularioReview = false //ocultamos el formulario
+                            mostrarFormularioReview = false, //ocultamos el formulario
+                            error = null //limpiar cualquier error previo
                         )
                     }
                 } else {
                     _estado.update {
-                        it.copy(error = "No se pudo guardar la reseña") //si falla mostramos error
+                        it.copy(error = "No se pudo guardar la reseña. Verifica tu conexión e intenta nuevamente.") //si falla mostramos error
                     }
                 }
             } catch (e: Exception) {

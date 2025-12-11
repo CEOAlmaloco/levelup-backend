@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.levelupprueba.AuthActivity
+import com.example.levelupprueba.data.local.clearCarritoId
 import com.example.levelupprueba.data.local.clearUserSession
 import com.example.levelupprueba.data.local.getUserSession
 import com.example.levelupprueba.data.local.saveUserSession
@@ -192,8 +193,9 @@ class LoginViewModel : ViewModel(){
                 // Si falla el logout en el backend, continuar con el logout local
                 android.util.Log.e("LoginViewModel", "Error al cerrar sesión en backend: ${e.message}")
             } finally {
-                // Limpiar sesión local
+                // Limpiar sesión local y carrito
                 clearUserSession(context)
+                clearCarritoId(context) // Limpiar ID del carrito al hacer logout
                 com.example.levelupprueba.data.remote.ApiConfig.clear()
                 mainViewModel.setUserSession(null)
 

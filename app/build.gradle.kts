@@ -26,6 +26,13 @@ val apiConfigProps = Properties().apply {
     }
 }
 
+// === Configuración del keystore para firma ===
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
+}
+
 fun normalizeUrl(value: String, ensureTrailingSlash: Boolean = true): String {
     val trimmed = value.trim()
     if (!ensureTrailingSlash) return trimmed
@@ -43,7 +50,7 @@ fun String.asBuildConfigString(): String =
 
 val debugGatewayUrl = configValue("gateway.url.debug", "http://10.0.2.2:8094/", ensureTrailingSlash = true)
 val deviceGatewayUrl = configValue("gateway.url.device", "http://192.168.1.100:8094/", ensureTrailingSlash = true)
-val releaseGatewayUrl = configValue("gateway.url.release", "http://ec2-44-209-152-110.compute-1.amazonaws.com:8094/", ensureTrailingSlash = true)
+val releaseGatewayUrl = configValue("gateway.url.release", "http://98.83.239.227:8094/", ensureTrailingSlash = true)
 val sharedApiKey = configValue("gateway.api.key", "levelup-2024-secret-api-key-change-in-production")
 val mediaBaseUrl = configValue("media.base.url", "https://levelup-gamer-products.s3.us-east-1.amazonaws.com/", ensureTrailingSlash = true)
 
@@ -75,13 +82,18 @@ android {
             keyPassword = "android"
         }
         
-        // Para producción, crear un keystore real y configurarlo aquí
-        // create("release") {
-        //     storeFile = file("path/to/your/release.keystore")
-        //     storePassword = "your-store-password"
-        //     keyAlias = "your-key-alias"
-        //     keyPassword = "your-key-password"
-        // }
+        // Configuración de firma para producción
+        if (keystorePropertiesFile.exists()) {
+            create("release") {
+                val keystorePath = keystoreProperties["storeFile"] as String?
+                if (keystorePath != null) {
+                    storeFile = rootProject.file(keystorePath)
+                    storePassword = keystoreProperties["storePassword"] as String?
+                    keyAlias = keystoreProperties["keyAlias"] as String?
+                    keyPassword = keystoreProperties["keyPassword"] as String?
+                }
+            }
+        }
     }
 
     buildTypes {
@@ -98,8 +110,12 @@ android {
         }
 
         release {
-            // Usar signing config de debug para desarrollo (cambiar por release en producción)
-            signingConfig = signingConfigs.getByName("debugRelease")
+            // Usar signing config de release si existe, sino usar debugRelease
+            signingConfig = if (keystorePropertiesFile.exists() && signingConfigs.findByName("release") != null) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debugRelease")
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

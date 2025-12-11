@@ -15,6 +15,7 @@ import io.mockk.unmockkStatic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -30,12 +31,25 @@ class CarritoViewModelTest {
     private lateinit var baseProducto: Producto
 
     @BeforeEach
-    fun setUp() = runTest {
+    fun setUp() {
         mockkStatic(Log::class)
         every { Log.d(any(), any()) } returns 0
         every { Log.w(any(), any<String>()) } returns 0
         every { Log.e(any(), any(), any()) } returns 0
-        baseProducto = ProductoRepository().obtenerProductos().first()
+        // Crear producto mock para tests
+        baseProducto = Producto(
+            id = "P1",
+            nombre = "Producto Test",
+            descripcion = "Descripción test",
+            precio = 10000.0,
+            imagenUrl = "test.jpg",
+            categoria = com.example.levelupprueba.model.producto.Categoria.CONSOLA,
+            subcategoria = com.example.levelupprueba.model.producto.Subcategoria.MANDOS,
+            rating = 4.5f,
+            disponible = true,
+            destacado = false,
+            stock = 10
+        )
     }
 
     @AfterEach
@@ -46,7 +60,7 @@ class CarritoViewModelTest {
 
     @Test
     fun `init carga carrito desde el repositorio`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<CarritoRepository>()
@@ -63,7 +77,7 @@ class CarritoViewModelTest {
 
         val vm = CarritoViewModel(repo)
 
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         assertEquals(carritoSimulado, vm.carrito.value)
         assertFalse(vm.loading.value)
@@ -72,7 +86,7 @@ class CarritoViewModelTest {
 
     @Test
     fun `onAgregar actualiza carrito y limpia error`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<CarritoRepository>()
@@ -92,10 +106,10 @@ class CarritoViewModelTest {
         coEvery { repo.agregarProducto(baseProducto, 1) } returns carritoDespuesAgregar
 
         val vm = CarritoViewModel(repo)
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         vm.onAgregar(baseProducto)        // cantidad por defecto = 1
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         assertEquals(carritoDespuesAgregar, vm.carrito.value)
         assertNull(vm.error.value)
@@ -104,7 +118,7 @@ class CarritoViewModelTest {
 
     @Test
     fun `onIncrement usa actualizarCantidad con delta positivo`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<CarritoRepository>()
@@ -113,17 +127,17 @@ class CarritoViewModelTest {
         coEvery { repo.actualizarCantidad("ITEM1", 1) } returns Carrito()
 
         val vm = CarritoViewModel(repo)
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         vm.onIncrement("ITEM1")
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         coVerify { repo.actualizarCantidad("ITEM1", 1) }
     }
 
     @Test
     fun `onCheckout captura excepcion y expone mensaje de error`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<CarritoRepository>()
@@ -132,10 +146,10 @@ class CarritoViewModelTest {
         coEvery { repo.checkout() } throws RuntimeException("Fallo backend")
 
         val vm = CarritoViewModel(repo)
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         vm.onCheckout()
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         assertEquals("Fallo backend", vm.error.value)
         assertFalse(vm.loading.value)
@@ -143,7 +157,7 @@ class CarritoViewModelTest {
     // NUEVOS
     @Test
     fun `onEliminar elimina item y deja carrito vacio`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<CarritoRepository>()
@@ -162,11 +176,11 @@ class CarritoViewModelTest {
         coEvery { repo.eliminarItem("ITEM1") } returns Carrito()
 
         val vm = CarritoViewModel(repo)
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         // LLamamos al repositorio
         vm.onEliminar("ITEM1")
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         assertTrue(vm.carrito.value.items.isEmpty())
         assertNull(vm.error.value)
@@ -176,7 +190,7 @@ class CarritoViewModelTest {
 
     @Test
     fun `onDecrement usa actualizarCantidad con delta negativo y reduce cantidad`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<CarritoRepository>()
@@ -197,11 +211,11 @@ class CarritoViewModelTest {
         coEvery { repo.actualizarCantidad("ITEM1", -1) } returns conUno
 
         val vm = CarritoViewModel(repo)
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         // LLamamos al repositorio
         vm.onDecrement("ITEM1")
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         assertEquals(1, vm.carrito.value.items.first().cantidad)
         assertNull(vm.error.value)
@@ -211,7 +225,7 @@ class CarritoViewModelTest {
 
     @Test
     fun `onAgregar dos veces mismo producto acumula cantidades`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<CarritoRepository>()
@@ -234,16 +248,16 @@ class CarritoViewModelTest {
         )
 
         val vm = CarritoViewModel(repo)
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         // LLamamos al repositorio (1ª vez)
         vm.onAgregar(baseProducto)
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
         assertEquals(1, vm.carrito.value.items.sumOf { it.cantidad })
 
         // LLamamos al repositorio (2ª vez)
         vm.onAgregar(baseProducto)
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
         assertEquals(2, vm.carrito.value.items.sumOf { it.cantidad })
 
         assertNull(vm.error.value)
@@ -253,7 +267,7 @@ class CarritoViewModelTest {
 
     @Test
     fun `onCheckout exitoso limpia carrito`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<CarritoRepository>()
@@ -273,11 +287,11 @@ class CarritoViewModelTest {
         coEvery { repo.checkout() } returns Carrito()
 
         val vm = CarritoViewModel(repo)
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         // LLamamos al repositorio
         vm.onCheckout()
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         assertTrue(vm.carrito.value.items.isEmpty())
         assertNull(vm.error.value)
@@ -287,7 +301,7 @@ class CarritoViewModelTest {
 
     @Test
     fun `onDecrement desde 1 elimina item (regla 0 elimina)`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<CarritoRepository>()
@@ -307,11 +321,11 @@ class CarritoViewModelTest {
         coEvery { repo.actualizarCantidad("ITEM1", -1) } returns Carrito()
 
         val vm = CarritoViewModel(repo)
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         // LLamamos al repositorio
         vm.onDecrement("ITEM1")
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         assertTrue(vm.carrito.value.items.isEmpty())
         assertNull(vm.error.value)
@@ -321,7 +335,7 @@ class CarritoViewModelTest {
 
     @Test
     fun `onIncrement sube cantidad y actualiza estado a 2`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<CarritoRepository>()
@@ -336,11 +350,11 @@ class CarritoViewModelTest {
         coEvery { repo.actualizarCantidad("ITEM1", 1) } returns conDos
 
         val vm = CarritoViewModel(repo)
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         // LLamamos al repositorio
         vm.onIncrement("ITEM1")
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         assertEquals(2, vm.carrito.value.items.first().cantidad)
         assertNull(vm.error.value)
@@ -350,7 +364,7 @@ class CarritoViewModelTest {
 
     @Test
     fun `onEliminar captura excepcion y mantiene carrito`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<CarritoRepository>()
@@ -364,11 +378,11 @@ class CarritoViewModelTest {
         coEvery { repo.eliminarItem("ITEM1") } throws RuntimeException("fallo eliminar")
 
         val vm = CarritoViewModel(repo)
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         // LLamamos al repositorio
         vm.onEliminar("ITEM1")
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         assertEquals(carritoInicial, vm.carrito.value)
         assertEquals("fallo eliminar", vm.error.value)
@@ -378,7 +392,7 @@ class CarritoViewModelTest {
 
     @Test
     fun `onIncrement con error mantiene carrito y expone mensaje`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<CarritoRepository>()
@@ -392,11 +406,11 @@ class CarritoViewModelTest {
         coEvery { repo.actualizarCantidad("ITEM1", 1) } throws RuntimeException("fallo incrementar")
 
         val vm = CarritoViewModel(repo)
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         // LLamamos al repositorio
         vm.onIncrement("ITEM1")
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         assertEquals(inicial, vm.carrito.value)
         assertEquals("fallo incrementar", vm.error.value)
@@ -406,7 +420,7 @@ class CarritoViewModelTest {
 
     @Test
     fun `onIncrement no supera stock mantiene cantidad y expone error`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<CarritoRepository>()
@@ -423,11 +437,11 @@ class CarritoViewModelTest {
         coEvery { repo.actualizarCantidad("ITEM1", 1) } throws RuntimeException("sin stock disponible")
 
         val vm = CarritoViewModel(repo)
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         // Intentamos +1
         vm.onIncrement("ITEM1")
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         // Mantiene cantidad en 2
         assertEquals(2, vm.carrito.value.items.first().cantidad)
@@ -438,7 +452,7 @@ class CarritoViewModelTest {
 
     @Test
     fun `si repo reporta stock agotado al actualizar elimina item (sin error)`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<CarritoRepository>()
@@ -455,11 +469,11 @@ class CarritoViewModelTest {
         coEvery { repo.actualizarCantidad("ITEM1", 1) } returns Carrito()
 
         val vm = CarritoViewModel(repo)
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         // Intentamos +1 (repo responde vacío)
         vm.onIncrement("ITEM1")
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         // Ítem eliminado y sin mensaje de error
         assertTrue(vm.carrito.value.items.isEmpty())
@@ -471,7 +485,7 @@ class CarritoViewModelTest {
 
     @Test
     fun `subtotal vs total con descuentos se calcula correctamente`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<CarritoRepository>()
@@ -491,7 +505,7 @@ class CarritoViewModelTest {
         coEvery { repo.getCarrito() } returns carrito
 
         val vm = CarritoViewModel(repo)
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         // Cálculo esperado
         val subtotalEsperado = 2 * 10_000.0 + 1 * 40_000.0              // 60.000
@@ -511,7 +525,7 @@ class CarritoViewModelTest {
 
     @Test
     fun `init llama getCarrito solo una vez`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<CarritoRepository>()
@@ -519,8 +533,8 @@ class CarritoViewModelTest {
 
         val vm = CarritoViewModel(repo)
         // Avanzamos varias veces para asegurar que no hay otras cargas
-        dispatcher.scheduler.advanceUntilIdle()
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
+        advanceUntilIdle()
 
         io.mockk.coVerify(exactly = 1) { repo.getCarrito() }
         assertFalse(vm.loading.value)
@@ -528,7 +542,7 @@ class CarritoViewModelTest {
 
     @Test
     fun `onAgregar actualiza carrito en exito (loading queda false)`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<CarritoRepository>()
@@ -545,13 +559,13 @@ class CarritoViewModelTest {
         }
 
         val vm = CarritoViewModel(repo)
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         // LLamamos al repositorio
         vm.onAgregar(baseProducto)
 
         // Avanzamos hasta completar
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         // Estado final: carrito actualizado, sin error, loading false
         assertEquals(despues, vm.carrito.value)
@@ -561,7 +575,7 @@ class CarritoViewModelTest {
 
     @Test
     fun `onIncrement en error mantiene carrito, setea mensaje y deja loading false`() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
+        val dispatcher = StandardTestDispatcher()
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<CarritoRepository>()
@@ -575,11 +589,11 @@ class CarritoViewModelTest {
         }
 
         val vm = CarritoViewModel(repo)
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         // Ejecutar acción
         vm.onIncrement("ITEM1")
-        dispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         // Estado final esperado
         assertEquals(conUno, vm.carrito.value)              // carrito no cambia

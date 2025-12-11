@@ -30,7 +30,7 @@ interface CarritoApiService {
      */
     @PUT("carrito/items/{itemId}")
     suspend fun actualizarCantidad(
-        @Path("itemId") itemId: String,
+        @Path("itemId") itemId: Long,
         @Body request: ActualizarCantidadRequest
     ): Response<CarritoDto>
     
@@ -38,7 +38,7 @@ interface CarritoApiService {
      * Elimina un item del carrito
      */
     @DELETE("carrito/items/{itemId}")
-    suspend fun eliminarItem(@Path("itemId") itemId: String): Response<CarritoDto>
+    suspend fun eliminarItem(@Path("itemId") itemId: Long): Response<CarritoDto>
     
     /**
      * Vacía el carrito
@@ -60,32 +60,52 @@ data class AgregarItemRequest(
 
 /**
  * Request para actualizar cantidad
+ * El backend espera un Map con la clave "cantidad"
  */
 data class ActualizarCantidadRequest(
     val cantidad: Int
-)
+) {
+    fun toMap(): Map<String, Int> = mapOf("cantidad" to cantidad)
+}
 
 /**
  * DTO de Carrito
  */
 data class CarritoDto(
+    val idCarrito: Long?,
     val id: Long?,
+    val idUsuario: Long?,
     val usuarioId: Long?,
-    val items: List<ItemCarritoDto>,
+    val items: List<ItemCarritoDto>?,
     val total: Double?,
+    val totalCarrito: Double?,
+    val totalFinal: Double?,
     val estado: String?,
+    val estadoCarrito: String?,
     val createdAt: String?,
-    val updatedAt: String?
+    val updatedAt: String?,
+    val fechaCreacion: String?,
+    val fechaActualizacion: String?
 )
 
 /**
  * DTO de Item del Carrito
  */
 data class ItemCarritoDto(
-    val id: String,
+    val idItem: Long?,
+    val id: Long?,
+    val idCarrito: Long?,
+    val idProducto: Long?,
     val productoId: Long?,
-    val producto: ProductoDto,
+    val nombreProducto: String?,
+    val descripcionProducto: String?,
+    val producto: ProductoDto?,
     val cantidad: Int,
-    val precioUnitario: Double,
-    val subtotal: Double
+    val precioUnitario: Double?,
+    val subtotal: Double?,
+    val totalItem: Double?,
+    val descuentoAplicado: Double?,
+    val impuestoAplicado: Double?,
+    val estadoItem: String?,
+    val activo: Boolean?
 )

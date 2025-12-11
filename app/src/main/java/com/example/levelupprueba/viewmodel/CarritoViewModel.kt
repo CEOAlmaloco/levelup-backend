@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.levelupprueba.data.repository.CarritoRepository
 import com.example.levelupprueba.model.carrito.Carrito
 import com.example.levelupprueba.model.producto.Producto
+import com.example.levelupprueba.utils.formatCLP
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -34,6 +35,10 @@ class CarritoViewModel(
     // Error: mensaje a mostrar (null si no hay)
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
+
+    // Success: mensaje de éxito después del pago (null si no hay)
+    private val _successMessage = MutableStateFlow<String?>(null)
+    val successMessage: StateFlow<String?> = _successMessage.asStateFlow()
 
     // Carga inicial
     init { loadCarrito() }
@@ -115,12 +120,24 @@ class CarritoViewModel(
     fun onCheckout() = viewModelScope.launch {
         _loading.value = true
         _error.value = null
+        _successMessage.value = null
+        
+        // Guardar el total antes del checkout
+        val totalAntes = _carrito.value.total
+        
         try {
             _carrito.value = repo.checkout()
+            // Si el checkout fue exitoso, mostrar mensaje de éxito
+            _successMessage.value = "Producto pagado total: ${formatCLP(totalAntes)}"
         } catch (e: Exception) {
             _error.value = e.message ?: "Error en checkout"
         } finally {
             _loading.value = false
         }
+    }
+    
+    /** Limpia el mensaje de éxito */
+    fun clearSuccessMessage() {
+        _successMessage.value = null
     }
 }

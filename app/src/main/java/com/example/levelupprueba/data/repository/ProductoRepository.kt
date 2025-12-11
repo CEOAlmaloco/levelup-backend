@@ -1,5 +1,7 @@
 package com.example.levelupprueba.data.repository
 
+import android.content.Context
+import com.example.levelupprueba.data.local.*
 import com.example.levelupprueba.data.remote.ApiConfig
 import com.example.levelupprueba.data.remote.ProductoMapper
 import com.example.levelupprueba.data.remote.ReseniaDto
@@ -13,8 +15,9 @@ import android.util.Log
 
 /**
  * Repositorio de productos que obtiene datos desde el backend Spring Boot usando Retrofit
+ * Con soporte para caché local usando DataStore
  */
-class ProductoRepository {
+class ProductoRepository(private val context: Context? = null) {
     
     private val productosService = ApiConfig.productosService
     private val reseniaService = ApiConfig.reseniaService
@@ -99,11 +102,28 @@ class ProductoRepository {
     }
     
     /**
-     * Obtiene todos los productos desde el backend
+     * Obtiene todos los productos: primero desde caché, si no existe o expiró, desde el backend
      */
-    suspend fun obtenerProductos(): List<Producto> = withContext(Dispatchers.IO) {
+    suspend fun obtenerProductos(forceRefresh: Boolean = false): List<Producto> = withContext(Dispatchers.IO) {
+        // Intentar cargar desde caché primero (si no se fuerza refresh y hay context)
+        if (!forceRefresh && context != null) {
+            val cached = getProductosCache(context)
+            if (cached != null && cached.isNotEmpty()) {
+                android.util.Log.d("ProductoRepository", "Productos cargados desde caché: ${cached.size}")
+                return@withContext cached
+            }
+        }
+        
+        // Si no hay caché válido, cargar desde backend
+        return@withContext obtenerProductosDesdeBackend()
+    }
+    
+    /**
+     * Obtiene productos directamente desde el backend (sin caché)
+     */
+    private suspend fun obtenerProductosDesdeBackend(): List<Producto> = withContext(Dispatchers.IO) {
         try {
-            android.util.Log.d("ProductoRepository", "Intentando obtener productos desde el backend...")
+            android.util.Log.d("ProductoRepository", "Cargando productos desde el backend...")
             val response = productosService.getProductos()
             android.util.Log.d("ProductoRepository", "Response code: ${response.code()}")
             android.util.Log.d("ProductoRepository", "Response isSuccessful: ${response.isSuccessful}")
@@ -113,6 +133,12 @@ class ProductoRepository {
                 android.util.Log.d("ProductoRepository", "Productos recibidos: ${dtos.size}")
                 val productos = ProductoMapper.mapProductosDto(dtos)
                 android.util.Log.d("ProductoRepository", "Productos mapeados: ${productos.size}")
+                
+                // Guardar en caché si hay context
+                if (context != null) {
+                    saveProductosCache(context, productos)
+                }
+                
                 productos
             } else {
                 val errorBody = response.errorBody()?.string()
@@ -163,11 +189,21 @@ class ProductoRepository {
     }
     
     /**
-     * Obtiene productos destacados (filtra por disponible = true y (destacado = true O rating >= 4.0))
+     * Obtiene productos destacados: primero desde caché, si no existe, desde el backend
      */
-    suspend fun obtenerProductosDestacados(): List<Producto> = withContext(Dispatchers.IO) {
+    suspend fun obtenerProductosDestacados(forceRefresh: Boolean = false): List<Producto> = withContext(Dispatchers.IO) {
+        // Intentar cargar desde caché primero (si no se fuerza refresh y hay context)
+        if (!forceRefresh && context != null) {
+            val cached = getProductosDestacadosCache(context)
+            if (cached != null && cached.isNotEmpty()) {
+                android.util.Log.d("ProductoRepository", "Productos destacados cargados desde caché: ${cached.size}")
+                return@withContext cached
+            }
+        }
+        
+        // Si no hay caché válido, calcular desde productos
         try {
-            val productos = obtenerProductos()
+            val productos = obtenerProductos(forceRefresh)
             android.util.Log.d("ProductoRepository", "Total productos: ${productos.size}")
             
             // Log de productos para debugging
@@ -195,13 +231,20 @@ class ProductoRepository {
                 return@withContext primerosDisponibles.sortedByDescending { it.rating }
             }
             
-            destacados.sortedByDescending { producto ->
+            val resultado = destacados.sortedByDescending { producto ->
                 // Ordenar: primero los destacados, luego por rating
                 when {
                     producto.destacado -> 10f + producto.rating
                     else -> producto.rating
                 }
             }
+            
+            // Guardar en caché si hay context
+            if (context != null && resultado.isNotEmpty()) {
+                saveProductosDestacadosCache(context, resultado)
+            }
+            
+            resultado
         } catch (e: Exception) {
             android.util.Log.e("ProductoRepository", "Error al obtener productos destacados: ${e.message}", e)
             e.printStackTrace()
@@ -298,8 +341,10 @@ class ProductoRepository {
         try {
             val productoIdLong = productoId.toLongOrNull() ?: return@withContext emptyList()
             Log.d("ProductoRepository", "Obteniendo reseñas del backend para producto: $productoId")
+            Log.d("ProductoRepository", "Enviando petición GET /resenias/producto/$productoIdLong")
             
             val response = reseniaService.getReseniasPorProducto(productoIdLong)
+            Log.d("ProductoRepository", "Respuesta recibida - Code: ${response.code()}, Success: ${response.isSuccessful}")
             
             if (response.isSuccessful && response.body() != null) {
                 val reseniasDto = response.body()!!
@@ -308,7 +353,8 @@ class ProductoRepository {
                 Log.d("ProductoRepository", "Reseñas mapeadas: ${reviews.size}")
                 reviews
             } else {
-                Log.e("ProductoRepository", "Error al obtener reseñas: code=${response.code()}, message=${response.message()}")
+                val errorBody = response.errorBody()?.string()
+                Log.e("ProductoRepository", "Error al obtener reseñas: code=${response.code()}, message=${response.message()}, body=$errorBody")
                 emptyList()
             }
         } catch (e: Exception) {
@@ -335,13 +381,17 @@ class ProductoRepository {
             )
             
             Log.d("ProductoRepository", "Creando reseña en backend para producto: $productoId")
+            Log.d("ProductoRepository", "Datos de reseña - UsuarioId: $idUsuario, Rating: ${review.rating}, Comentario: ${review.comentario.take(50)}...")
+            Log.d("ProductoRepository", "Enviando petición POST /resenias/producto/$productoIdLong")
             val response = reseniaService.crearResenia(productoIdLong, reseniaRequest)
+            Log.d("ProductoRepository", "Respuesta recibida - Code: ${response.code()}, Success: ${response.isSuccessful}")
             
             if (response.isSuccessful && response.body() != null) {
                 Log.d("ProductoRepository", "Reseña creada exitosamente")
                 true
             } else {
-                Log.e("ProductoRepository", "Error al crear reseña: code=${response.code()}, message=${response.message()}")
+                val errorBody = response.errorBody()?.string()
+                Log.e("ProductoRepository", "Error al crear reseña: code=${response.code()}, message=${response.message()}, body=$errorBody")
                 false
             }
         } catch (e: Exception) {
@@ -356,13 +406,16 @@ class ProductoRepository {
             val reviewId = review.id.toLongOrNull() ?: return@withContext false
             
             Log.d("ProductoRepository", "Eliminando reseña del backend: $reviewId")
+            Log.d("ProductoRepository", "Enviando petición DELETE /resenias/$reviewId")
             val response = reseniaService.eliminarResenia(reviewId)
+            Log.d("ProductoRepository", "Respuesta recibida - Code: ${response.code()}, Success: ${response.isSuccessful}")
             
             if (response.isSuccessful) {
                 Log.d("ProductoRepository", "Reseña eliminada exitosamente")
                 true
             } else {
-                Log.e("ProductoRepository", "Error al eliminar reseña: code=${response.code()}, message=${response.message()}")
+                val errorBody = response.errorBody()?.string()
+                Log.e("ProductoRepository", "Error al eliminar reseña: code=${response.code()}, message=${response.message()}, body=$errorBody")
                 false
             }
         } catch (e: Exception) {
