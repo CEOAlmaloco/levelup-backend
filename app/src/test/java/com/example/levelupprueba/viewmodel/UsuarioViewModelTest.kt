@@ -36,6 +36,7 @@ class UsuarioViewModelTest {
     @RequiresApi(Build.VERSION_CODES.O)
     @Test
     fun `puedeRegistrar es true solo cuando campos obligatorios llenos y sin errores`() {
+        vm.onRunChange("12345678-9")
         vm.onNombreChange("Andrés")
         vm.onApellidosChange("Pérez")
         vm.onEmailChange("andres@gmail.com")
@@ -63,6 +64,7 @@ class UsuarioViewModelTest {
     @Test
     fun `validarRegistro retorna true cuando todos los datos son validos`() {
         // GIVEN: todos los campos con datos válidos según UsuarioValidator
+        vm.onRunChange("12345678-9")
         vm.onNombreChange("Andrés")
         vm.onApellidosChange("Pérez")
         vm.onEmailChange("andres@gmail.com")
@@ -83,6 +85,7 @@ class UsuarioViewModelTest {
 
         // Los campos no deben tener errores
         val estado = vm.estado.value
+        assertNull(estado.run.error)
         assertNull(estado.nombre.error)
         assertNull(estado.apellidos.error)
         assertNull(estado.email.error)

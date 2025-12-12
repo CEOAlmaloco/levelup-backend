@@ -36,9 +36,9 @@ class ChangePasswordViewModelTest {
     // 1) VALIDACIONES INDIVIDUALES
     @Test
     fun `onActualChange actualiza valor y valida campo`() {
-        vm.onActualChange("1234")
+        vm.onActualChange("12345678")
         val estado = vm.estado.value
-        assertEquals("1234", estado.actual.valor)
+        assertEquals("12345678", estado.actual.valor)
         assertNull(estado.actual.error)
     }
 
@@ -72,9 +72,9 @@ class ChangePasswordViewModelTest {
     @RequiresApi(Build.VERSION_CODES.O)
     @Test
     fun `validarFormulario retorna true cuando todos los datos son validos`() {
-        vm.onActualChange("Abc1234")
-        vm.onNuevaChange("Abc12345")
-        vm.onConfirmarChange("Abc12345")
+        vm.onActualChange("Abc12345") // 8 caracteres
+        vm.onNuevaChange("Abc123456") // 9 caracteres
+        vm.onConfirmarChange("Abc123456") // 9 caracteres
 
         val valido = vm.validarFormulario()
         assertTrue(valido)

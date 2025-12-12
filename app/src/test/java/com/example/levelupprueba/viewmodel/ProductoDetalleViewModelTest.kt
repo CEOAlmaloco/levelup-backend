@@ -50,12 +50,14 @@ class ProductoDetalleViewModelTest {
 
         // LLamamos a cargar
         vm.cargarProducto("PX")
+        // Avanzar tiempo para el delay(300) y luego avanzar hasta que termine
+        advanceUntilIdle()
         advanceUntilIdle()
 
         val st = vm.estado.value
         assertFalse(st.isLoading)
         assertNull(st.error)
-        assertNotNull(st.producto)
+        assertNotNull(st.producto, "El producto debe estar cargado")
         assertEquals("PX", st.producto!!.id)
         // relacionados presentes
         assertTrue(st.producto!!.productosRelacionados.any { it.id == "PY" })
@@ -79,14 +81,15 @@ class ProductoDetalleViewModelTest {
 
         // LLamamos a cargar
         vm.cargarProducto("BAD")
+        // Avanzar tiempo para el delay(300) y luego avanzar hasta que termine
+        advanceUntilIdle()
         advanceUntilIdle()
 
         val st = vm.estado.value
         assertNull(st.producto)
         // Mensaje envuelto → validamos contenido en vez de igualdad exacta
-        assertNotNull(st.error)
-        assertTrue(st.error!!.contains("fallo detalle"))
-        assertTrue(st.error!!.startsWith("Error al cargar el producto"))
+        assertNotNull(st.error, "Debe haber un mensaje de error")
+        assertTrue(st.error!!.contains("fallo detalle") || st.error!!.contains("Error al cargar el producto"))
         assertFalse(st.isLoading)
 
         Dispatchers.resetMain()

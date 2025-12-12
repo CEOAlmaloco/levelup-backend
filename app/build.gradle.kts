@@ -224,6 +224,8 @@ tasks.withType<Test> {
         isIncludeNoLocationClasses = true
         excludes = listOf("jdk.internal.*")
     }
+    // Configurar Byte Buddy para Java 21
+    jvmArgs = listOf("-Dnet.bytebuddy.experimental=true")
 }
 
 tasks.register("jacocoTestReport", JacocoReport::class) {

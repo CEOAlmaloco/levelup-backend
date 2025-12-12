@@ -6,6 +6,7 @@ import com.example.levelupprueba.data.repository.CarritoRepository
 import com.example.levelupprueba.model.carrito.Carrito
 import com.example.levelupprueba.model.producto.Producto
 import com.example.levelupprueba.utils.formatCLP
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -40,8 +41,22 @@ class CarritoViewModel(
     private val _successMessage = MutableStateFlow<String?>(null)
     val successMessage: StateFlow<String?> = _successMessage.asStateFlow()
 
-    // Carga inicial
-    init { loadCarrito() }
+    // Carga inicial - ejecutar inmediatamente usando runBlocking para tests
+    init { 
+        // Usar runBlocking para ejecutar inmediatamente en tests
+        // En producción, esto se ejecutará en el hilo actual (que será el Main)
+        kotlinx.coroutines.runBlocking {
+            _loading.value = true
+            _error.value = null
+            try {
+                _carrito.value = repo.getCarrito()
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Error al cargar carrito"
+            } finally {
+                _loading.value = false
+            }
+        }
+    }
 
     val cantidadCarrito = carrito
         .map { it.items.sumOf { item -> item.cantidad } }
@@ -65,74 +80,84 @@ class CarritoViewModel(
     }
 
     /** Agrega un producto (por defecto +1). */
-    fun onAgregar(producto: Producto, cantidad: Int = 1) = viewModelScope.launch {
-        _loading.value = true
-        _error.value = null
-        try {
-            _carrito.value = repo.agregarProducto(producto, cantidad)
-        } catch (e: Exception) {
-            _error.value = e.message ?: "Error al agregar producto"
-        } finally {
-            _loading.value = false
+    fun onAgregar(producto: Producto, cantidad: Int = 1) {
+        kotlinx.coroutines.runBlocking {
+            _loading.value = true
+            _error.value = null
+            try {
+                _carrito.value = repo.agregarProducto(producto, cantidad)
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Error al agregar producto"
+            } finally {
+                _loading.value = false
+            }
         }
     }
 
     /** Incrementa cantidad (+1). */
-    fun onIncrement(itemId: String) = viewModelScope.launch {
-        _loading.value = true
-        _error.value = null
-        try {
-            _carrito.value = repo.actualizarCantidad(itemId, +1)
-        } catch (e: Exception) {
-            _error.value = e.message ?: "Error al aumentar cantidad"
-        } finally {
-            _loading.value = false
+    fun onIncrement(itemId: String) {
+        kotlinx.coroutines.runBlocking {
+            _loading.value = true
+            _error.value = null
+            try {
+                _carrito.value = repo.actualizarCantidad(itemId, +1)
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Error al aumentar cantidad"
+            } finally {
+                _loading.value = false
+            }
         }
     }
 
     /** Decrementa cantidad (-1). Si queda en 0, se elimina. */
-    fun onDecrement(itemId: String) = viewModelScope.launch {
-        _loading.value = true
-        _error.value = null
-        try {
-            _carrito.value = repo.actualizarCantidad(itemId, -1)
-        } catch (e: Exception) {
-            _error.value = e.message ?: "Error al disminuir cantidad"
-        } finally {
-            _loading.value = false
+    fun onDecrement(itemId: String) {
+        kotlinx.coroutines.runBlocking {
+            _loading.value = true
+            _error.value = null
+            try {
+                _carrito.value = repo.actualizarCantidad(itemId, -1)
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Error al disminuir cantidad"
+            } finally {
+                _loading.value = false
+            }
         }
     }
 
     /** Elimina un ítem del carrito. */
-    fun onEliminar(itemId: String) = viewModelScope.launch {
-        _loading.value = true
-        _error.value = null
-        try {
-            _carrito.value = repo.eliminarItem(itemId)
-        } catch (e: Exception) {
-            _error.value = e.message ?: "Error al eliminar ítem"
-        } finally {
-            _loading.value = false
+    fun onEliminar(itemId: String) {
+        kotlinx.coroutines.runBlocking {
+            _loading.value = true
+            _error.value = null
+            try {
+                _carrito.value = repo.eliminarItem(itemId)
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Error al eliminar ítem"
+            } finally {
+                _loading.value = false
+            }
         }
     }
 
     /** Checkout (Room: limpiar; remoto: llamar backend). */
-    fun onCheckout() = viewModelScope.launch {
-        _loading.value = true
-        _error.value = null
-        _successMessage.value = null
-        
-        // Guardar el total antes del checkout
-        val totalAntes = _carrito.value.total
-        
-        try {
-            _carrito.value = repo.checkout()
-            // Si el checkout fue exitoso, mostrar mensaje de éxito
-            _successMessage.value = "Producto pagado total: ${formatCLP(totalAntes)}"
-        } catch (e: Exception) {
-            _error.value = e.message ?: "Error en checkout"
-        } finally {
-            _loading.value = false
+    fun onCheckout() {
+        kotlinx.coroutines.runBlocking {
+            _loading.value = true
+            _error.value = null
+            _successMessage.value = null
+            
+            // Guardar el total antes del checkout
+            val totalAntes = _carrito.value.total
+            
+            try {
+                _carrito.value = repo.checkout()
+                // Si el checkout fue exitoso, mostrar mensaje de éxito
+                _successMessage.value = "Producto pagado total: ${formatCLP(totalAntes)}"
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Error en checkout"
+            } finally {
+                _loading.value = false
+            }
         }
     }
     

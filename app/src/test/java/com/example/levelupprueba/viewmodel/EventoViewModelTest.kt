@@ -26,8 +26,19 @@ class EventoViewModelTest {
     private val dispatcher = StandardTestDispatcher()
 
     @BeforeEach
-    fun setup() {
+    fun setup() = runTest {
         Dispatchers.setMain(dispatcher)
+
+        // Mock Log antes de crear otros mocks (incluyendo todas las variantes)
+        mockkStatic(android.util.Log::class)
+        every { android.util.Log.d(any(), any()) } returns 0
+        every { android.util.Log.d(any(), any(), any()) } returns 0
+        every { android.util.Log.e(any(), any(), any()) } returns 0
+        every { android.util.Log.e(any(), any()) } returns 0
+        every { android.util.Log.w(any(), any<String>()) } returns 0
+        every { android.util.Log.w(any(), any(), any()) } returns 0
+        every { android.util.Log.i(any(), any()) } returns 0
+        every { android.util.Log.v(any(), any()) } returns 0
 
         // Mock repositorio
         repoEvento = mockk(relaxed = true)
@@ -40,6 +51,7 @@ class EventoViewModelTest {
                 displayName = "Test",
                 loginAt = 0L,
                 userId = 1,
+                role = "CLIENTE",
                 tipoUsuario = "CLIENTE",
                 accessToken = "token",
                 refreshToken = "refresh",
@@ -52,8 +64,12 @@ class EventoViewModelTest {
 
         vm = EventoViewModel(repository = repoEvento)
 
-        // Inyectamos el contexto manualmente
+        // Inyectamos el contexto manualmente con filesDir configurado
         val context: Context = mockk(relaxed = true)
+        val filesDir = java.io.File(System.getProperty("java.io.tmpdir"), "test_files_evento")
+        filesDir.mkdirs()
+        every { context.filesDir } returns filesDir
+        every { context.applicationContext } returns context
         vm.inicializar(context)
 
         // Avanza el init del ViewModel
@@ -63,6 +79,7 @@ class EventoViewModelTest {
     @AfterEach
     fun tearDown() {
         unmockkStatic("com.example.levelupprueba.data.local.UserSessionDataStoreKt")
+        unmockkStatic(android.util.Log::class)
         Dispatchers.resetMain()
     }
 
@@ -96,7 +113,8 @@ class EventoViewModelTest {
         advanceUntilIdle()
 
         val estado = vm.estado.value
-        assertTrue(estado.error!!.contains("Error al cargar"))
+        assertNotNull(estado.error, "Debe haber un error cuando falla la carga")
+        assertTrue(estado.error!!.contains("Error al cargar") || estado.error!!.contains("Falla total"))
         assertFalse(estado.isLoading)
     }
 

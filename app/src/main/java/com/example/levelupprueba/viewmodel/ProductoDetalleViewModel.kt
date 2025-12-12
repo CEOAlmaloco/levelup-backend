@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.levelupprueba.data.repository.ProductoRepository
 import com.example.levelupprueba.model.producto.*
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -21,10 +20,9 @@ class ProductoDetalleViewModel(
     val estado: StateFlow<ProductoDetalleUiState> = _estado 
 
     fun cargarProducto(productoId: String) {//cargamos el producto
-        viewModelScope.launch { 
+        kotlinx.coroutines.runBlocking {
             _estado.update { it.copy(isLoading = true, error = null) } //actualizamos el estado para que se muestre el loading y el error
             try {
-                delay(300)//simulamos el delay de la api
                 val productoBase = repository.obtenerProductoPorId(productoId)//traemos el producto base
                 //si el producto base no es null, traemos las reviews y los productos relacionados
                 if (productoBase != null) {

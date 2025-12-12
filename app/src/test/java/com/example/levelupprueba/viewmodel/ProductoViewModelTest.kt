@@ -76,8 +76,13 @@ class ProductoViewModelTest {
             ImagenCarrusel(1, "banner1", "Promo", "Descuentos"),
             ImagenCarrusel(2, "banner2", "Novedades", "Lanzamientos")
         )
+        // Mock para cargarLogo (llama a obtenerLogoUrl)
+        coEvery { repo.obtenerLogoUrl() } returns ""
 
-        val vm = ProductoViewModel(repo)
+        val vm = ProductoViewModel(context = null, repository = repo)
+        // Avanzar varias veces para asegurar que todas las coroutines del init terminen
+        advanceUntilIdle()
+        advanceUntilIdle()
         advanceUntilIdle()
 
         val st = vm.estado.value
@@ -100,10 +105,16 @@ class ProductoViewModelTest {
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<ProductoRepository>()
-        coEvery { repo.obtenerProductos() } returns productosFake()
+        val data = productosFake()
+        coEvery { repo.obtenerProductos() } returns data
+        coEvery { repo.obtenerProductosDestacados() } returns data.filter { it.destacado }
         coEvery { repo.obtenerImagenesCarrusel() } returns emptyList()
+        coEvery { repo.obtenerLogoUrl() } returns ""
 
-        val vm = ProductoViewModel(repo)
+        val vm = ProductoViewModel(context = null, repository = repo)
+        // Avanzar varias veces para asegurar que todas las coroutines del init terminen
+        advanceUntilIdle()
+        advanceUntilIdle()
         advanceUntilIdle()
 
         // LLamamos a cambiar categoria → CONSOLA
@@ -127,10 +138,16 @@ class ProductoViewModelTest {
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<ProductoRepository>()
-        coEvery { repo.obtenerProductos() } returns productosFake()
+        val data = productosFake()
+        coEvery { repo.obtenerProductos() } returns data
+        coEvery { repo.obtenerProductosDestacados() } returns data.filter { it.destacado }
         coEvery { repo.obtenerImagenesCarrusel() } returns emptyList()
+        coEvery { repo.obtenerLogoUrl() } returns ""
 
-        val vm = ProductoViewModel(repo)
+        val vm = ProductoViewModel(context = null, repository = repo)
+        // Avanzar varias veces para asegurar que todas las coroutines del init terminen
+        advanceUntilIdle()
+        advanceUntilIdle()
         advanceUntilIdle()
 
         // LLamamos a texto de búsqueda
@@ -161,14 +178,19 @@ class ProductoViewModelTest {
         Dispatchers.setMain(dispatcher)
 
         val repo = mockk<ProductoRepository>()
+        val data = productosFake()
         coEvery { repo.obtenerImagenesCarrusel() } returns emptyList()
-        coEvery { repo.obtenerProductosDestacados() } returns emptyList()
-        coEvery { repo.obtenerProductos() } returns productosFake()
+        coEvery { repo.obtenerProductosDestacados() } returns data.filter { it.destacado }
+        coEvery { repo.obtenerProductos() } returns data
+        // Mock para cargarLogo (llama a obtenerLogoUrl)
+        coEvery { repo.obtenerLogoUrl() } returns ""
 
         // sin argumento nombrado; usa el posicional
-        val vm = ProductoViewModel(repo)
+        val vm = ProductoViewModel(context = null, repository = repo)
 
-        // dejamos que termine la carga
+        // dejamos que termine la carga - avanzar varias veces para el init
+        advanceUntilIdle()
+        advanceUntilIdle()
         advanceUntilIdle()
 
         val st = vm.estado.value
@@ -188,9 +210,14 @@ class ProductoViewModelTest {
         coEvery { repo.obtenerImagenesCarrusel() } returns emptyList()
         coEvery { repo.obtenerProductosDestacados() } returns emptyList()
         coEvery { repo.obtenerProductos() } answers { throw RuntimeException("fallo productos") }
+        // Mock para cargarLogo (llama a obtenerLogoUrl)
+        coEvery { repo.obtenerLogoUrl() } returns ""
 
-        val vm = ProductoViewModel(repo)
+        val vm = ProductoViewModel(context = null, repository = repo)
 
+        // Avanzar varias veces para asegurar que todas las coroutines del init terminen
+        advanceUntilIdle()
+        advanceUntilIdle()
         advanceUntilIdle()
 
         val st = vm.estado.value
@@ -212,7 +239,7 @@ class ProductoViewModelTest {
         coEvery { repo.obtenerProductosDestacados() } returns productosFake().filter { it.destacado }
         coEvery { repo.obtenerImagenesCarrusel() } returns emptyList()
 
-        val vm = ProductoViewModel(repo)
+        val vm = ProductoViewModel(context = null, repository = repo)
         advanceUntilIdle()
         advanceUntilIdle()
 
@@ -237,7 +264,7 @@ class ProductoViewModelTest {
         coEvery { repo.obtenerProductosDestacados() } returns emptyList()
         coEvery { repo.obtenerProductos() } answers { throw RuntimeException("fallo productos") }
 
-        val vm = ProductoViewModel(repo)
+        val vm = ProductoViewModel(context = null, repository = repo)
         advanceUntilIdle()
 
         val st = vm.estado.value

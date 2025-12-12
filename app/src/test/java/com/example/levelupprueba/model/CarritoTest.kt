@@ -4,6 +4,8 @@ import android.util.Log
 import com.example.levelupprueba.model.producto.Producto
 import io.mockk.every
 import io.mockk.mockkStatic
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

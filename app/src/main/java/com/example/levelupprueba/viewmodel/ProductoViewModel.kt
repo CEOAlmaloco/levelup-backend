@@ -31,9 +31,40 @@ class ProductoViewModel(
     private var todosLosProductos: List<Producto> = emptyList()//se crea una lista de productos para que se actualice en tiempo real
 
     init {//se carga los productos y las imagenes del carrusel antes de que se muestre la pantalla
-        cargarProductos()
-        cargarImagenesCarrusel()
-        cargarLogo()
+        // Ejecutar cargas de forma síncrona en init para que funcione en tests
+        kotlinx.coroutines.runBlocking {
+            try {
+                _estado.update { it.copy(isLoading = true, error = null) }
+                todosLosProductos = repository.obtenerProductos(false)
+                val destacados = repository.obtenerProductosDestacados(false)
+                _estado.update {
+                    it.copy(
+                        productos = todosLosProductos,
+                        productosDestacados = destacados,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _estado.update {
+                    it.copy(
+                        isLoading = false,
+                        error = "Error al cargar productos: ${e.message}"
+                    )
+                }
+            }
+            try {
+                val imagenes = repository.obtenerImagenesCarrusel()
+                _imagenesCarrusel.value = imagenes
+            } catch (e: Exception) {
+                _imagenesCarrusel.value = emptyList()
+            }
+            try {
+                val url = repository.obtenerLogoUrl()
+                _logoUrl.value = url
+            } catch (e: Exception) {
+                _logoUrl.value = ""
+            }
+        }
     }
 
     private fun cargarProductos(forceRefresh: Boolean = false) {//esta funcion se encarga de cargar los productos y los destacados

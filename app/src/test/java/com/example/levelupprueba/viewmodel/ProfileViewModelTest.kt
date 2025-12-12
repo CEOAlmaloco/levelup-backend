@@ -1,6 +1,7 @@
 package com.example.levelupprueba.viewmodel
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import com.example.levelupprueba.data.repository.NotificacionesRepositoryRemote
 import com.example.levelupprueba.model.profile.ProfileStatus
@@ -9,8 +10,12 @@ import io.mockk.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.*
-import org.junit.jupiter.api.*
-import kotlin.test.*
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import kotlin.test.assertNotNull
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ProfileViewModelTest {
@@ -23,6 +28,18 @@ class ProfileViewModelTest {
     @BeforeEach
     fun setup() {
         Dispatchers.setMain(dispatcher)
+        
+        // Mockear Log para evitar errores en tests (incluyendo todas las variantes)
+        mockkStatic(Log::class)
+        every { Log.d(any(), any()) } returns 0
+        every { Log.d(any(), any(), any()) } returns 0
+        every { Log.e(any(), any(), any()) } returns 0
+        every { Log.e(any(), any()) } returns 0
+        every { Log.w(any(), any<String>()) } returns 0
+        every { Log.w(any(), any(), any()) } returns 0
+        every { Log.i(any(), any()) } returns 0
+        every { Log.v(any(), any()) } returns 0
+        
         notificacionesRepo = mockk(relaxed = true)
         mainVM = mockk(relaxed = true)
         vm = ProfileViewModel(notificacionesRepo)
@@ -30,6 +47,7 @@ class ProfileViewModelTest {
 
     @AfterEach
     fun tearDown() {
+        unmockkStatic(Log::class)
         Dispatchers.resetMain()
     }
 
