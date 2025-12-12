@@ -1,28 +1,39 @@
 package com.example.levelupprueba.model
 
 import android.util.Log
-import com.example.levelupprueba.data.repository.ProductoRepository
 import com.example.levelupprueba.model.producto.Producto
 import com.example.levelupprueba.model.producto.Review
 import io.mockk.every
 import io.mockk.mockkStatic
-import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class ProductoTest {
 
-    // Producto base tomado del repositorio en memoria
+    // Producto base para tests
     private lateinit var baseProducto: Producto
 
     @BeforeEach
-    fun setUp() = runTest {
+    fun setUp() {
         mockkStatic(Log::class)
         every { Log.d(any(), any()) } returns 0
         every { Log.w(any(), any<String>()) } returns 0
         every { Log.e(any(), any(), any()) } returns 0
-        baseProducto = ProductoRepository().obtenerProductos().first()
+        // Crear producto mock para tests
+        baseProducto = Producto(
+            id = "P1",
+            nombre = "Producto Test",
+            descripcion = "Descripción test",
+            precio = 10000.0,
+            imagenUrl = "test.jpg",
+            categoria = com.example.levelupprueba.model.producto.Categoria.CONSOLA,
+            subcategoria = com.example.levelupprueba.model.producto.Subcategoria.MANDOS,
+            rating = 4.5f,
+            disponible = true,
+            destacado = false,
+            stock = 10
+        )
     }
 
     @Test

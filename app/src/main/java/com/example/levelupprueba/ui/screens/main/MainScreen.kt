@@ -107,13 +107,18 @@ fun MainScreen(
 
     // -- Drawer y secciones --
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val drawerSections = listOf(
-        DrawerSection(icon = Icons.Default.Home, label = "Inicio"),
-        DrawerSection(icon = Icons.Default.ShoppingCart, label = "Productos"),
-        DrawerSection(icon = Icons.Default.Article, label = "Blog"),
-        DrawerSection(icon = Icons.Default.Event, label = "Eventos"),
-        DrawerSection(icon = Icons.Default.Group, label = "Usuarios")
-    )
+    val isAdmin = userSession?.tipoUsuario == "ADMINISTRADOR"
+    val drawerSections = remember(isAdmin) {
+        buildList {
+            add(DrawerSection(icon = Icons.Default.Home, label = "Inicio"))
+            add(DrawerSection(icon = Icons.Default.ShoppingCart, label = "Productos"))
+            add(DrawerSection(icon = Icons.Default.Article, label = "Blog"))
+            add(DrawerSection(icon = Icons.Default.Event, label = "Eventos"))
+            if (isAdmin) {
+                add(DrawerSection(icon = Icons.Default.Group, label = "Usuarios"))
+            }
+        }
+    }
 
     // -- Profile UI State --
 
@@ -282,7 +287,8 @@ fun MainScreen(
                     isLoading = isLoading,
                     isLoggedIn = isLoggedIn,
                     userSessionId = userSession?.userId?.toString(),
-                    userDisplayName = userSession?.displayName
+                    userDisplayName = userSession?.displayName,
+                    tipoUsuario = userSession?.tipoUsuario
                 )
             }
         }

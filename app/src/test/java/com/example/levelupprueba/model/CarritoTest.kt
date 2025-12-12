@@ -1,9 +1,10 @@
 package com.example.levelupprueba.model.carrito
 
 import android.util.Log
-import com.example.levelupprueba.data.repository.ProductoRepository
+import com.example.levelupprueba.model.producto.Producto
 import io.mockk.every
 import io.mockk.mockkStatic
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -11,8 +12,20 @@ import org.junit.jupiter.api.Test
 
 class CarritoTest {
 
-    // Producto base tomado del repositorio en memoria
-    private suspend fun getBaseProducto() = ProductoRepository().obtenerProductos().first()
+    // Producto base para tests
+    private fun getBaseProducto(): Producto = Producto(
+        id = "P1",
+        nombre = "Producto Test",
+        descripcion = "Descripción test",
+        precio = 10000.0,
+        imagenUrl = "test.jpg",
+        categoria = com.example.levelupprueba.model.producto.Categoria.CONSOLA,
+        subcategoria = com.example.levelupprueba.model.producto.Subcategoria.MANDOS,
+        rating = 4.5f,
+        disponible = true,
+        destacado = false,
+        stock = 10
+    )
 
     @BeforeEach
     fun setUp() = runTest {
@@ -23,7 +36,7 @@ class CarritoTest {
     }
 
     @Test
-    fun `totalLinea usa precio sin descuento cuando no hay descuento`() = runTest {
+    fun `totalLinea usa precio sin descuento cuando no hay descuento`() {
         // Crea producto sin descuento
         val productoSinDescuento = getBaseProducto().copy(descuento = null)
 
@@ -42,7 +55,7 @@ class CarritoTest {
     }
 
     @Test
-    fun `totalLinea usa precio con descuento cuando existe descuento`() = runTest {
+    fun `totalLinea usa precio con descuento cuando existe descuento`() {
         // Crea producto con descuento del 10%
         val productoConDescuento = getBaseProducto().copy(descuento = 10)
 
@@ -64,7 +77,7 @@ class CarritoTest {
     }
 
     @Test
-    fun `subtotal y total corresponden a la suma de los totalLinea`() = runTest {
+    fun `subtotal y total corresponden a la suma de los totalLinea`() {
         // Crea dos productos con distintos precios
         val p1 = getBaseProducto().copy(id = "P1", precio = 1000.0, descuento = null)
         val p2 = getBaseProducto().copy(id = "P2", precio = 2000.0, descuento = 50)
@@ -95,7 +108,7 @@ class CarritoTest {
     }
 
     @Test
-    fun `unidadesTotales corresponde a la suma de las cantidades`() = runTest {
+    fun `unidadesTotales corresponde a la suma de las cantidades`() {
         // Crea dos productos distintos
         val p1 = getBaseProducto().copy(id = "P1")
         val p2 = getBaseProducto().copy(id = "P2")

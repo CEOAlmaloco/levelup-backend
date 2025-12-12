@@ -3,6 +3,7 @@ package com.example.levelupprueba.navigation
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -20,6 +21,7 @@ import com.example.levelupprueba.ui.screens.auth.LoginScreen
 import com.example.levelupprueba.ui.screens.auth.RegisterScreen
 import com.example.levelupprueba.ui.screens.carrito.CarritoScreen
 import com.example.levelupprueba.ui.screens.profile.ProfileScreen
+import com.example.levelupprueba.navigation.Screen
 import com.example.levelupprueba.viewmodel.*
 import kotlinx.coroutines.launch
 
@@ -43,7 +45,8 @@ fun MainNavGraph(
     isLoading: Boolean,
     isLoggedIn: Boolean,
     userSessionId: String?,
-    userDisplayName: String?
+    userDisplayName: String?,
+    tipoUsuario: String? = null
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -156,14 +159,25 @@ fun MainNavGraph(
             CarritoScreen(
                 viewModel = carritoViewModel,
                 contentPadding = innerPadding,
+                mainViewModel = mainViewModel
             )
         } // Fin carritoScreen
 
         composable(Screen.GestionUsuarios.route){
-            AdminUsuariosScreen(
-                viewModel = usuariosViewModel,
-                contentPadding = innerPadding
-            )
+            // Solo permitir acceso si el usuario es administrador
+            if (tipoUsuario == "ADMINISTRADOR") {
+                AdminUsuariosScreen(
+                    viewModel = usuariosViewModel,
+                    contentPadding = innerPadding
+                )
+            } else {
+                // Redirigir a Home si no es admin
+                LaunchedEffect(Unit) {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                }
+            }
         }
     }
 }

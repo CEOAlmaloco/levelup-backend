@@ -1,6 +1,7 @@
 package com.example.levelupprueba.viewmodel
 // recordatorio, el viewmodel es el encargado de manejar el estado y la logica de la aplicacion
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.levelupprueba.data.repository.ProductoRepository
@@ -13,7 +14,10 @@ import kotlinx.coroutines.launch
 
 //el valor privado de repository sera un objeto de la clase ProductoRepository
 //por ahora sin reviewDao para no romper el codigo existente, despues lo agregamos en el factory TODO
-class ProductoViewModel(private val repository: ProductoRepository = ProductoRepository()) : ViewModel() {
+class ProductoViewModel(
+    context: Context? = null,
+    private val repository: ProductoRepository = ProductoRepository(context?.applicationContext)
+) : ViewModel() {
 
     private val _estado = MutableStateFlow(ProductoUiState())//se crea un estado mutable para que el productoUiState se actualice en tiempo real
     val estado: StateFlow<ProductoUiState> = _estado// el estado sera igual a el estado mutable de productoUiState
@@ -27,19 +31,50 @@ class ProductoViewModel(private val repository: ProductoRepository = ProductoRep
     private var todosLosProductos: List<Producto> = emptyList()//se crea una lista de productos para que se actualice en tiempo real
 
     init {//se carga los productos y las imagenes del carrusel antes de que se muestre la pantalla
-        cargarProductos()
-        cargarImagenesCarrusel()
-        cargarLogo()
+        // Ejecutar cargas de forma síncrona en init para que funcione en tests
+        kotlinx.coroutines.runBlocking {
+            try {
+                _estado.update { it.copy(isLoading = true, error = null) }
+                todosLosProductos = repository.obtenerProductos(false)
+                val destacados = repository.obtenerProductosDestacados(false)
+                _estado.update {
+                    it.copy(
+                        productos = todosLosProductos,
+                        productosDestacados = destacados,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _estado.update {
+                    it.copy(
+                        isLoading = false,
+                        error = "Error al cargar productos: ${e.message}"
+                    )
+                }
+            }
+            try {
+                val imagenes = repository.obtenerImagenesCarrusel()
+                _imagenesCarrusel.value = imagenes
+            } catch (e: Exception) {
+                _imagenesCarrusel.value = emptyList()
+            }
+            try {
+                val url = repository.obtenerLogoUrl()
+                _logoUrl.value = url
+            } catch (e: Exception) {
+                _logoUrl.value = ""
+            }
+        }
     }
 
-    private fun cargarProductos() {//esta funcion se encarga de cargar los productos y los destacados
+    private fun cargarProductos(forceRefresh: Boolean = false) {//esta funcion se encarga de cargar los productos y los destacados
         viewModelScope.launch {// el scope es un contenedor para las corrutinas y la launch es para lanzar la corrutina
-            android.util.Log.d("ProductoViewModel", "Iniciando carga de productos...")
+            android.util.Log.d("ProductoViewModel", "Iniciando carga de productos (forceRefresh=$forceRefresh)...")
             _estado.update { it.copy(isLoading = true, error = null) }//se actualiza el estado para que se muestre el loading y el error
             try {
-                todosLosProductos = repository.obtenerProductos()//se obtienen los productos desde el backend
+                todosLosProductos = repository.obtenerProductos(forceRefresh)//se obtienen los productos (desde caché o backend)
                 android.util.Log.d("ProductoViewModel", "Productos obtenidos: ${todosLosProductos.size}")
-                val destacados = repository.obtenerProductosDestacados()//se obtienen los productos destacados
+                val destacados = repository.obtenerProductosDestacados(forceRefresh)//se obtienen los productos destacados
                 android.util.Log.d("ProductoViewModel", "Productos destacados obtenidos: ${destacados.size}")
                 //se actualiza el estado para que se muestre los productos y los destacados
                 _estado.update {
@@ -61,6 +96,13 @@ class ProductoViewModel(private val repository: ProductoRepository = ProductoRep
                 }
             }
         }
+    }
+    
+    /**
+     * Fuerza la recarga de productos desde el backend (ignorando caché)
+     */
+    fun recargarProductos() {
+        cargarProductos(forceRefresh = true)
     }
 
     private fun cargarImagenesCarrusel() {//lo mismo de antes pero con las imagenes del carrusel

@@ -65,8 +65,8 @@ class UsuarioValidatorTest {
 
     @Test
     fun `validarPassword devuelve MinLength cuando es demasiado corta`() {
-        // Ejecuta validación con contraseña corta
-        val resultado = UsuarioValidator.validarPassword("123")
+        // Ejecuta validación con contraseña corta (menos de 8 caracteres)
+        val resultado = UsuarioValidator.validarPassword("1234567")
 
         // Verifica que se devuelva error de longitud mínima
         assertEquals(FieldErrors.MinLength("contraseña", 8), resultado)

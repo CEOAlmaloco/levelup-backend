@@ -29,6 +29,8 @@ import com.example.levelupprueba.utils.formatCLP
 import com.example.levelupprueba.viewmodel.CarritoViewModel
 import com.example.levelupprueba.ui.theme.TextHigh
 import com.example.levelupprueba.ui.theme.TextMedium
+import com.example.levelupprueba.viewmodel.MainViewModel
+import androidx.compose.runtime.LaunchedEffect
 
 
 // Screen del Carrito: lista de ítems, resumen y acciones básicas.
@@ -36,12 +38,22 @@ import com.example.levelupprueba.ui.theme.TextMedium
 fun CarritoScreen(
     viewModel: CarritoViewModel,
     contentPadding: PaddingValues,
+    mainViewModel: MainViewModel? = null,
     dimens: Dimens = LocalDimens.current
 ) {
     // Observa el estado del VM
     val loading by viewModel.loading.collectAsState()
     val carrito by viewModel.carrito.collectAsState()
     val error by viewModel.error.collectAsState()
+    val successMessage by viewModel.successMessage.collectAsState()
+    
+    // Mostrar mensaje de éxito cuando se complete el pago
+    LaunchedEffect(successMessage) {
+        successMessage?.let { message ->
+            mainViewModel?.showSuccessSnackbar(message)
+            viewModel.clearSuccessMessage()
+        }
+    }
 
     Box(
         modifier = Modifier

@@ -27,10 +27,8 @@
         
         <!-- AWS EC2 para desarrollo (si se usa HTTP temporalmente) -->
         <!-- Nota: En producción debería usar HTTPS -->
-        <domain includeSubdomains="true">ec2-44-209-152-110.compute-1.amazonaws.com</domain>
-        <domain includeSubdomains="true">ec2-54-161-72-45.compute-1.amazonaws.com</domain>
-        <!-- IP directa de AWS (por si el DNS no resuelve) -->
-        <domain includeSubdomains="true">44.209.152.110</domain>
+        <!-- IP directa de AWS EC2 (por si el DNS no resuelve) -->
+        <domain includeSubdomains="true">98.83.239.227</domain>
     </domain-config>
     
     <!-- Configuración base: por defecto NO permitir cleartext en producción -->

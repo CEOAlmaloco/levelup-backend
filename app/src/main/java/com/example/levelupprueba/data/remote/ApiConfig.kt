@@ -19,7 +19,7 @@ object ApiConfig {
     
     // URLs de fallback en caso de error
     private const val FALLBACK_URL_DEBUG = "http://10.0.2.2:8094/"
-    private const val FALLBACK_URL_RELEASE = "https://api.levelup-gamer.com/"
+    private const val FALLBACK_URL_RELEASE = "http://98.83.239.227:8094/"
     
     // URL base del API Gateway
     // Se obtiene desde BuildConfig (configurado en build.gradle.kts)
@@ -250,13 +250,19 @@ object ApiConfig {
     }
     
     /**
-     * Interceptor para logging (solo en debug)
+     * Interceptor para logging (mejorado para ver requests y responses completos)
      */
-    private val loggingInterceptor = HttpLoggingInterceptor().apply {
+    private val loggingInterceptor = HttpLoggingInterceptor { message ->
+        // Usar Log.d para que siempre se vea en logcat (incluso en release si se necesita)
+        Log.d("OkHttp", message)
+    }.apply {
+        // Mostrar BODY completo para ver las peticiones y respuestas
+        // En producción puede cambiarse a HEADERS o NONE si es necesario
         level = if (BuildConfig.DEBUG) {
-            HttpLoggingInterceptor.Level.HEADERS
+            HttpLoggingInterceptor.Level.BODY
         } else {
-            HttpLoggingInterceptor.Level.NONE
+            // En release también mostrar logs pero solo BODY (sin headers sensibles)
+            HttpLoggingInterceptor.Level.BODY
         }
     }
     

@@ -32,6 +32,7 @@ import com.example.levelupprueba.viewmodel.MainViewModelFactory
 import com.example.levelupprueba.viewmodel.ChangePasswordViewModel
 import com.example.levelupprueba.viewmodel.ChangePasswordViewModelFactory
 import com.example.levelupprueba.viewmodel.ProductoViewModel
+import com.example.levelupprueba.viewmodel.ProductoViewModelFactory
 import com.example.levelupprueba.viewmodel.ProductoDetalleViewModel
 import com.example.levelupprueba.viewmodel.ProfileViewModel
 import com.example.levelupprueba.viewmodel.ProfileViewModelFactory
@@ -74,6 +75,7 @@ class   MainActivity : ComponentActivity() {
             val carritoViewModelFactory = CarritoViewModelFactory(carritoRepo)
             val profileViewModelFactory = ProfileViewModelFactory(notificacionesRepository)
             val changePasswordViewModelFactory = ChangePasswordViewModelFactory()
+            val productoViewModelFactory = ProductoViewModelFactory(context)
 
             // ViewModels - aca creamos los viewmodels, algunos con factory y otros sin factory
             val eventoViewModel: EventoViewModel = viewModel(factory = eventoViewModelFactory)
@@ -82,7 +84,7 @@ class   MainActivity : ComponentActivity() {
             val mainViewModel: MainViewModel = viewModel(factory = mainViewModelFactory)
             val loginViewModel: LoginViewModel = viewModel(factory = loginViewModelFactory)
             val blogViewModel: BlogViewModel = viewModel()
-            val productoViewModel: ProductoViewModel = viewModel()
+            val productoViewModel: ProductoViewModel = viewModel(factory = productoViewModelFactory)
             val carritoViewModel: CarritoViewModel = viewModel(factory = carritoViewModelFactory)
             val productoDetalleViewModel: ProductoDetalleViewModel = viewModel()
             val profileViewModel: ProfileViewModel = viewModel(factory = profileViewModelFactory)

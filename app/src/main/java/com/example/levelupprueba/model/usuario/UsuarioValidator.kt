@@ -34,18 +34,43 @@ object UsuarioValidator {
     // Expresión regular básica para validar formato de correo
     private val EMAIL_REGEX =
         Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")
+    
+    // Dominios permitidos para correos electrónicos
+    private val DOMINIOS_PERMITIDOS = listOf(
+        "@duoc.cl",
+        "@profesor.duoc.cl",
+        "@gmail.com"
+    )
 
     fun validarEmail(email: String): FieldErrors? =
         when {
             email.isBlank() -> FieldErrors.Obligatorio("correo")
-            !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> UsuarioFieldErrors.EmailInvalido
-            else -> null
+            else -> {
+                // Validar formato de email (usar fallback si Patterns.EMAIL_ADDRESS es null en tests)
+                val formatoValido = try {
+                    Patterns.EMAIL_ADDRESS?.matcher(email)?.matches() ?: EMAIL_REGEX.matches(email)
+                } catch (e: Exception) {
+                    EMAIL_REGEX.matches(email)
+                }
+                
+                if (!formatoValido) {
+                    UsuarioFieldErrors.EmailInvalido
+                } else {
+                    // Validar dominio permitido
+                    val dominioPermitido = DOMINIOS_PERMITIDOS.any { email.endsWith(it) }
+                    if (!dominioPermitido) {
+                        UsuarioFieldErrors.EmailDominioNoPermitido
+                    } else {
+                        null
+                    }
+                }
+            }
         }
 
     fun validarPassword(password: String): FieldErrors? =
         when {
             password.isBlank() -> FieldErrors.Obligatorio("contraseña")
-            password.length < 4 -> FieldErrors.MinLength("contraseña", 4)
+            password.length < 8 -> FieldErrors.MinLength("contraseña", 8)
             password.length > 10 -> FieldErrors.MaxLength("contraseña", 10)
             else -> null
         }

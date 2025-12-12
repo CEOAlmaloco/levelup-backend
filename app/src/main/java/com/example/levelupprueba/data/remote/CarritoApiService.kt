@@ -79,15 +79,19 @@ data class AgregarItemRequest(
 
 /**
  * Request para actualizar cantidad
+ * El backend espera un Map con la clave "cantidad"
  */
 data class ActualizarCantidadRequest(
     val cantidad: Int
-)
+) {
+    fun toMap(): Map<String, Int> = mapOf("cantidad" to cantidad)
+}
 
 /**
  * DTO de Carrito
  */
 data class CarritoDto(
+<<<<<<< HEAD
     @SerializedName("idCarrito")
     val idCarrito: Long? = null,
     @SerializedName("id")
@@ -116,12 +120,29 @@ data class CarritoDto(
     val fechaCreacion: String? = null,
     @SerializedName("fechaActualizacion")
     val fechaActualizacion: String? = null
+=======
+    val idCarrito: Long?,
+    val id: Long?,
+    val idUsuario: Long?,
+    val usuarioId: Long?,
+    val items: List<ItemCarritoDto>?,
+    val total: Double?,
+    val totalCarrito: Double?,
+    val totalFinal: Double?,
+    val estado: String?,
+    val estadoCarrito: String?,
+    val createdAt: String?,
+    val updatedAt: String?,
+    val fechaCreacion: String?,
+    val fechaActualizacion: String?
+>>>>>>> main
 )
 
 /**
  * DTO de Item del Carrito
  */
 data class ItemCarritoDto(
+<<<<<<< HEAD
     @SerializedName("idItem")
     val idItem: Long? = null,
     @SerializedName("id")
@@ -154,4 +175,22 @@ data class ItemCarritoDto(
     val estadoItem: String? = null,
     @SerializedName("activo")
     val activo: Boolean? = null
+=======
+    val idItem: Long?,
+    val id: Long?,
+    val idCarrito: Long?,
+    val idProducto: Long?,
+    val productoId: Long?,
+    val nombreProducto: String?,
+    val descripcionProducto: String?,
+    val producto: ProductoDto?,
+    val cantidad: Int,
+    val precioUnitario: Double?,
+    val subtotal: Double?,
+    val totalItem: Double?,
+    val descuentoAplicado: Double?,
+    val impuestoAplicado: Double?,
+    val estadoItem: String?,
+    val activo: Boolean?
+>>>>>>> main
 )
