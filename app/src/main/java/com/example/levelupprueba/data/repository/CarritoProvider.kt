@@ -21,10 +21,6 @@ object CarritoProvider {
     private fun createRepository(context: Context): CarritoRepository {
         // El carrito se sincroniza siempre con el backend; para usuarios no autenticados
         // el backend responderá con carrito vacío o validará sesión según corresponda.
-<<<<<<< HEAD
-        return CarritoRepositoryRemote(context)
-=======
         return CarritoRepositoryRemote(context.applicationContext)
->>>>>>> main
     }
 }
